@@ -237,7 +237,7 @@ namespace ZMQ {
         /// </summary>
         public void FireEvents() {
             if ((zmqPollItem.Revents & IOMultiPlex.POLLIN) ==
-                OMultiPlex.POLLIN)  {
+                IOMultiPlex.POLLIN)  {
                 PollInHandlers(socket, zmqPollItem.Revents);
             }
             if ((zmqPollItem.Revents & IOMultiPlex.POLLOUT) ==
