@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Text;
 using System.Diagnostics;
 using System.Threading;
@@ -7,9 +7,10 @@ using ZMQ;
 namespace local_lat {
     class Program {
         static int Main(string[] args) {
-            if (args.Length != 3) {
-                Console.Out.WriteLine("usage: local_thr <address> " +
-                    "<message-size> <round-trip-count>\n");
+            if (args.Length != 3)
+            {
+                Console.Out.WriteLine("usage: local_lat <address> " +
+                    "<message-size> <roundtrip-count>\n");
                 return 1;
             }
 
@@ -23,13 +24,16 @@ namespace local_lat {
             s.Bind(address);
 
             //  Bounce the messages.
-            for (int i = 0; i < roundtripCount; i++) {
+            for (int i = 0; i < roundtripCount; i++)
+            {
                 byte[] msg;
                 msg = s.Recv();
                 Debug.Assert(msg.Length == messageSize);
                 s.Send(msg);
             }
+
             Thread.Sleep(2000);
+
             return 0;
         }
     }

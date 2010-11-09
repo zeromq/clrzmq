@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.Text;
 using ZMQ;
@@ -6,9 +6,10 @@ using ZMQ;
 namespace remote_lat {
     class Program {
         static int Main(string[] args) {
-            if (args.Length != 3) {
-                Console.Out.WriteLine("usage: local_thr <address> " +
-                    "<message-size> <round-trip-count>\n");
+            if (args.Length != 3)
+            {
+                Console.Out.WriteLine("usage: remote_lat <address> " +
+                    "<message-size> <roundtrip-count>\n");
                 return 1;
             }
 
@@ -25,12 +26,13 @@ namespace remote_lat {
             byte[] msg = new byte[messageSize];
 
             //  Start measuring the time.
-            Stopwatch watch;
+            System.Diagnostics.Stopwatch watch;
             watch = new Stopwatch();
             watch.Start();
 
             //  Start sending messages.
-            for (int i = 0; i < roundtripCount; i++) {
+            for (int i = 0; i < roundtripCount; i++)
+            {
                 s.Send(msg);
                 msg = s.Recv();
                 Debug.Assert(msg.Length == messageSize);
@@ -38,18 +40,18 @@ namespace remote_lat {
 
             //  Stop measuring the time.
             watch.Stop();
-            long elapsedTime = watch.ElapsedTicks;
-
+            Int64 elapsedTime = watch.ElapsedTicks;
+    
             //  Print out the test parameters.
-            Console.WriteLine("message size: " + messageSize + " [B]");
-            Console.WriteLine("roundtrip count: " + roundtripCount);
-
+            Console.Out.WriteLine("message size: " + messageSize + " [B]");
+            Console.Out.WriteLine("roundtrip count: " + roundtripCount);
+    
             //  Compute and print out the latency.
             double latency = (double)(elapsedTime) / roundtripCount / 2 *
                 1000000 / Stopwatch.Frequency;
-            Console.WriteLine("Your average latency is {0} [us]",
+            Console.Out.WriteLine("Your average latency is {0} [us]",
                 latency.ToString("f2"));
-            
+
             return 0;
         }
     }
