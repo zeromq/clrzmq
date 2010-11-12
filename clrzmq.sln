@@ -93,8 +93,8 @@ Global
 		{FE6D6CDD-8A04-4A3A-A654-5C687AB724E3}.WIN_RELEASE|x86.Build.0 = WIN_RELEASE|x86
 	EndGlobalSection
 	GlobalSection(MonoDevelopProperties) = preSolution
-		version = 2.0.0.0
 		StartupItem = clrzmq\clrzmq.csproj
+		version = 2.0.0.0
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
