@@ -91,7 +91,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'POSIX_DEBUG|x64'">
     <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\x64\POSIX_DEBUG\</OutputPath>
+    <OutputPath>bin\debug\</OutputPath>
     <DefineConstants>TRACE;DEBUG;x64 POSIX</DefineConstants>
     <DebugType>full</DebugType>
     <PlatformTarget>x64</PlatformTarget>
@@ -103,7 +103,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'POSIX_DEBUG|x86'">
     <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\x86\POSIX_DEBUG\</OutputPath>
+    <OutputPath>bin\debug\</OutputPath>
     <DefineConstants>TRACE;DEBUG;x86 POSIX</DefineConstants>
     <DebugType>full</DebugType>
     <PlatformTarget>x86</PlatformTarget>
@@ -120,14 +120,14 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'POSIX_RELEASE|x64'">
-    <OutputPath>bin\x64\POSIX_RELEASE\</OutputPath>
+    <OutputPath>bin\release\</OutputPath>
     <DefineConstants>TRACE;x64 POSIX</DefineConstants>
     <Optimize>true</Optimize>
     <DebugType>none</DebugType>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'POSIX_RELEASE|x86'">
-    <OutputPath>bin\x86\POSIX_RELEASE\</OutputPath>
+    <OutputPath>bin\release\</OutputPath>
     <DefineConstants>TRACE;x86 POSIX</DefineConstants>
     <Optimize>true</Optimize>
     <DebugType>none</DebugType>
@@ -137,7 +137,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\x64\WIN_DEBUG\</OutputPath>
+    <OutputPath>bin\debug\</OutputPath>
     <DefineConstants>TRACE;DEBUG;x64</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -146,7 +146,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'WIN_RELEASE|x64' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\x64\WIN_RELEASE\</OutputPath>
+    <OutputPath>bin\release\</OutputPath>
     <DefineConstants>TRACE;x64</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -156,7 +156,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\x86\WIN_DEBUG\</OutputPath>
+    <OutputPath>bin\debug\</OutputPath>
     <DefineConstants>TRACE;DEBUG;x86</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -166,7 +166,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'WIN_RELEASE|x86' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\x86\WIN_RELEASE\</OutputPath>
+    <OutputPath>bin\release\</OutputPath>
     <DefineConstants>TRACE;x86</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
