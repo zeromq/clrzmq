@@ -2,3 +2,4 @@ clrzmq.userprefs
 */bin/
 */obj/
 *.pidb
+*.suo

@@ -118,6 +118,7 @@ namespace ZMQ {
     /// ZMQ Poll item, sets target socket and events.
     /// </summary>
     public struct ZMQPollItem {
+#pragma warning disable 414 //Silence variable not used warnings
         private IntPtr socket;
 #if x86 || POSIX
         private int fd;
@@ -125,6 +126,7 @@ namespace ZMQ {
         private long fd;
 #endif
         private short events;
+#pragma warning restore //Restore full warnings
         private short revents;
 
 #if x86 || POSIX
