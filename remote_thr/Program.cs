@@ -8,7 +8,7 @@ namespace remote_thr {
     class Program {
         static int Main(string[] args) {
             if (args.Length != 3) {
-                Console.Out.WriteLine("usage: remote_thr <address> " +
+                Console.WriteLine("usage: remote_thr <address> " +
                     "<message-size> <message-count>\n");
                 return 1;
             }
@@ -18,19 +18,20 @@ namespace remote_thr {
             int messageCount = Convert.ToInt32(args[2]);
 
             //  Initialise 0MQ infrastructure
-            Context ctx = new Context(1);
-            Socket s = ctx.Socket(SocketType.PUB);
-            s.Connect(address);
+            using (Context ctx = new Context(1)) {
+                using (Socket skt = ctx.Socket(SocketType.PUB)) {
+                    skt.Connect(address);
 
-            //  Create a message to send.
-            byte[] msg = new byte[messageSize];
+                    //  Create a message to send.
+                    byte[] msg = new byte[messageSize];
 
-            //  Start sending messages.
-            for (int i = 0; i < messageCount; i++)
-                s.Send(msg);
-
-            Thread.Sleep(10000);
-
+                    //  Start sending messages.
+                    for (int i = 0; i < messageCount; i++) {
+                        skt.Send(msg);
+                    }
+                    Thread.Sleep(2000);
+                }
+            }
             return 0;
         }
     }

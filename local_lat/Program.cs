@@ -7,8 +7,7 @@ using ZMQ;
 namespace local_lat {
     class Program {
         static int Main(string[] args) {
-            if (args.Length != 3)
-            {
+            if (args.Length != 3) {
                 Console.Out.WriteLine("usage: local_lat <address> " +
                     "<message-size> <roundtrip-count>\n");
                 return 1;
@@ -19,21 +18,20 @@ namespace local_lat {
             int roundtripCount = Convert.ToInt32(args[2]);
 
             //  Initialise 0MQ infrastructure
-            Context ctx = new Context(1);
-            Socket s = ctx.Socket(SocketType.REP);
-            s.Bind(address);
+            using (Context ctx = new Context(1)) {
+                using (Socket skt = ctx.Socket(SocketType.REP)) {
+                    skt.Bind(address);
 
-            //  Bounce the messages.
-            for (int i = 0; i < roundtripCount; i++)
-            {
-                byte[] msg;
-                msg = s.Recv();
-                Debug.Assert(msg.Length == messageSize);
-                s.Send(msg);
+                    //  Bounce the messages.
+                    for (int i = 0; i < roundtripCount; i++) {
+                        byte[] msg;
+                        msg = skt.Recv();
+                        Debug.Assert(msg.Length == messageSize);
+                        skt.Send(msg);
+                    }
+                    Thread.Sleep(1000);
+                }
             }
-
-            Thread.Sleep(2000);
-
             return 0;
         }
     }
