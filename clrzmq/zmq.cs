@@ -411,26 +411,26 @@ namespace ZMQ {
                 Marshal.StructureToPtr(item.ZMQPollItem, offset, false);
 #if x64
                 offset = new IntPtr(offset.ToInt64() + sizeOfZPL);
-#elif x86
+#else
                 offset = new IntPtr(offset.ToInt32() + sizeOfZPL);
 #endif
             }
             int rc = C.zmq_poll(itemList, items.Length, timeout);
-            if (rc < 0)
-                throw new Exception();
             if (rc > 0) {
                 for (int index = 0; index < items.Length; index++) {
                     items[index].ZMQPollItem = (ZMQPollItem)
                         Marshal.PtrToStructure(itemList, typeof(ZMQPollItem));
 #if x64
                     itemList = new IntPtr(itemList.ToInt64() + sizeOfZPL);
-#elif x86
+#else
                     itemList = new IntPtr(itemList.ToInt32() + sizeOfZPL);
 #endif
                 }
                 foreach (PollItem item in items) {
                     item.FireEvents();
                 }
+            } else if (rc < 0) {
+                throw new Exception();
             }
             return rc;
         }
