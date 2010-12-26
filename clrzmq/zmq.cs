@@ -405,32 +405,36 @@ namespace ZMQ {
         /// <returns>Number of Poll items with events</returns>
         public int Poll(PollItem[] items, long timeout) {
             int sizeOfZPL = Marshal.SizeOf(typeof(ZMQPollItem));
-            IntPtr itemList = Marshal.AllocHGlobal(sizeOfZPL * items.Length);
-            IntPtr offset = itemList;
-            foreach (PollItem item in items) {
-                Marshal.StructureToPtr(item.ZMQPollItem, offset, false);
-#if x64
-                offset = new IntPtr(offset.ToInt64() + sizeOfZPL);
-#else
-                offset = new IntPtr(offset.ToInt32() + sizeOfZPL);
-#endif
-            }
-            int rc = C.zmq_poll(itemList, items.Length, timeout);
-            if (rc > 0) {
-                for (int index = 0; index < items.Length; index++) {
-                    items[index].ZMQPollItem = (ZMQPollItem)
-                        Marshal.PtrToStructure(itemList, typeof(ZMQPollItem));
-#if x64
-                    itemList = new IntPtr(itemList.ToInt64() + sizeOfZPL);
-#else
-                    itemList = new IntPtr(itemList.ToInt32() + sizeOfZPL);
-#endif
-                }
+            IntPtr offset = IntPtr.Zero;
+            int rc = 0;
+            using (DisposableIntPtr itemList = new DisposableIntPtr(sizeOfZPL * items.Length)) {
+                offset = itemList.Ptr;
                 foreach (PollItem item in items) {
-                    item.FireEvents();
+                    Marshal.StructureToPtr(item.ZMQPollItem, offset, false);
+#if x64
+                    offset = new IntPtr(offset.ToInt64() + sizeOfZPL);
+#else
+                    offset = new IntPtr(offset.ToInt32() + sizeOfZPL);
+#endif
                 }
-            } else if (rc < 0) {
-                throw new Exception();
+                rc = C.zmq_poll(itemList.Ptr, items.Length, timeout);
+                if (rc > 0) {
+                    offset = itemList.Ptr;
+                    for (int index = 0; index < items.Length; index++) {
+                        items[index].ZMQPollItem = (ZMQPollItem)
+                            Marshal.PtrToStructure(offset, typeof(ZMQPollItem));
+#if x64
+                        offset = new IntPtr(offset.ToInt64() + sizeOfZPL);
+#else
+                        offset = new IntPtr(offset.ToInt32() + sizeOfZPL);
+#endif
+                    }
+                    foreach (PollItem item in items) {
+                        item.FireEvents();
+                    }
+                } else if (rc < 0) {
+                    throw new Exception();
+                }
             }
             return rc;
         }
@@ -442,6 +446,34 @@ namespace ZMQ {
         /// <returns>Number of Poll items with events</returns>
         public int Poll(PollItem[] items) {
             return Poll(items, -1);
+        }
+    }
+
+    internal class DisposableIntPtr : IDisposable {
+        IntPtr ptr;
+
+        public DisposableIntPtr (int size) {
+            ptr = Marshal.AllocHGlobal(size);
+        }
+
+        public IntPtr Ptr {
+            get { return ptr; }
+        }
+
+        ~DisposableIntPtr() {
+            Dispose(false);
+        }
+
+        public void Dispose() {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing) {
+            if (ptr != IntPtr.Zero) {
+                Marshal.FreeHGlobal(ptr);
+                ptr = IntPtr.Zero;
+            }
         }
     }
 
@@ -567,11 +599,11 @@ namespace ZMQ {
         /// <exception cref="ZMQ.Exception">ZMQ Exception</exception>
         public void SetSockOpt(SocketOpt option, ulong value) {
             int sizeOfValue = Marshal.SizeOf(typeof(ulong));
-            IntPtr valPtr = Marshal.AllocHGlobal(sizeOfValue);
-            WriteSizeT(valPtr, value);
-            if (C.zmq_setsockopt(ptr, (int)option, valPtr, sizeOfValue) != 0)
-                throw new Exception();
-            Marshal.FreeHGlobal(valPtr);
+            using (DisposableIntPtr valPtr = new DisposableIntPtr(sizeOfValue)) {
+                WriteSizeT(valPtr.Ptr, value);
+                if (C.zmq_setsockopt(ptr, (int)option, valPtr.Ptr, sizeOfValue) != 0)
+                    throw new Exception();
+            }
         }
 
         /// <summary>
@@ -581,11 +613,11 @@ namespace ZMQ {
         /// <param name="value">Option value</param>
         /// <exception cref="ZMQ.Exception">ZMQ Exception</exception>
         public void SetSockOpt(SocketOpt option, byte[] value) {
-            IntPtr valPtr = Marshal.AllocHGlobal(value.Length);
-            Marshal.Copy(value, 0, valPtr, value.Length);
-            if (C.zmq_setsockopt(ptr, (int)option, valPtr, value.Length) != 0)
-                throw new Exception();
-            Marshal.FreeHGlobal(valPtr);
+            using (DisposableIntPtr valPtr = new DisposableIntPtr(value.Length)) {
+                Marshal.Copy(value, 0, valPtr.Ptr, value.Length);
+                if (C.zmq_setsockopt(ptr, (int)option, valPtr.Ptr, value.Length) != 0)
+                    throw new Exception();
+            }
         }
 
         /// <summary>
@@ -596,11 +628,11 @@ namespace ZMQ {
         /// <exception cref="ZMQ.Exception">ZMQ Exception</exception>
         public void SetSockOpt(SocketOpt option, long value) {
             int sizeOfValue = Marshal.SizeOf(typeof(long));
-            IntPtr valPtr = Marshal.AllocHGlobal(sizeOfValue);
-            WriteSizeT(valPtr, value);
-            if (C.zmq_setsockopt(ptr, (int)option, valPtr, sizeOfValue) != 0)
-                throw new Exception();
-            Marshal.FreeHGlobal(valPtr);
+            using (DisposableIntPtr valPtr = new DisposableIntPtr(sizeOfValue)) {
+                WriteSizeT(valPtr.Ptr, value);
+                if (C.zmq_setsockopt(ptr, (int)option, valPtr.Ptr, sizeOfValue) != 0)
+                    throw new Exception();
+            }
         }
 
         /// <summary>
@@ -611,31 +643,31 @@ namespace ZMQ {
         /// <exception cref="ZMQ.Exception">ZMQ Exception</exception>
         public object GetSockOpt(SocketOpt option) {
             object output;
-            IntPtr val;
-            IntPtr len = Marshal.AllocHGlobal(IntPtr.Size);
-            if (option == SocketOpt.IDENTITY) {
-                val = Marshal.AllocHGlobal(255);
-                WriteSizeT(len, 255);
-                if (C.zmq_getsockopt(ptr, (int)option, val, len) != 0)
-                    throw new Exception();
-                byte[] buffer = new byte[Convert.ToInt32(ReadSizeT(len))];
-                Marshal.Copy(val, buffer, 0, buffer.Length);
-                output = buffer;
-            } else {
-                val = Marshal.AllocHGlobal(IntPtr.Size);
-                WriteSizeT(len, Marshal.SizeOf(typeof(long)));
-                if (C.zmq_getsockopt(ptr, (int)option, val, len) != 0)
-                    throw new Exception();
-                //Unchecked casting of uint64 options
-                if (option == SocketOpt.HWM || option == SocketOpt.AFFINITY ||
-                    option == SocketOpt.SNDBUF || option == SocketOpt.RCVBUF) {
-                    output = unchecked((ulong)Marshal.ReadInt64(val));
+            using (DisposableIntPtr len = new DisposableIntPtr(IntPtr.Size)) {
+                if (option == SocketOpt.IDENTITY) {
+                    using (DisposableIntPtr val = new DisposableIntPtr(255)) {
+                        WriteSizeT(len.Ptr, 255);
+                        if (C.zmq_getsockopt(ptr, (int)option, val.Ptr, len.Ptr) != 0)
+                            throw new Exception();
+                        byte[] buffer = new byte[Convert.ToInt32(ReadSizeT(len.Ptr))];
+                        Marshal.Copy(val.Ptr, buffer, 0, buffer.Length);
+                        output = buffer;
+                    }
                 } else {
-                    output = Marshal.ReadInt64(val);
+                    using (DisposableIntPtr val = new DisposableIntPtr(IntPtr.Size)) {
+                        WriteSizeT(len.Ptr, Marshal.SizeOf(typeof(long)));
+                        if (C.zmq_getsockopt(ptr, (int)option, val.Ptr, len.Ptr) != 0)
+                            throw new Exception();
+                        //Unchecked casting of uint64 options
+                        if (option == SocketOpt.HWM || option == SocketOpt.AFFINITY ||
+                            option == SocketOpt.SNDBUF || option == SocketOpt.RCVBUF) {
+                            output = unchecked((ulong)Marshal.ReadInt64(val.Ptr));
+                        } else {
+                            output = Marshal.ReadInt64(val.Ptr);
+                        }
+                    }
                 }
             }
-            Marshal.FreeHGlobal(val);
-            Marshal.FreeHGlobal(len);
             return output;
         }
 
