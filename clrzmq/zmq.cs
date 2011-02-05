@@ -4,14 +4,14 @@
     Copyright (c) 2010 Martin Sustrik <sustrik@250bpm.com>
     Copyright (c) 2010 Michael Compton <michael.compton@littleedge.co.uk>
 
-    This file is part of clrzmq.
+    This file is part of clrzmq2.
 
-    clrzmq is free software; you can redistribute it and/or modify it under
+    clrzmq2 is free software; you can redistribute it and/or modify it under
     the terms of the Lesser GNU General Public License as published by
     the Free Software Foundation; either version 3 of the License, or
     (at your option) any later version.
 
-    clrzmq is distributed in the hope that it will be useful,
+    clrzmq2 is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
     Lesser GNU General Public License for more details.
@@ -26,6 +26,8 @@ using System.Text;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using SysSockets = System.Net.Sockets;
+using System.Diagnostics;
+using System.Threading;
 
 namespace ZMQ {
     /// <summary>
@@ -376,11 +378,14 @@ namespace ZMQ {
         /// <param name="type">Type of socket to be created</param>
         /// <returns>A new ZMQ socket</returns>
         public Socket Socket(SocketType type) {
+            return new Socket(CreateSocketPtr(type));
+        }
+
+        internal IntPtr CreateSocketPtr(SocketType type) {
             IntPtr socket_ptr = C.zmq_socket(ptr, (int)type);
             if (ptr == IntPtr.Zero)
                 throw new Exception();
-
-            return new Socket(socket_ptr);
+            return socket_ptr;
         }
 
         public void Dispose() {
@@ -447,6 +452,57 @@ namespace ZMQ {
         public int Poll(PollItem[] items) {
             return Poll(items, -1);
         }
+
+        /// <summary>
+        /// Polls the supplied items for events. Static method
+        /// </summary>
+        /// <param name="items">Items to Poll</param>
+        /// <param name="timeout">Timeout</param>
+        /// <returns>Number of Poll items with events</returns>
+        public static int Poller(PollItem[] items, long timeout) {
+            int sizeOfZPL = Marshal.SizeOf(typeof(ZMQPollItem));
+            IntPtr offset = IntPtr.Zero;
+            int rc = 0;
+            using (DisposableIntPtr itemList = new DisposableIntPtr(sizeOfZPL * items.Length)) {
+                offset = itemList.Ptr;
+                foreach (PollItem item in items) {
+                    Marshal.StructureToPtr(item.ZMQPollItem, offset, false);
+#if x64
+                    offset = new IntPtr(offset.ToInt64() + sizeOfZPL);
+#else
+                    offset = new IntPtr(offset.ToInt32() + sizeOfZPL);
+#endif
+                }
+                rc = C.zmq_poll(itemList.Ptr, items.Length, timeout);
+                if (rc > 0) {
+                    offset = itemList.Ptr;
+                    for (int index = 0; index < items.Length; index++) {
+                        items[index].ZMQPollItem = (ZMQPollItem)
+                            Marshal.PtrToStructure(offset, typeof(ZMQPollItem));
+#if x64
+                        offset = new IntPtr(offset.ToInt64() + sizeOfZPL);
+#else
+                        offset = new IntPtr(offset.ToInt32() + sizeOfZPL);
+#endif
+                    }
+                    foreach (PollItem item in items) {
+                        item.FireEvents();
+                    }
+                } else if (rc < 0) {
+                    throw new Exception();
+                }
+            }
+            return rc;
+        }
+
+        /// <summary>
+        /// Polls the supplied items for events, with immediate timeout. Static method
+        /// </summary>
+        /// <param name="items">Items to Poll</param>
+        /// <returns>Number of Poll items with events</returns>
+        public static int Poller(PollItem[] items) {
+            return Poller(items, -1);
+        }
     }
 
     internal class DisposableIntPtr : IDisposable {
@@ -481,6 +537,10 @@ namespace ZMQ {
     /// ZMQ Socket
     /// </summary>
     public class Socket : IDisposable {
+        private static Context appContext;
+        private static int appSocketCount;
+        private static Object lockObj = new object();
+        private bool localSocket;
         private IntPtr ptr;
         private IntPtr msg;
         private string address;
@@ -502,6 +562,23 @@ namespace ZMQ {
         internal Socket(IntPtr ptr) {
             this.ptr = ptr;
             msg = Marshal.AllocHGlobal(ZMQ_MSG_T_SIZE);
+            localSocket = false;
+        }
+
+        /// <summary>
+        /// Create Socket using application wide Context
+        /// </summary>
+        /// <param name="type">Socket type</param>
+        public Socket(SocketType type) {
+            lock (lockObj) {
+                if (appContext == null) {
+                    appContext = new Context(1);
+                }
+                ptr = appContext.CreateSocketPtr(type);
+            }
+            Interlocked.Increment(ref appSocketCount);
+            msg = Marshal.AllocHGlobal(ZMQ_MSG_T_SIZE);
+            localSocket = true;
         }
 
         ~Socket() {
@@ -524,6 +601,15 @@ namespace ZMQ {
                 ptr = IntPtr.Zero;
                 if (rc != 0)
                     throw new Exception();
+            }
+            if (localSocket) {
+                Interlocked.Decrement(ref appSocketCount);
+                lock (lockObj) {
+                    if (appSocketCount == 0) {
+                        appContext.Dispose();
+                        appContext = null;
+                    }
+                }
             }
         }
 
@@ -751,6 +837,22 @@ namespace ZMQ {
         }
 
         /// <summary>
+        /// Listen for message with timeout
+        /// </summary>
+        /// <param name="timeout">Timeout in milliseconds</param>
+        /// <returns>Message</returns>
+        /// <exception cref="ZMQ.Exception">ZMQ Exception</exception>
+        public byte[] Recv(long timeout) {
+            Stopwatch timer = new Stopwatch();
+            byte[] data = null;
+            timer.Start();
+            while (data == null && timer.ElapsedMilliseconds < timeout) {
+                data = Recv(SendRecvOpt.NOBLOCK);
+            }
+            return data;
+        }
+
+        /// <summary>
         /// Listen for message, and return it in string format
         /// </summary>
         /// <param name="encoding">String encoding</param>
@@ -758,6 +860,17 @@ namespace ZMQ {
         /// <exception cref="ZMQ.Exception">ZMQ Exception</exception>
         public string Recv(Encoding encoding) {
             return Recv(encoding, SendRecvOpt.NONE);
+        }
+
+        /// <summary>
+        /// Listen for message, and return it in string format, with timeout
+        /// </summary>
+        /// <param name="encoding">String encoding</param>
+        /// <param name="timeout">Timeout in milliseconds</param>
+        /// <returns>Message string</returns>
+        /// <exception cref="ZMQ.Exception">ZMQ Exception</exception>
+        public string Recv(Encoding encoding, long timeout) {
+            return encoding.GetString(Recv(timeout));
         }
 
         /// <summary>
