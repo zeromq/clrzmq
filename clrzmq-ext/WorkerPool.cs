@@ -22,7 +22,7 @@ using System;
 using ZMQ;
 using System.Threading;
 
-namespace ZMQExt {
+namespace ZMQDevice {
 
     /// <summary>
     /// Worker pool device

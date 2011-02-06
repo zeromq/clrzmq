@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using ZMQ;
 using ZMQExt;
+using ZMQDevice;
 using System.Threading;
 using System.Runtime.Serialization;
 
@@ -37,7 +38,7 @@ namespace WorkerPool {
                  workers = new Socket(SocketType.XREQ)) {
                 clients.Bind("tcp://*:5555");
                 workers.Bind("inproc://workers");
-                ZMQExt.WorkerPool pool = new ZMQExt.WorkerPool(clients, workers, Worker, 5);
+                ZMQDevice.WorkerPool pool = new ZMQDevice.WorkerPool(clients, workers, Worker, 5);
                 Console.ReadLine();
                 pool.Stop();
             }

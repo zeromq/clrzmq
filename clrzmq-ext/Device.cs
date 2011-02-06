@@ -24,7 +24,7 @@ using System.Collections.Generic;
 using ZMQ;
 using System.Threading;
 
-namespace ZMQExt {
+namespace ZMQDevice {
     /// <summary>
     /// Base class for standard devices (non-blocking devices)
     /// </summary>

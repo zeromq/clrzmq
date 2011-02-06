@@ -46,6 +46,25 @@ namespace ZMQExt {
         }
 
         /// <summary>
+        /// Receive and deserialize an object of a given type using .Net binary serialization.
+        /// </summary>
+        /// <typeparam name="T">Received Object Type</typeparam>
+        /// <param name="skt">Socket</param>
+        /// <returns>T obj</returns>
+        public static T Recv<T>(this Socket skt, long timeout) where T : class {
+            T obj = null;
+            byte[] data = skt.Recv(timeout);
+            if (data != null) {
+                BinaryFormatter bf = new BinaryFormatter();
+                MemoryStream ms = new MemoryStream();
+                ms.Position = 0;
+                obj = (T)bf.Deserialize(ms);
+                ms.Close();
+            }
+            return obj;
+        }
+
+        /// <summary>
         /// Serialize and send object of given type using .Net binary serialization
         /// </summary>
         /// <typeparam name="T">Sending Object Type</typeparam>
