@@ -28,6 +28,7 @@ namespace ZMQ.ZMQDevice {
     public abstract class Device : IDisposable {
         protected Socket frontend;
         protected Socket backend;
+        protected PollItem[] pollItems;
         private Thread runningThread;
         private bool isRunning;
         protected bool run;
@@ -43,6 +44,12 @@ namespace ZMQ.ZMQDevice {
             isRunning = false;
             run = false;
             runningThread = new Thread(RunningLoop);
+            pollItems = new PollItem[2];
+            pollItems[0] = frontend.CreatePollItem(IOMultiPlex.POLLIN);
+            pollItems[0].PollInHandler += FrontendHandler;
+
+            pollItems[1] = backend.CreatePollItem(IOMultiPlex.POLLIN);
+            pollItems[1].PollInHandler += BackendHandler;
         }
 
         ~Device() {
@@ -63,6 +70,9 @@ namespace ZMQ.ZMQDevice {
             backend.Dispose();
         }
 
+        protected abstract void FrontendHandler(Socket socket, IOMultiPlex revents);
+        protected abstract void BackendHandler(Socket socket, IOMultiPlex revents);
+
         /// <summary>
         /// Start Device
         /// </summary>
@@ -70,6 +80,7 @@ namespace ZMQ.ZMQDevice {
             run = true;
             runningThread.Start();
             isRunning = true;
+            Thread.Sleep(100);
         }
 
         /// <summary>
@@ -84,27 +95,25 @@ namespace ZMQ.ZMQDevice {
             set { isRunning = value; }
         }
 
-        protected abstract void RunningLoop();
+        protected virtual void RunningLoop() {
+            while (run) {
+                Context.Poller(pollItems, 500);
+            }
+            IsRunning = false;
+        }
     }
 
     /// <summary>
     /// Standard Queue Device
     /// </summary>
     public class Queue : Device {
-        private PollItem[] pollItems;
         public Queue(string frontendAddr, string backendAddr)
             : base(new Socket(SocketType.XREP), new Socket(SocketType.XREQ)) {
             frontend.Bind(frontendAddr);
-            backend.Bind(backendAddr);
-            pollItems = new PollItem[2];
-            pollItems[0] = frontend.CreatePollItem(IOMultiPlex.POLLIN);
-            pollItems[0].PollInHandler += FrontendHandler;
-
-            pollItems[1] = backend.CreatePollItem(IOMultiPlex.POLLIN);
-            pollItems[1].PollInHandler += BackendHandler;
+            backend.Bind(backendAddr);          
         }
 
-        private void FrontendHandler(Socket socket, IOMultiPlex revents) {
+        protected override void FrontendHandler(Socket socket, IOMultiPlex revents) {
             Queue<byte[]> msgs = socket.RecvAll();
             while (msgs.Count > 1) {
                 backend.SendMore(msgs.Dequeue());
@@ -112,19 +121,37 @@ namespace ZMQ.ZMQDevice {
             backend.Send(msgs.Dequeue());
         }
 
-        private void BackendHandler(Socket socket, IOMultiPlex revents) {
+        protected override void BackendHandler(Socket socket, IOMultiPlex revents) {
             Queue<byte[]> msgs = socket.RecvAll();
             while (msgs.Count > 1) {
                 frontend.SendMore(msgs.Dequeue());
             }
             frontend.Send(msgs.Dequeue());
         }
+    }
 
-        protected override void RunningLoop() {
-            while (run) {
-                Context.Poller(pollItems, 500);
+    public delegate void MessageProcessor(byte[] identity, Queue<byte[]> msgParts);
+
+    public class AsyncReturn : Device {
+        private MessageProcessor messageProcessor;
+        public AsyncReturn(string frontendAddr, string backendAddr, MessageProcessor msgProc)
+            : base(new Socket(SocketType.XREP), new Socket(SocketType.PULL)) {
+            messageProcessor = msgProc;
+            frontend.Bind(frontendAddr);
+            backend.Bind(backendAddr);
+        }
+
+        protected override void FrontendHandler(Socket socket, IOMultiPlex revents) {
+            Queue<byte[]> msgs = socket.RecvAll();
+            messageProcessor(msgs.Dequeue(), msgs);
+        }
+
+        protected override void BackendHandler(Socket socket, IOMultiPlex revents) {
+            Queue<byte[]> msgs = socket.RecvAll();
+            while (msgs.Count > 1) {
+                frontend.SendMore(msgs.Dequeue());
             }
-            IsRunning = false;
+            frontend.Send(msgs.Dequeue());
         }
     }
 }

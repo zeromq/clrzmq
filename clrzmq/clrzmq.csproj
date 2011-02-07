@@ -103,8 +103,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Context.cs" />
+    <Compile Include="Enums.cs" />
+    <Compile Include="Polling.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="zmq.cs" />
+    <Compile Include="Util.cs" />
+    <Compile Include="Socket.cs" />
     <Compile Include="zmq_ffi.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
