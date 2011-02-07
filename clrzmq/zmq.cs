@@ -409,39 +409,7 @@ namespace ZMQ {
         /// <param name="timeout">Timeout</param>
         /// <returns>Number of Poll items with events</returns>
         public int Poll(PollItem[] items, long timeout) {
-            int sizeOfZPL = Marshal.SizeOf(typeof(ZMQPollItem));
-            IntPtr offset = IntPtr.Zero;
-            int rc = 0;
-            using (DisposableIntPtr itemList = new DisposableIntPtr(sizeOfZPL * items.Length)) {
-                offset = itemList.Ptr;
-                foreach (PollItem item in items) {
-                    Marshal.StructureToPtr(item.ZMQPollItem, offset, false);
-#if x64
-                    offset = new IntPtr(offset.ToInt64() + sizeOfZPL);
-#else
-                    offset = new IntPtr(offset.ToInt32() + sizeOfZPL);
-#endif
-                }
-                rc = C.zmq_poll(itemList.Ptr, items.Length, timeout);
-                if (rc > 0) {
-                    offset = itemList.Ptr;
-                    for (int index = 0; index < items.Length; index++) {
-                        items[index].ZMQPollItem = (ZMQPollItem)
-                            Marshal.PtrToStructure(offset, typeof(ZMQPollItem));
-#if x64
-                        offset = new IntPtr(offset.ToInt64() + sizeOfZPL);
-#else
-                        offset = new IntPtr(offset.ToInt32() + sizeOfZPL);
-#endif
-                    }
-                    foreach (PollItem item in items) {
-                        item.FireEvents();
-                    }
-                } else if (rc < 0) {
-                    throw new Exception();
-                }
-            }
-            return rc;
+            return Poller(items, timeout);
         }
 
         /// <summary>

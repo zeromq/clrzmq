@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using ZMQ;
-using ZMQExt;
-using ZMQDevice;
+using ZMQ.ZMQExt;
+using ZMQ.ZMQDevice;
 using System.Threading;
 using System.Runtime.Serialization;
 
@@ -34,14 +34,9 @@ namespace WorkerPool {
         }
 
         private static void Server() {
-            using (Socket clients = new Socket(SocketType.XREP),
-                 workers = new Socket(SocketType.XREQ)) {
-                clients.Bind("tcp://*:5555");
-                workers.Bind("inproc://workers");
-                ZMQDevice.WorkerPool pool = new ZMQDevice.WorkerPool(clients, workers, Worker, 5);
-                Console.ReadLine();
-                pool.Stop();
-            }
+            ZMQ.ZMQDevice.WorkerPool pool =
+                new ZMQ.ZMQDevice.WorkerPool("tcp://*:5555", "inproc://workers", Worker, 5);
+            Thread.Sleep(Timeout.Infinite);
         }
 
         public static  void Transmit() {

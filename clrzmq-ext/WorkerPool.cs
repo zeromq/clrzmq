@@ -22,15 +22,15 @@ using System;
 using ZMQ;
 using System.Threading;
 
-namespace ZMQDevice {
+namespace ZMQ.ZMQDevice {
 
     /// <summary>
     /// Worker pool device
     /// </summary>
     public class WorkerPool : Queue {
         private Thread[] workerThreads;
-        public WorkerPool(Socket inSkt, Socket outSkt, ThreadStart worker, short workerCount)
-            : base(inSkt, outSkt) {
+        public WorkerPool(string inSktAddr, string outSktAddr, ThreadStart worker, short workerCount)
+            : base(inSktAddr, outSktAddr) {
             Start();
             CreateWorkerThreads(worker, workerCount);
         }

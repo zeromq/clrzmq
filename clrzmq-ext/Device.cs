@@ -24,11 +24,8 @@ using System.Collections.Generic;
 using ZMQ;
 using System.Threading;
 
-namespace ZMQDevice {
-    /// <summary>
-    /// Base class for standard devices (non-blocking devices)
-    /// </summary>
-    public abstract class Device {
+namespace ZMQ.ZMQDevice {
+    public abstract class Device : IDisposable {
         protected Socket frontend;
         protected Socket backend;
         private Thread runningThread;
@@ -46,6 +43,24 @@ namespace ZMQDevice {
             isRunning = false;
             run = false;
             runningThread = new Thread(RunningLoop);
+        }
+
+        ~Device() {
+            Dispose(false);
+        }
+
+        public void Dispose() {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing) {
+            if (isRunning) {
+                Stop();
+                while (isRunning) { Thread.Sleep(500); }
+            }
+            frontend.Dispose();
+            backend.Dispose();
         }
 
         /// <summary>
@@ -77,8 +92,10 @@ namespace ZMQDevice {
     /// </summary>
     public class Queue : Device {
         private PollItem[] pollItems;
-        public Queue(Socket frontend, Socket backend)
-            : base(frontend, backend) {
+        public Queue(string frontendAddr, string backendAddr)
+            : base(new Socket(SocketType.XREP), new Socket(SocketType.XREQ)) {
+            frontend.Bind(frontendAddr);
+            backend.Bind(backendAddr);
             pollItems = new PollItem[2];
             pollItems[0] = frontend.CreatePollItem(IOMultiPlex.POLLIN);
             pollItems[0].PollInHandler += FrontendHandler;
@@ -105,7 +122,7 @@ namespace ZMQDevice {
 
         protected override void RunningLoop() {
             while (run) {
-                Context.Poller(pollItems);
+                Context.Poller(pollItems, 500);
             }
             IsRunning = false;
         }

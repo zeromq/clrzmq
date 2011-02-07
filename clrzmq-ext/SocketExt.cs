@@ -22,14 +22,54 @@
 using System;
 using ZMQ;
 using System.IO;
+using System.Collections.Generic;
+using System.Text;
 using System.Runtime.Serialization.Formatters.Binary;
 
-namespace ZMQExt {
+namespace ZMQ.ZMQExt {
     /// <summary>
     /// Socket Extension Methods
     /// </summary>
     public static class SocketExt {
-        
+        /// <summary>
+        /// Receive all messages and seperate out socket identity and remove delimiter message
+        /// </summary>
+        /// <param name="skt">Socket</param>
+        /// <param name="identity">Destination Socket Identity</param>
+        /// <returns>Message Parts</returns>
+        public static Queue<byte[]> RecvAll(this Socket skt, out byte[] identity) {
+            Queue<byte[]> messages = skt.RecvAll();
+            identity = messages.Dequeue();
+            messages.Dequeue();
+            return messages;
+        }
+
+        /// <summary>
+        /// Receive all messages and seperate out socket identity and remove delimiter message
+        /// </summary>
+        /// <param name="skt">Socket</param>
+        /// <param name="identity">Destination Socket Identity</param>
+        /// <param name="encoding">Identity string encoding</param>
+        /// <returns>Message Parts</returns>
+        public static Queue<byte[]> RecvAll(this Socket skt, out string identity, Encoding encoding) {
+            Queue<byte[]> messages = skt.RecvAll();
+            identity = encoding.GetString(messages.Dequeue());
+            messages.Dequeue();
+            return messages;
+        }
+
+        /// <summary>
+        /// Send Queue of message parts
+        /// </summary>
+        /// <param name="skt">Socket</param>
+        /// <param name="data">Message Parts</param>
+        public static void Send(this Socket skt, Queue<byte[]> data) {
+            while (data.Count > 1) {
+                skt.SendMore(data.Dequeue());
+            }
+            skt.Send(data.Dequeue());
+        }
+
         /// <summary>
         /// Receive and deserialize an object of a given type using .Net binary serialization.
         /// </summary>
