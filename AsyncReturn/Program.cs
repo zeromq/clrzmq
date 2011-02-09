@@ -23,6 +23,7 @@ namespace AsyncReturn {
                 using (Socket clientA = new Socket(SocketType.REQ),
                     clientB = new Socket(SocketType.REQ)) {
                     ar.Start();
+                    System.Threading.Thread.Sleep(1000);
                     clientA.Connect("inproc://server");
                     clientB.Connect("inproc://server");
                     clientA.Send("Hello from A", Encoding.Unicode);

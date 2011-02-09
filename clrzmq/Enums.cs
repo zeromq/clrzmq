@@ -100,4 +100,19 @@ namespace ZMQ {
         POLLOUT = 0x2,
         POLLERR = 0x4
     }
+
+    public enum ERRNOS {
+        ENOTSUP = ZHelpers.HAUSNUMERO,
+        EPROTONOSUPPORT,
+        ENOBUFS,
+        ENETDOWN,
+        EADDRINUSE,
+        EADDRNOTAVAIL,
+        ECONNREFUSED,
+        EINPROGRESS,
+        EFSM = ZHelpers.HAUSNUMERO + 51,
+        ENOCOMPATPROTO,
+        ETERM,
+        EMTHREAD
+    }
 }

@@ -37,6 +37,8 @@ namespace ZMQ {
         private static Context appContext;
         private static int appSocketCount;
         private static Object lockObj = new object();
+
+        private PollItem pollItem;
         private bool localSocket;
         private IntPtr ptr;
         private IntPtr msg;
@@ -58,8 +60,7 @@ namespace ZMQ {
         /// <param name="ptr">Pointer to a socket</param>
         internal Socket(IntPtr ptr) {
             this.ptr = ptr;
-            msg = Marshal.AllocHGlobal(ZMQ_MSG_T_SIZE);
-            localSocket = false;
+            CommonInit(false);
         }
 
         /// <summary>
@@ -69,13 +70,18 @@ namespace ZMQ {
         public Socket(SocketType type) {
             lock (lockObj) {
                 if (appContext == null) {
-                    appContext = new Context(1);
+                    appContext = new Context();
                 }
                 ptr = appContext.CreateSocketPtr(type);
             }
             Interlocked.Increment(ref appSocketCount);
+            CommonInit(true);
+        }
+
+        private void CommonInit(bool local) {
             msg = Marshal.AllocHGlobal(ZMQ_MSG_T_SIZE);
-            localSocket = true;
+            localSocket = local;
+            pollItem = new PollItem(new ZMQPollItem(ptr, 0, 0), this);
         }
 
         ~Socket() {
@@ -85,6 +91,46 @@ namespace ZMQ {
         public void Dispose() {
             Dispose(true);
             GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        /// POLLIN event handler
+        /// </summary>
+        public event PollHandler PollInHandler {
+            add {
+                pollItem.PollInHandler += value;                
+            }
+            remove {
+                pollItem.PollInHandler -= value;
+            }
+        }
+
+        /// <summary>
+        /// POLLOUT event handler
+        /// </summary>
+        public event PollHandler PollOutHandler {
+            add {
+                pollItem.PollOutHandler += value;                
+            }
+            remove {
+                pollItem.PollOutHandler -= value;
+            }
+        }
+
+        /// <summary>
+        /// POLLERR event handler
+        /// </summary>
+        public event PollHandler PollErrHandler {
+            add {
+                pollItem.PollErrHandler += value;
+            }
+            remove {
+                pollItem.PollErrHandler -= value;
+            }
+        }
+
+        internal PollItem PollItem {
+            get { return pollItem; }
         }
 
         protected virtual void Dispose(bool disposing) {
@@ -339,7 +385,7 @@ namespace ZMQ {
         /// <param name="timeout">Timeout in milliseconds</param>
         /// <returns>Message</returns>
         /// <exception cref="ZMQ.Exception">ZMQ Exception</exception>
-        public byte[] Recv(long timeout) {
+        public byte[] Recv(int timeout) {
             Stopwatch timer = new Stopwatch();
             byte[] data = null;
             timer.Start();
@@ -366,7 +412,7 @@ namespace ZMQ {
         /// <param name="timeout">Timeout in milliseconds</param>
         /// <returns>Message string</returns>
         /// <exception cref="ZMQ.Exception">ZMQ Exception</exception>
-        public string Recv(Encoding encoding, long timeout) {
+        public string Recv(Encoding encoding, int timeout) {
             return encoding.GetString(Recv(timeout));
         }
 

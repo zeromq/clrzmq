@@ -38,15 +38,15 @@ namespace ZMQ {
     /// </summary>
     public struct ZMQPollItem {
 #pragma warning disable 414 //Silence variable not used warnings
-        private IntPtr socket;
+        private IntPtr _socket;
 #if x86 || POSIX
-        private int fd;
+        private int _fd;
 #else
-        private long fd;
+        private long _fd;
 #endif
-        private short events;
+        private short _events;
 #pragma warning restore //Restore full warnings
-        private short revents;
+        private short _revents;
 
 #if x86 || POSIX
         /// <summary>
@@ -57,10 +57,10 @@ namespace ZMQ {
         /// <param name="events">Desired events</param>
         /// <param name="revents">Returned events</param>
         internal ZMQPollItem(IntPtr socket, object fd, short events) {
-            this.socket = socket;
-            this.events = events;
-            this.revents = 0;
-            this.fd = Convert.ToInt32(fd);
+            _socket = socket;
+            _events = events;
+            _revents = 0;
+            _fd = Convert.ToInt32(fd);
         }
 #else
         /// <summary>
@@ -82,17 +82,26 @@ namespace ZMQ {
         /// Reset revents so that poll item can be safely reused
         /// </summary>
         public void ResetRevents() {
-            revents = 0;
+            _revents = 0;
         }
 
         /// <summary>
         /// Get returned event flags
         /// </summary>
         public IOMultiPlex Revents {
-            get {
-                IOMultiPlex revents = (IOMultiPlex)this.revents;
-                return revents;
+            get { return (IOMultiPlex)_revents; }
+        }
+
+        internal void ActivateEvent(params IOMultiPlex[] events) {
+            foreach (IOMultiPlex evt in events) {
+                _events = (short)(_events | (short)evt);
             }
+        }
+
+        internal void DeactivateEvent(params IOMultiPlex[] events) {
+            foreach (IOMultiPlex evt in events) {
+                _events &= (short)evt;
+            } 
         }
     }
 
@@ -100,12 +109,12 @@ namespace ZMQ {
     /// Polling item, provides the polling mechanism
     /// </summary>
     public class PollItem {
-        private ZMQPollItem zmqPollItem;
-        private Socket socket;
+        private ZMQPollItem _zmqPollItem;
+        private Socket _socket;
 
-        private event PollHandler PollInHandlers;
-        private event PollHandler PollOutHandlers;
-        private event PollHandler PollErrHandlers;
+        private event PollHandler _PollInHandlers;
+        private event PollHandler _PollOutHandlers;
+        private event PollHandler _PollErrHandlers;
 
         /// <summary>
         /// Should not be created directly, use Socket.CreatePollItem
@@ -113,8 +122,8 @@ namespace ZMQ {
         /// <param name="zmqPollItem"></param>
         /// <param name="socket"></param>
         internal PollItem(ZMQPollItem zmqPollItem, Socket socket) {
-            this.socket = socket;
-            this.zmqPollItem = zmqPollItem;
+            this._socket = socket;
+            this._zmqPollItem = zmqPollItem;
         }
 
         /// <summary>
@@ -122,10 +131,14 @@ namespace ZMQ {
         /// </summary>
         public event PollHandler PollInHandler {
             add {
-                PollInHandlers += value;
+                _PollInHandlers += value;
+                _zmqPollItem.ActivateEvent(IOMultiPlex.POLLIN);
             }
             remove {
-                PollInHandlers -= value;
+                if (_PollInHandlers.GetInvocationList().Length <= 0) {
+                    _zmqPollItem.DeactivateEvent(IOMultiPlex.POLLIN);
+                }
+                _PollInHandlers -= value;
             }
         }
 
@@ -134,10 +147,14 @@ namespace ZMQ {
         /// </summary>
         public event PollHandler PollOutHandler {
             add {
-                PollOutHandlers += value;
+                _zmqPollItem.ActivateEvent(IOMultiPlex.POLLOUT);
+                _PollOutHandlers += value;
             }
             remove {
-                PollOutHandlers -= value;
+                if (_PollOutHandlers.GetInvocationList().Length <= 0) {
+                    _zmqPollItem.DeactivateEvent(IOMultiPlex.POLLOUT);
+                }
+                _PollOutHandlers -= value;
             }
         }
 
@@ -146,10 +163,14 @@ namespace ZMQ {
         /// </summary>
         public event PollHandler PollErrHandler {
             add {
-                PollErrHandlers += value;
+                ZMQPollItem.ActivateEvent(IOMultiPlex.POLLERR);
+                _PollErrHandlers += value;
             }
             remove {
-                PollErrHandlers -= value;
+                if (_PollErrHandlers.GetInvocationList().Length <= 0) {
+                    ZMQPollItem.DeactivateEvent(IOMultiPlex.POLLERR);
+                }
+                _PollErrHandlers -= value;
             }
         }
 
@@ -157,19 +178,19 @@ namespace ZMQ {
         /// Fire handlers for any returned events
         /// </summary>
         public void FireEvents() {
-            if ((zmqPollItem.Revents & IOMultiPlex.POLLIN) ==
+            if ((_zmqPollItem.Revents & IOMultiPlex.POLLIN) ==
                 IOMultiPlex.POLLIN) {
-                PollInHandlers(socket, zmqPollItem.Revents);
+                _PollInHandlers(_socket, _zmqPollItem.Revents);
             }
-            if ((zmqPollItem.Revents & IOMultiPlex.POLLOUT) ==
+            if ((_zmqPollItem.Revents & IOMultiPlex.POLLOUT) ==
                 IOMultiPlex.POLLOUT) {
-                PollOutHandlers(socket, zmqPollItem.Revents);
+                _PollOutHandlers(_socket, _zmqPollItem.Revents);
             }
-            if ((zmqPollItem.Revents & IOMultiPlex.POLLERR) ==
+            if ((_zmqPollItem.Revents & IOMultiPlex.POLLERR) ==
                 IOMultiPlex.POLLERR) {
-                PollErrHandlers(socket, zmqPollItem.Revents);
+                _PollErrHandlers(_socket, _zmqPollItem.Revents);
             }
-            zmqPollItem.ResetRevents();
+            _zmqPollItem.ResetRevents();
         }
 
         /// <summary>
@@ -177,10 +198,10 @@ namespace ZMQ {
         /// </summary>
         public ZMQPollItem ZMQPollItem {
             get {
-                return zmqPollItem;
+                return _zmqPollItem;
             }
             set {
-                zmqPollItem = value;
+                _zmqPollItem = value;
             }
         }
     }

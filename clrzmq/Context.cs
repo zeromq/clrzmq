@@ -22,6 +22,7 @@
 */
 
 using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
 namespace ZMQ {
@@ -29,15 +30,22 @@ namespace ZMQ {
     /// ZMQ Context
     /// </summary>
     public class Context : IDisposable {
-        private IntPtr ptr;
+        private static int _defaultIOThreads = 1;
+        private IntPtr _ptr;
 
         /// <summary>
         /// Create ZMQ Context
         /// </summary>
         /// <param name="io_threads">Thread pool size</param>
         public Context(int io_threads) {
-            ptr = C.zmq_init(io_threads);
-            if (ptr == IntPtr.Zero)
+            _ptr = C.zmq_init(io_threads);
+            if (_ptr == IntPtr.Zero)
+                throw new Exception();
+        }
+
+        public Context() {
+            _ptr = C.zmq_init(_defaultIOThreads);
+            if (_ptr == IntPtr.Zero)
                 throw new Exception();
         }
 
@@ -55,8 +63,8 @@ namespace ZMQ {
         }
 
         internal IntPtr CreateSocketPtr(SocketType type) {
-            IntPtr socket_ptr = C.zmq_socket(ptr, (int)type);
-            if (ptr == IntPtr.Zero)
+            IntPtr socket_ptr = C.zmq_socket(_ptr, (int)type);
+            if (_ptr == IntPtr.Zero)
                 throw new Exception();
             return socket_ptr;
         }
@@ -67,12 +75,17 @@ namespace ZMQ {
         }
 
         protected virtual void Dispose(bool disposing) {
-            if (ptr != IntPtr.Zero) {
-                int rc = C.zmq_term(ptr);
-                ptr = IntPtr.Zero;
+            if (_ptr != IntPtr.Zero) {
+                int rc = C.zmq_term(_ptr);
+                _ptr = IntPtr.Zero;
                 if (rc != 0)
                     throw new Exception();
             }
+        }
+
+        public static int DefaultIOThreads {
+            get { return _defaultIOThreads; }
+            set { _defaultIOThreads = value; }
         }
 
         /// <summary>
@@ -143,6 +156,18 @@ namespace ZMQ {
         /// <returns>Number of Poll items with events</returns>
         public static int Poller(PollItem[] items) {
             return Poller(items, -1);
+        }
+
+        public static int Poller(IList<Socket> skts, long timeout) {
+            List<PollItem> items = new List<PollItem>(skts.Count);
+            foreach (Socket skt in skts) {
+                items.Add(skt.PollItem);
+            }
+            return Poller(items.ToArray(), timeout);
+        }
+
+        public static int Poller(IList<Socket> skts) {
+            return Poller(skts, -1);
         }
     }
 }

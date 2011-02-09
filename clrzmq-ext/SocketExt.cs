@@ -91,7 +91,7 @@ namespace ZMQ.ZMQExt {
         /// <typeparam name="T">Received Object Type</typeparam>
         /// <param name="skt">Socket</param>
         /// <returns>T obj</returns>
-        public static T Recv<T>(this Socket skt, long timeout) where T : class {
+        public static T Recv<T>(this Socket skt, int timeout) where T : class {
             T obj = null;
             byte[] data = skt.Recv(timeout);
             if (data != null) {

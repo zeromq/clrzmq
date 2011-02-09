@@ -49,6 +49,7 @@ namespace ZMQ {
     /// CLRZMQ utility methods
     /// </summary>
     public static class ZHelpers {
+        public const int HAUSNUMERO = 156384712;
         private static Random rand;
 
         private static Random GetRandomGen() {
