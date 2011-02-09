@@ -34,15 +34,15 @@ namespace ZMQ {
     /// ZMQ Socket
     /// </summary>
     public class Socket : IDisposable {
-        private static Context appContext;
-        private static int appSocketCount;
-        private static Object lockObj = new object();
+        private static Context _appContext;
+        private static int _appSocketCount;
+        private static Object _lockObj = new object();
 
-        private PollItem pollItem;
-        private bool localSocket;
-        private IntPtr ptr;
-        private IntPtr msg;
-        private string address;
+        private PollItem _pollItem;
+        private bool _localSocket;
+        private IntPtr _ptr;
+        private IntPtr _msg;
+        private string _address;
 
         //  TODO:  This won't hold on different platforms.
         //  Isn't there a way to access POSIX error codes in CLR?
@@ -59,7 +59,7 @@ namespace ZMQ {
         /// </summary>
         /// <param name="ptr">Pointer to a socket</param>
         internal Socket(IntPtr ptr) {
-            this.ptr = ptr;
+            this._ptr = ptr;
             CommonInit(false);
         }
 
@@ -68,20 +68,20 @@ namespace ZMQ {
         /// </summary>
         /// <param name="type">Socket type</param>
         public Socket(SocketType type) {
-            lock (lockObj) {
-                if (appContext == null) {
-                    appContext = new Context();
+            lock (_lockObj) {
+                if (_appContext == null) {
+                    _appContext = new Context();
                 }
-                ptr = appContext.CreateSocketPtr(type);
+                _ptr = _appContext.CreateSocketPtr(type);
             }
-            Interlocked.Increment(ref appSocketCount);
+            Interlocked.Increment(ref _appSocketCount);
             CommonInit(true);
         }
 
         private void CommonInit(bool local) {
-            msg = Marshal.AllocHGlobal(ZMQ_MSG_T_SIZE);
-            localSocket = local;
-            pollItem = new PollItem(new ZMQPollItem(ptr, 0, 0), this);
+            _msg = Marshal.AllocHGlobal(ZMQ_MSG_T_SIZE);
+            _localSocket = local;
+            _pollItem = new PollItem(new ZMQPollItem(_ptr, 0, 0), this);
         }
 
         ~Socket() {
@@ -93,15 +93,19 @@ namespace ZMQ {
             GC.SuppressFinalize(this);
         }
 
+        internal IntPtr Ptr {
+            get { return _ptr;}
+        }
+
         /// <summary>
         /// POLLIN event handler
         /// </summary>
         public event PollHandler PollInHandler {
             add {
-                pollItem.PollInHandler += value;                
+                _pollItem.PollInHandler += value;                
             }
             remove {
-                pollItem.PollInHandler -= value;
+                _pollItem.PollInHandler -= value;
             }
         }
 
@@ -110,10 +114,10 @@ namespace ZMQ {
         /// </summary>
         public event PollHandler PollOutHandler {
             add {
-                pollItem.PollOutHandler += value;                
+                _pollItem.PollOutHandler += value;                
             }
             remove {
-                pollItem.PollOutHandler -= value;
+                _pollItem.PollOutHandler -= value;
             }
         }
 
@@ -122,35 +126,35 @@ namespace ZMQ {
         /// </summary>
         public event PollHandler PollErrHandler {
             add {
-                pollItem.PollErrHandler += value;
+                _pollItem.PollErrHandler += value;
             }
             remove {
-                pollItem.PollErrHandler -= value;
+                _pollItem.PollErrHandler -= value;
             }
         }
 
         internal PollItem PollItem {
-            get { return pollItem; }
+            get { return _pollItem; }
         }
 
         protected virtual void Dispose(bool disposing) {
-            if (msg != IntPtr.Zero) {
-                Marshal.FreeHGlobal(msg);
-                msg = IntPtr.Zero;
+            if (_msg != IntPtr.Zero) {
+                Marshal.FreeHGlobal(_msg);
+                _msg = IntPtr.Zero;
             }
 
-            if (ptr != IntPtr.Zero) {
-                int rc = C.zmq_close(ptr);
-                ptr = IntPtr.Zero;
+            if (_ptr != IntPtr.Zero) {
+                int rc = C.zmq_close(_ptr);
+                _ptr = IntPtr.Zero;
                 if (rc != 0)
                     throw new Exception();
             }
-            if (localSocket) {
-                Interlocked.Decrement(ref appSocketCount);
-                lock (lockObj) {
-                    if (appSocketCount == 0) {
-                        appContext.Dispose();
-                        appContext = null;
+            if (_localSocket) {
+                Interlocked.Decrement(ref _appSocketCount);
+                lock (_lockObj) {
+                    if (_appSocketCount == 0) {
+                        _appContext.Dispose();
+                        _appContext = null;
                     }
                 }
             }
@@ -199,7 +203,7 @@ namespace ZMQ {
         /// <param name="events">Listening events</param>
         /// <returns>Socket Poll item</returns>
         public PollItem CreatePollItem(IOMultiPlex events) {
-            return new PollItem(new ZMQPollItem(ptr, 0, (short)events), this);
+            return new PollItem(new ZMQPollItem(_ptr, 0, (short)events), this);
         }
 
         /// <summary>
@@ -211,7 +215,7 @@ namespace ZMQ {
         public PollItem CreatePollItem(IOMultiPlex events,
                                        SysSockets.Socket sysSocket) {
 #if x86 || POSIX
-            return new PollItem(new ZMQPollItem(ptr, sysSocket.Handle.ToInt32(),
+            return new PollItem(new ZMQPollItem(_ptr, sysSocket.Handle.ToInt32(),
                                                 (short)events), this);
 #elif x64
             return new PollItem(new ZMQPollItem(ptr, sysSocket.Handle.ToInt64(),
@@ -230,7 +234,7 @@ namespace ZMQ {
             int sizeOfValue = Marshal.SizeOf(typeof(ulong));
             using (DisposableIntPtr valPtr = new DisposableIntPtr(sizeOfValue)) {
                 WriteSizeT(valPtr.Ptr, value);
-                if (C.zmq_setsockopt(ptr, (int)option, valPtr.Ptr, sizeOfValue) != 0)
+                if (C.zmq_setsockopt(_ptr, (int)option, valPtr.Ptr, sizeOfValue) != 0)
                     throw new Exception();
             }
         }
@@ -244,7 +248,7 @@ namespace ZMQ {
         public void SetSockOpt(SocketOpt option, byte[] value) {
             using (DisposableIntPtr valPtr = new DisposableIntPtr(value.Length)) {
                 Marshal.Copy(value, 0, valPtr.Ptr, value.Length);
-                if (C.zmq_setsockopt(ptr, (int)option, valPtr.Ptr, value.Length) != 0)
+                if (C.zmq_setsockopt(_ptr, (int)option, valPtr.Ptr, value.Length) != 0)
                     throw new Exception();
             }
         }
@@ -259,7 +263,7 @@ namespace ZMQ {
             int sizeOfValue = Marshal.SizeOf(typeof(long));
             using (DisposableIntPtr valPtr = new DisposableIntPtr(sizeOfValue)) {
                 WriteSizeT(valPtr.Ptr, value);
-                if (C.zmq_setsockopt(ptr, (int)option, valPtr.Ptr, sizeOfValue) != 0)
+                if (C.zmq_setsockopt(_ptr, (int)option, valPtr.Ptr, sizeOfValue) != 0)
                     throw new Exception();
             }
         }
@@ -276,7 +280,7 @@ namespace ZMQ {
                 if (option == SocketOpt.IDENTITY) {
                     using (DisposableIntPtr val = new DisposableIntPtr(255)) {
                         WriteSizeT(len.Ptr, 255);
-                        if (C.zmq_getsockopt(ptr, (int)option, val.Ptr, len.Ptr) != 0)
+                        if (C.zmq_getsockopt(_ptr, (int)option, val.Ptr, len.Ptr) != 0)
                             throw new Exception();
                         byte[] buffer = new byte[Convert.ToInt32(ReadSizeT(len.Ptr))];
                         Marshal.Copy(val.Ptr, buffer, 0, buffer.Length);
@@ -285,7 +289,7 @@ namespace ZMQ {
                 } else {
                     using (DisposableIntPtr val = new DisposableIntPtr(IntPtr.Size)) {
                         WriteSizeT(len.Ptr, Marshal.SizeOf(typeof(long)));
-                        if (C.zmq_getsockopt(ptr, (int)option, val.Ptr, len.Ptr) != 0)
+                        if (C.zmq_getsockopt(_ptr, (int)option, val.Ptr, len.Ptr) != 0)
                             throw new Exception();
                         //Unchecked casting of uint64 options
                         if (option == SocketOpt.HWM || option == SocketOpt.AFFINITY ||
@@ -306,8 +310,8 @@ namespace ZMQ {
         /// <param name="addr">Socket Address</param>
         /// <exception cref="ZMQ.Exception">ZMQ Exception</exception>
         public void Bind(string addr) {
-            address = addr;
-            if (C.zmq_bind(ptr, addr) != 0)
+            _address = addr;
+            if (C.zmq_bind(_ptr, addr) != 0)
                 throw new Exception();
         }
 
@@ -340,9 +344,30 @@ namespace ZMQ {
         /// <param name="addr">Destination Address</param>
         /// <exception cref="ZMQ.Exception">ZMQ Exception</exception>
         public void Connect(string addr) {
-            address = addr;
-            if (C.zmq_connect(ptr, addr) != 0)
+            _address = addr;
+            if (C.zmq_connect(_ptr, addr) != 0)
                 throw new Exception();
+        }
+
+        /// <summary>
+        /// Forward all message parts directly to destination. No marshalling performed.
+        /// </summary>
+        /// <param name="destination">Destination Socket</param>
+        public void Forward(Socket destination) {
+            SendRecvOpt opt = SendRecvOpt.SNDMORE;
+            while (opt == SendRecvOpt.SNDMORE) {
+                if (C.zmq_msg_init(_msg) != 0)
+                    throw new Exception();
+                if (C.zmq_recv(_ptr, _msg, 0) == 0) {
+                    opt = RcvMore ? SendRecvOpt.SNDMORE : SendRecvOpt.NONE;
+                    if (C.zmq_send(destination.Ptr, _msg, (int)opt) != 0)
+                        throw new Exception();
+                    C.zmq_msg_close(_msg);
+                } else {
+                    if (C.zmq_errno() != EAGAIN)
+                        throw new Exception();
+                }
+            }
         }
 
         /// <summary>
@@ -357,12 +382,12 @@ namespace ZMQ {
             foreach (SendRecvOpt opt in flags) {
                 flagsVal += (int)opt;
             }
-            if (C.zmq_msg_init(msg) != 0)
+            if (C.zmq_msg_init(_msg) != 0)
                 throw new Exception();
-            if (C.zmq_recv(ptr, msg, flagsVal) == 0) {
-                message = new byte[C.zmq_msg_size(msg)];
-                Marshal.Copy(C.zmq_msg_data(msg), message, 0, message.Length);
-                C.zmq_msg_close(msg);
+            if (C.zmq_recv(_ptr, _msg, flagsVal) == 0) {
+                message = new byte[C.zmq_msg_size(_msg)];
+                Marshal.Copy(C.zmq_msg_data(_msg), message, 0, message.Length);
+                C.zmq_msg_close(_msg);
             } else {
                 if (C.zmq_errno() != EAGAIN)
                     throw new Exception();
@@ -493,10 +518,10 @@ namespace ZMQ {
             foreach (SendRecvOpt opt in flags) {
                 flagsVal += (int)opt;
             }
-            if (C.zmq_msg_init_size(msg, message.Length) != 0)
+            if (C.zmq_msg_init_size(_msg, message.Length) != 0)
                 throw new Exception();
-            Marshal.Copy(message, 0, C.zmq_msg_data(msg), message.Length);
-            if (C.zmq_send(ptr, msg, flagsVal) != 0)
+            Marshal.Copy(message, 0, C.zmq_msg_data(_msg), message.Length);
+            if (C.zmq_send(_ptr, _msg, flagsVal) != 0)
                 throw new Exception();
         }
 
@@ -727,7 +752,7 @@ namespace ZMQ {
         /// </summary>
         public string Address {
             get {
-                return address;
+                return _address;
             }
         }
 
@@ -780,7 +805,7 @@ namespace ZMQ {
             /// <exception cref="ZMQ.Exception">ZMQ Exception</exception>
             public static void Create(DeviceType device, Socket inSocket,
                                       Socket outSocket) {
-                if (C.zmq_device((int)device, inSocket.ptr, outSocket.ptr) != 0)
+                if (C.zmq_device((int)device, inSocket._ptr, outSocket._ptr) != 0)
                     throw new Exception();
             }
 

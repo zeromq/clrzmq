@@ -27,11 +27,12 @@ using System.Threading;
 namespace ZMQ.ZMQDevice {
     public abstract class Device : IDisposable {
         private static long _pollingInterval = 750000;
+
+        protected bool _run;
         protected Socket _frontend;
         protected Socket _backend;
         private Thread _runningThread;
-        private bool _isRunning;
-        protected bool _run;
+        private bool _isRunning;        
 
         /// <summary>
         /// Create Device
@@ -112,19 +113,43 @@ namespace ZMQ.ZMQDevice {
         }
 
         protected override void FrontendHandler(Socket socket, IOMultiPlex revents) {
-            Queue<byte[]> msgs = socket.RecvAll();
-            while (msgs.Count > 1) {
-                _backend.SendMore(msgs.Dequeue());
-            }
-            _backend.Send(msgs.Dequeue());
+            socket.Forward(_backend);
         }
 
         protected override void BackendHandler(Socket socket, IOMultiPlex revents) {
-            Queue<byte[]> msgs = socket.RecvAll();
-            while (msgs.Count > 1) {
-                _frontend.SendMore(msgs.Dequeue());
-            }
-            _frontend.Send(msgs.Dequeue());
+            socket.Forward(_frontend);
+        }
+    }
+
+    public class Forwarder : Device {
+        public Forwarder(string frontendAddr, string backendAddr, MessageProcessor msgProc)
+            : base(new Socket(SocketType.SUB), new Socket(SocketType.PUB)) {
+            _frontend.Connect(frontendAddr);
+            _backend.Bind(backendAddr);
+        }
+
+        protected override void FrontendHandler(Socket socket, IOMultiPlex revents) {
+            socket.Forward(_backend);
+        }
+
+        protected override void BackendHandler(Socket socket, IOMultiPlex revents) {
+            throw new NotImplementedException();
+        }
+    }
+
+    public class Streamer : Device {
+        public Streamer(string frontendAddr, string backendAddr, MessageProcessor msgProc)
+            : base(new Socket(SocketType.PUB), new Socket(SocketType.SUB)) {
+            _frontend.Bind(frontendAddr);
+            _backend.Connect(backendAddr);
+        }
+
+        protected override void FrontendHandler(Socket socket, IOMultiPlex revents) {
+            throw new NotImplementedException();
+        }
+
+        protected override void BackendHandler(Socket socket, IOMultiPlex revents) {
+            socket.Forward(_frontend); 
         }
     }
 
@@ -145,11 +170,7 @@ namespace ZMQ.ZMQDevice {
         }
 
         protected override void BackendHandler(Socket socket, IOMultiPlex revents) {
-            Queue<byte[]> msgs = socket.RecvAll();
-            while (msgs.Count > 1) {
-                _frontend.SendMore(msgs.Dequeue());
-            }
-            _frontend.Send(msgs.Dequeue());
+            socket.Forward(_frontend);            
         }
     }
 }
