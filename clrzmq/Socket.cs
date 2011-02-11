@@ -275,11 +275,13 @@ namespace ZMQ {
         /// <returns>Option value</returns>
         /// <exception cref="ZMQ.Exception">ZMQ Exception</exception>
         public object GetSockOpt(SocketOpt option) {
+            const int IDLenSize = 255;  //Identity value length 255 bytes
+            const int lenSize = 8;      //Non-Identity value size 8 bytes
             object output;
             using (DisposableIntPtr len = new DisposableIntPtr(IntPtr.Size)) {
                 if (option == SocketOpt.IDENTITY) {
-                    using (DisposableIntPtr val = new DisposableIntPtr(255)) {
-                        WriteSizeT(len.Ptr, 255);
+                    using (DisposableIntPtr val = new DisposableIntPtr(IDLenSize)) {
+                        WriteSizeT(len.Ptr, IDLenSize);
                         if (C.zmq_getsockopt(_ptr, (int)option, val.Ptr, len.Ptr) != 0)
                             throw new Exception();
                         byte[] buffer = new byte[Convert.ToInt32(ReadSizeT(len.Ptr))];
@@ -287,8 +289,8 @@ namespace ZMQ {
                         output = buffer;
                     }
                 } else {
-                    using (DisposableIntPtr val = new DisposableIntPtr(IntPtr.Size)) {
-                        WriteSizeT(len.Ptr, Marshal.SizeOf(typeof(long)));
+                    using (DisposableIntPtr val = new DisposableIntPtr(lenSize)) {
+                        WriteSizeT(len.Ptr, lenSize);
                         if (C.zmq_getsockopt(_ptr, (int)option, val.Ptr, len.Ptr) != 0)
                             throw new Exception();
                         //Unchecked casting of uint64 options
