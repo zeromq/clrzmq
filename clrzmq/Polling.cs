@@ -71,10 +71,10 @@ namespace ZMQ {
         /// <param name="events">Desired events</param>
         /// <param name="revents">Returned events</param>
         internal ZMQPollItem(IntPtr socket, object fd, short events) {
-            this.socket = socket;
-            this.events = events;
-            this.revents = 0;
-            this.fd = unchecked((long)Convert.ToInt64(fd));
+            this._socket = socket;
+            this._events = events;
+            this._revents = 0;
+            this._fd = unchecked((long)Convert.ToInt64(fd));
         }
 #endif
 

@@ -218,7 +218,7 @@ namespace ZMQ {
             return new PollItem(new ZMQPollItem(_ptr, sysSocket.Handle.ToInt32(),
                                                 (short)events), this);
 #elif x64
-            return new PollItem(new ZMQPollItem(ptr, sysSocket.Handle.ToInt64(),
+            return new PollItem(new ZMQPollItem(_ptr, sysSocket.Handle.ToInt64(),
                                                 (short)events), this);
 #endif
         }
