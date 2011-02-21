@@ -89,17 +89,17 @@ namespace ZMQ {
         }
 
         /// <summary>
-        /// Polls the supplied items for events
+        /// Polls the supplied items for events.
         /// </summary>
         /// <param name="items">Items to Poll</param>
-        /// <param name="timeout">Timeout</param>
+        /// <param name="timeout">Timeout(micro seconds)</param>
         /// <returns>Number of Poll items with events</returns>
         public int Poll(PollItem[] items, long timeout) {
             return Poller(items, timeout);
         }
 
         /// <summary>
-        /// Polls the supplied items for events, with immediate timeout
+        /// Polls the supplied items for events, with infinite timeout.
         /// </summary>
         /// <param name="items">Items to Poll</param>
         /// <returns>Number of Poll items with events</returns>
@@ -108,10 +108,10 @@ namespace ZMQ {
         }
 
         /// <summary>
-        /// Polls the supplied items for events. Static method
+        /// Polls the supplied items for events. Static method.
         /// </summary>
         /// <param name="items">Items to Poll</param>
-        /// <param name="timeout">Timeout</param>
+        /// <param name="timeout">Timeout(micro seconds)</param>
         /// <returns>Number of Poll items with events</returns>
         public static int Poller(PollItem[] items, long timeout) {
             int sizeOfZPL = Marshal.SizeOf(typeof(ZMQPollItem));
@@ -150,7 +150,8 @@ namespace ZMQ {
         }
 
         /// <summary>
-        /// Polls the supplied items for events, with immediate timeout. Static method
+        /// Polls the supplied items for events, with infinite timeout.
+        /// Static method
         /// </summary>
         /// <param name="items">Items to Poll</param>
         /// <returns>Number of Poll items with events</returns>
@@ -158,6 +159,13 @@ namespace ZMQ {
             return Poller(items, -1);
         }
 
+        /// <summary>
+        /// Polls the supplied sockets (sockets need to have events set).
+        /// Static method
+        /// </summary>
+        /// <param name="skts">Socket List</param>
+        /// <param name="timeout">Timeout(micro seconds)</param>
+        /// <returns>Number of Poll items with events</returns>
         public static int Poller(IList<Socket> skts, long timeout) {
             List<PollItem> items = new List<PollItem>(skts.Count);
             foreach (Socket skt in skts) {
@@ -166,6 +174,12 @@ namespace ZMQ {
             return Poller(items.ToArray(), timeout);
         }
 
+        /// <summary>
+        /// Polls the supplied sockets (sockets need to have events set),
+        /// infinite timeout. Static method.
+        /// </summary>
+        /// <param name="skts">Socket List</param>
+        /// <returns>Number of Poll items with events</returns>
         public static int Poller(IList<Socket> skts) {
             return Poller(skts, -1);
         }
