@@ -178,15 +178,18 @@ namespace ZMQ {
         /// Fire handlers for any returned events
         /// </summary>
         public void FireEvents() {
-            if ((_zmqPollItem.Revents & IOMultiPlex.POLLIN) ==
+            if (_PollInHandlers != null &&
+                (_zmqPollItem.Revents & IOMultiPlex.POLLIN) ==
                 IOMultiPlex.POLLIN) {
                 _PollInHandlers(_socket, _zmqPollItem.Revents);
             }
-            if ((_zmqPollItem.Revents & IOMultiPlex.POLLOUT) ==
+            if (_PollOutHandlers != null &&
+                (_zmqPollItem.Revents & IOMultiPlex.POLLOUT) ==
                 IOMultiPlex.POLLOUT) {
                 _PollOutHandlers(_socket, _zmqPollItem.Revents);
             }
-            if ((_zmqPollItem.Revents & IOMultiPlex.POLLERR) ==
+            if (_PollErrHandlers != null &&
+                (_zmqPollItem.Revents & IOMultiPlex.POLLERR) ==
                 IOMultiPlex.POLLERR) {
                 _PollErrHandlers(_socket, _zmqPollItem.Revents);
             }
