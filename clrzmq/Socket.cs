@@ -416,7 +416,7 @@ namespace ZMQ {
             Stopwatch timer = new Stopwatch();
             byte[] data = null;
             timer.Start();
-            while (data == null && timer.ElapsedMilliseconds < timeout) {
+            while (data == null && timer.ElapsedMilliseconds <= timeout) {
                 data = Recv(SendRecvOpt.NOBLOCK);
             }
             return data;
@@ -440,7 +440,12 @@ namespace ZMQ {
         /// <returns>Message string</returns>
         /// <exception cref="ZMQ.Exception">ZMQ Exception</exception>
         public string Recv(Encoding encoding, int timeout) {
-            return encoding.GetString(Recv(timeout));
+            byte[] data = Recv(timeout);
+            if(data == null) {
+                return null;
+            } else {
+                return encoding.GetString(data);
+            }
         }
 
         /// <summary>
@@ -451,7 +456,12 @@ namespace ZMQ {
         /// <returns>Message string</returns>
         /// <exception cref="ZMQ.Exception">ZMQ Exception</exception>
         public string Recv(Encoding encoding, params SendRecvOpt[] flags) {
-            return encoding.GetString(Recv(flags));
+            byte[] data = Recv(flags);
+            if(data == null) {
+                return null;
+            } else {
+                return encoding.GetString(data);
+            }
         }
 
         /// <summary>
@@ -494,7 +504,9 @@ namespace ZMQ {
         }
 
         /// <summary>
-        /// Listen for message, retrieving all pending message parts
+        /// Listen for message, retrieving all pending message parts. DO NOT
+        /// USE, left for backwards compatibility reasons but the sendrecvopts
+        /// are not compatible with receiving all messages.
         /// </summary>
         /// <param name="encoding">String Encoding</param>
         /// <returns>Queue of message parts</returns>
