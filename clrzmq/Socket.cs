@@ -416,9 +416,9 @@ namespace ZMQ {
             Stopwatch timer = new Stopwatch();
             byte[] data = null;
             timer.Start();
-            while (data == null && timer.ElapsedMilliseconds <= timeout) {
+            do {
                 data = Recv(SendRecvOpt.NOBLOCK);
-            }
+            } while (data == null && timer.ElapsedMilliseconds <= timeout);
             return data;
         }
 
