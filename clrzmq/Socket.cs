@@ -259,6 +259,21 @@ namespace ZMQ {
         /// <param name="option">Socket Option</param>
         /// <param name="value">Option value</param>
         /// <exception cref="ZMQ.Exception">ZMQ Exception</exception>
+        public void SetSockOpt(SocketOpt option, int value) {
+            int sizeOfValue = Marshal.SizeOf(typeof(int));
+            using (DisposableIntPtr valPtr = new DisposableIntPtr(sizeOfValue)) {
+                WriteSizeT(valPtr.Ptr, value);
+                if (C.zmq_setsockopt(_ptr, (int)option, valPtr.Ptr, sizeOfValue) != 0)
+                    throw new Exception();
+            }
+        }
+
+        /// <summary>
+        /// Set Socket Option
+        /// </summary>
+        /// <param name="option">Socket Option</param>
+        /// <param name="value">Option value</param>
+        /// <exception cref="ZMQ.Exception">ZMQ Exception</exception>
         public void SetSockOpt(SocketOpt option, long value) {
             int sizeOfValue = Marshal.SizeOf(typeof(long));
             using (DisposableIntPtr valPtr = new DisposableIntPtr(sizeOfValue)) {
@@ -293,12 +308,33 @@ namespace ZMQ {
                         WriteSizeT(len.Ptr, lenSize);
                         if (C.zmq_getsockopt(_ptr, (int)option, val.Ptr, len.Ptr) != 0)
                             throw new Exception();
-                        //Unchecked casting of uint64 options
-                        if (option == SocketOpt.HWM || option == SocketOpt.AFFINITY ||
-                            option == SocketOpt.SNDBUF || option == SocketOpt.RCVBUF) {
-                            output = unchecked((ulong)Marshal.ReadInt64(val.Ptr));
-                        } else {
-                            output = Marshal.ReadInt64(val.Ptr);
+
+                        switch (option) {
+                            case SocketOpt.HWM:
+                            case SocketOpt.AFFINITY:
+                            case SocketOpt.SNDBUF:
+                            case SocketOpt.RCVBUF:
+                                //Unchecked casting of uint64 options
+                                output = unchecked((ulong)Marshal.ReadInt64(val.Ptr));
+                                break;
+                            case SocketOpt.LINGER:
+                            case SocketOpt.BACKLOG:
+                            case SocketOpt.RECONNECT_IVL:                            
+                                output = Marshal.ReadInt32(val.Ptr);
+                                break;
+                            case SocketOpt.EVENTS:
+                                output = unchecked((uint)Marshal.ReadInt32(val.Ptr));
+                                break;
+                            case SocketOpt.FD:
+#if POSIX
+                                output = Marshal.ReadInt32(val.Ptr);
+#else
+                                output = Marshal.ReadIntPtr(val.Ptr);
+#endif
+                                break;
+                            default:
+                                output = Marshal.ReadInt64(val.Ptr);
+                                break;
                         }
                     }
                 }
@@ -416,9 +452,9 @@ namespace ZMQ {
             Stopwatch timer = new Stopwatch();
             byte[] data = null;
             timer.Start();
-            do {
+            while (data == null && timer.ElapsedMilliseconds <= timeout) {
                 data = Recv(SendRecvOpt.NOBLOCK);
-            } while (data == null && timer.ElapsedMilliseconds <= timeout);
+            }
             return data;
         }
 
@@ -758,6 +794,86 @@ namespace ZMQ {
             }
             set {
                 SetSockOpt(SocketOpt.RCVBUF, value);
+            }
+        }
+
+        /// <summary>
+        /// Get or Set linger period for socket shutdown
+        /// </summary>
+        /// <exception cref="ZMQ.Exception">ZMQ Exception</exception>
+        public int Linger {
+            get {
+                return (int)GetSockOpt(SocketOpt.LINGER);
+            }
+            set {
+                SetSockOpt(SocketOpt.LINGER, value);
+            }
+        }
+
+        /// <summary>
+        /// Get or Set reconnection interval
+        /// </summary>
+        /// <exception cref="ZMQ.Exception">ZMQ Exception</exception>
+        public int ReconnectIvl {
+            get {
+                return (int)GetSockOpt(SocketOpt.RECONNECT_IVL);
+            }
+            set {
+                SetSockOpt(SocketOpt.RECONNECT_IVL, value);
+            }
+        }
+
+        /// <summary>
+        /// Get or Set maximum length of the queue of outstanding connections
+        /// </summary>
+        /// <exception cref="ZMQ.Exception">ZMQ Exception</exception>
+        public int Backlog {
+            get {
+                return (int)GetSockOpt(SocketOpt.BACKLOG);
+            }
+            set {
+                SetSockOpt(SocketOpt.BACKLOG, value);
+            }
+        }
+
+#if POSIX
+        /// <summary>
+        /// Get Socket File descriptor
+        /// </summary>
+        /// <exception cref="ZMQ.Exception">ZMQ Exception</exception>
+        public int FD {
+            get {
+                return (int)GetSockOpt(SocketOpt.FD);
+            }
+        }
+#else
+        /// <summary>
+        /// Get Socket winsock HANDLE
+        /// </summary>
+        /// <exception cref="ZMQ.Exception">ZMQ Exception</exception>
+        public IntPtr FD {
+            get {
+                return (IntPtr)GetSockOpt(SocketOpt.FD);
+            }
+        }
+#endif
+
+
+        /// <summary>
+        /// Get socket event state
+        /// </summary>
+        /// <exception cref="ZMQ.Exception">ZMQ Exception</exception>
+        public IOMultiPlex[] Events {
+            get {
+                uint evts = (uint)GetSockOpt(SocketOpt.EVENTS);
+                List<IOMultiPlex> evtList = new List<IOMultiPlex>();
+                if (((int)IOMultiPlex.POLLIN & evts) > 0) {
+                    evtList.Add(IOMultiPlex.POLLIN);
+                }
+                if (((int)IOMultiPlex.POLLOUT & evts) > 0) {
+                    evtList.Add(IOMultiPlex.POLLOUT);
+                }
+                return evtList.ToArray();
             }
         }
 
