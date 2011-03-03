@@ -94,8 +94,14 @@ namespace ZMQ {
         /// </summary>
         /// <param name="socket">ZMQ Socket</param>
         public static void Dump(Socket socket, Encoding encoding) {
+            Console.WriteLine(new String('-', 38));
             foreach (byte[] msg in socket.RecvAll()) {
-                Console.WriteLine(encoding.GetString(msg));
+                Console.Write("[{0}] ", String.Format("{0:d3}", msg.Length));
+                if (msg.Length == 17 && msg[0] == 0)  {
+                    Console.WriteLine(ZHelpers.DecodeUUID(msg).Substring(1));
+                } else {
+                    Console.WriteLine(encoding.GetString(msg));
+                }
             }
         }
 
