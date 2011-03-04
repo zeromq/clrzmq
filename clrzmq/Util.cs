@@ -137,6 +137,22 @@ namespace ZMQ {
         }
 
         /// <summary>
+        /// Assert the current version
+        /// </summary>
+        /// <param name="wantMajor">Desired Major</param>
+        /// <param name="wantMinor">Desired Minor</param>
+        public static void VersionAssert(int wantMajor, int wantMinor) {
+            int major, minor, patch;
+            Version(out major, out minor, out patch);
+            if (major < wantMajor || (major == wantMajor && minor < wantMinor)) {
+                Console.WriteLine("Current 0MQ version is {0}.{1}", major, minor);
+                Console.WriteLine("Application needs at least {0}.{1} - cannot continue", 
+                    wantMajor, wantMinor);
+                throw (new Exception("Invalid 0MQ version"));
+            }
+        }
+
+        /// <summary>
         /// Get ZMQ version
         /// </summary>
         /// <returns>ZMQ version string (major.minor.patch)</returns>
