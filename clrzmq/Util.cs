@@ -148,7 +148,7 @@ namespace ZMQ {
                 Console.WriteLine("Current 0MQ version is {0}.{1}", major, minor);
                 Console.WriteLine("Application needs at least {0}.{1} - cannot continue", 
                     wantMajor, wantMinor);
-                throw (new Exception("Invalid 0MQ version"));
+                throw (new System.Exception("Invalid 0MQ version"));
             }
         }
 
