@@ -89,9 +89,11 @@ namespace ZMQ {
                                             IntPtr outSocket);
 
         [DllImport("libzmq", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void zmq_version(IntPtr major, IntPtr minor, IntPtr patch);
+        public static extern void zmq_version(IntPtr major, IntPtr minor,
+                                              IntPtr patch);
 
         [DllImport("libzmq", CallingConvention = CallingConvention.Cdecl)]
-        public static extern int zmq_poll(IntPtr items, int nItems, long timeout);
+        public static extern int zmq_poll([In, Out] ZMQPollItem[] items,
+                                          int nItems, long timeout);
     }
 }

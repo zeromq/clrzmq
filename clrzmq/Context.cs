@@ -24,8 +24,42 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Threading;
+using System.Diagnostics;
+#if POSIX
+using Mono.Posix;
+using Mono.Unix;
+#endif
 
 namespace ZMQ {
+#if POSIX
+    public static class SignalHandler {
+        private static object _sync = new object();
+        private static UnixSignal[] _signals;
+        private static Thread _signalThread;
+
+        private static void Initialize() {
+            _signals = new UnixSignal[] {
+                new UnixSignal(Mono.Unix.Native.Signum.SIGTERM),
+                new UnixSignal(Mono.Unix.Native.Signum.SIGINT)
+            };
+            _signalThread = new Thread(delegate () {
+                UnixSignal.WaitAny(_signals, -1);
+                System.Environment.Exit(-1);
+            });
+            _signalThread.Start();
+        }
+
+        public static void StartHandler() {
+            lock (_sync){
+                if(_signals == null){
+                    Initialize();
+                }
+            }
+        }
+    }
+#endif
+
     /// <summary>
     /// ZMQ Context
     /// </summary>
@@ -33,17 +67,24 @@ namespace ZMQ {
         private static int _defaultIOThreads = 1;
         private IntPtr _ptr;
 
+
         /// <summary>
         /// Create ZMQ Context
         /// </summary>
         /// <param name="io_threads">Thread pool size</param>
         public Context(int io_threads) {
+#if POSIX
+            SignalHandler.StartHandler();
+#endif
             _ptr = C.zmq_init(io_threads);
             if (_ptr == IntPtr.Zero)
                 throw new Exception();
         }
 
         public Context() {
+#if POSIX
+            SignalHandler.StartHandler();
+#endif
             _ptr = C.zmq_init(_defaultIOThreads);
             if (_ptr == IntPtr.Zero)
                 throw new Exception();
@@ -107,6 +148,7 @@ namespace ZMQ {
             return Poll(items, -1);
         }
 
+
         /// <summary>
         /// Polls the supplied items for events. Static method.
         /// </summary>
@@ -114,35 +156,39 @@ namespace ZMQ {
         /// <param name="timeout">Timeout(micro seconds)</param>
         /// <returns>Number of Poll items with events</returns>
         public static int Poller(PollItem[] items, long timeout) {
-            int sizeOfZPL = Marshal.SizeOf(typeof(ZMQPollItem));
-            IntPtr offset = IntPtr.Zero;
-            int rc = 0;
-            using (DisposableIntPtr itemList = new DisposableIntPtr(sizeOfZPL * items.Length)) {
-                offset = itemList.Ptr;
+            Stopwatch spentTimeout = new Stopwatch();
+            int rc = -1;
+            if (timeout >= 0) {
+                spentTimeout.Start();
+            }
+            while (rc != 0) {
+                ZMQPollItem[] zitems = new ZMQPollItem[items.Length];
+                int index = 0;
                 foreach (PollItem item in items) {
-                    Marshal.StructureToPtr(item.ZMQPollItem, offset, false);
-#if x64
-                    offset = new IntPtr(offset.ToInt64() + sizeOfZPL);
-#else
-                    offset = new IntPtr(offset.ToInt32() + sizeOfZPL);
-#endif
+                    zitems[index] = item.ZMQPollItem;
+                    index++;
                 }
-                rc = C.zmq_poll(itemList.Ptr, items.Length, timeout);
+                rc = C.zmq_poll(zitems, items.Length, timeout);
                 if (rc > 0) {
-                    offset = itemList.Ptr;
-                    for (int index = 0; index < items.Length; index++) {
-                        items[index].ZMQPollItem = (ZMQPollItem)
-                            Marshal.PtrToStructure(offset, typeof(ZMQPollItem));
-#if x64
-                        offset = new IntPtr(offset.ToInt64() + sizeOfZPL);
-#else
-                        offset = new IntPtr(offset.ToInt32() + sizeOfZPL);
-#endif
+                    for (index = 0; index < items.Length; index++) {
+                        items[index].ZMQPollItem = zitems[index];
+                        items[index].FireEvents();
                     }
-                    foreach (PollItem item in items) {
-                        item.FireEvents();
-                    }
+                    break;
                 } else if (rc < 0) {
+                    if (ZMQ.C.zmq_errno() == 4) {
+                        if (spentTimeout.IsRunning) {
+                            long elapsed = spentTimeout.ElapsedMilliseconds * 1000;
+                            if (timeout < elapsed) {
+                                break;
+                            } else {
+                                timeout -= elapsed;
+                                continue;
+                            }
+                        } else {
+                            continue;
+                        }
+                    }
                     throw new Exception();
                 }
             }

@@ -422,13 +422,21 @@ namespace ZMQ {
             }
             if (C.zmq_msg_init(_msg) != 0)
                 throw new Exception();
-            if (C.zmq_recv(_ptr, _msg, flagsVal) == 0) {
-                message = new byte[C.zmq_msg_size(_msg)];
-                Marshal.Copy(C.zmq_msg_data(_msg), message, 0, message.Length);
-                C.zmq_msg_close(_msg);
-            } else {
-                if (C.zmq_errno() != EAGAIN)
-                    throw new Exception();
+            while(true){
+                if (C.zmq_recv(_ptr, _msg, flagsVal) == 0) {
+                    message = new byte[C.zmq_msg_size(_msg)];
+                    Marshal.Copy(C.zmq_msg_data(_msg), message, 0, message.Length);
+                    C.zmq_msg_close(_msg);
+                    break;
+                } else {
+                    if (C.zmq_errno() == 4) {
+                        continue;
+                    } else if (C.zmq_errno() != EAGAIN) {
+                        throw new Exception();
+                    } else {
+                        break;
+                    }
+                }
             }
             return message;
         }
