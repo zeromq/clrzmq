@@ -23,10 +23,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
-using System.Threading;
 using System.Diagnostics;
 #if POSIX
+using System.Threading;
 using Mono.Posix;
 using Mono.Unix;
 #endif

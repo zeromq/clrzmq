@@ -81,7 +81,7 @@ namespace ZMQ {
         private void CommonInit(bool local) {
             _msg = Marshal.AllocHGlobal(ZMQ_MSG_T_SIZE);
             _localSocket = local;
-            _pollItem = new PollItem(new ZMQPollItem(_ptr, 0, 0), this);
+            _pollItem = new PollItem(new ZMQPollItem(_ptr, IntPtr.Zero, 0), this);
         }
 
         ~Socket() {
