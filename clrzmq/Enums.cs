@@ -67,7 +67,9 @@ namespace ZMQ {
         REQ = 3,
         REP = 4,
         XREQ = 5,
+        DEALER = 5,
         XREP = 6,
+        ROUTER = 6,
         PULL = 7,
         UPSTREAM = 7,       //***OBSOLETE: To be removed in 3.x***
         PUSH = 8,

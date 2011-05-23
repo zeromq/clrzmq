@@ -109,10 +109,11 @@ namespace ZMQ {
         /// Sets socket Identity to a random number.
         /// </summary>
         /// <param name="socket">ZMQ Socket</param>
-        public static void SetID(Socket socket, Encoding encoding) {
+        public static string SetID(Socket socket, Encoding encoding) {
             Random rand = GetRandomGen();
-            socket.StringToIdentity(rand.Next().ToString() + "-" +
-                rand.Next().ToString(), encoding);
+            string id = rand.Next().ToString() + "-" + rand.Next().ToString();
+            socket.StringToIdentity(id, encoding);
+            return id;
         }
 
         /// <summary>

@@ -388,6 +388,29 @@ namespace ZMQ {
         }
 
         /// <summary>
+        /// Connect socket to destination address
+        /// </summary>
+        /// <param name="transport">Socket transport type</param>
+        /// <param name="addr">Socket address</param>
+        /// <param name="port">Socket port</param>
+        /// <exception cref="ZMQ.Exception">ZMQ Exception</exception>
+        public void Connect(Transport transport, string addr, uint port) {
+            Connect(Enum.GetName(typeof(Transport), transport).ToLower() +
+                    "://" + addr + ":" + port);
+        }
+
+        /// <summary>
+        /// Connect socket to destination address
+        /// </summary>
+        /// <param name="transport">Socket transport type</param>
+        /// <param name="addr">Socket address</param>
+        /// <exception cref="ZMQ.Exception">ZMQ Exception</exception>
+        public void Connect(Transport transport, string addr) {
+            Connect(Enum.GetName(typeof(Transport), transport).ToLower() +
+                    "://" + addr);
+        }
+
+        /// <summary>
         /// Forward all message parts directly to destination. No marshalling performed.
         /// </summary>
         /// <param name="destination">Destination Socket</param>
@@ -928,6 +951,10 @@ namespace ZMQ {
         /// <exception cref="ZMQ.Exception">ZMQ Exception</exception>
         public void Unsubscribe(string filter, Encoding encoding) {
             SetSockOpt(SocketOpt.UNSUBSCRIBE, encoding.GetBytes(filter));
+        }
+
+        public bool CheckEvent (IOMultiPlex revent) {
+            return _pollItem.CheckEvent(revent);
         }
 
         /// <summary>

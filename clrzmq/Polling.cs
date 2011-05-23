@@ -193,7 +193,10 @@ namespace ZMQ {
                 IOMultiPlex.POLLERR) {
                 _PollErrHandlers(_socket, _zmqPollItem.Revents);
             }
-            _zmqPollItem.ResetRevents();
+        }
+
+        public bool CheckEvent (IOMultiPlex revent) {
+            return (_zmqPollItem.Revents & revent) > 0;
         }
 
         /// <summary>

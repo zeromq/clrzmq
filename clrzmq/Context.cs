@@ -165,6 +165,7 @@ namespace ZMQ {
                 ZMQPollItem[] zitems = new ZMQPollItem[items.Length];
                 int index = 0;
                 foreach (PollItem item in items) {
+                    item.ZMQPollItem.ResetRevents();
                     zitems[index] = item.ZMQPollItem;
                     index++;
                 }
@@ -203,6 +204,14 @@ namespace ZMQ {
         /// <returns>Number of Poll items with events</returns>
         public static int Poller(PollItem[] items) {
             return Poller(items, -1);
+        }
+
+        public static int Poller(params Socket[] sockets) {
+            return Poller(new List<Socket>(sockets));
+        }
+
+        public static int Poller(long timeout, params Socket[] sockets) {
+            return Poller(new List<Socket>(sockets), timeout);
         }
 
         /// <summary>
