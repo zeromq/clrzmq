@@ -233,7 +233,7 @@ namespace ZMQ {
         public void SetSockOpt(SocketOpt option, ulong value) {
             int sizeOfValue = Marshal.SizeOf(typeof(ulong));
             using (DisposableIntPtr valPtr = new DisposableIntPtr(sizeOfValue)) {
-                WriteSizeT(valPtr.Ptr, value);
+                Marshal.WriteInt64(valPtr.Ptr, unchecked(Convert.ToInt64(value)));
                 if (C.zmq_setsockopt(_ptr, (int)option, valPtr.Ptr, sizeOfValue) != 0)
                     throw new Exception();
             }
@@ -262,7 +262,7 @@ namespace ZMQ {
         public void SetSockOpt(SocketOpt option, int value) {
             int sizeOfValue = Marshal.SizeOf(typeof(int));
             using (DisposableIntPtr valPtr = new DisposableIntPtr(sizeOfValue)) {
-                WriteSizeT(valPtr.Ptr, value);
+                Marshal.WriteInt32(valPtr.Ptr, Convert.ToInt32(value));
                 if (C.zmq_setsockopt(_ptr, (int)option, valPtr.Ptr, sizeOfValue) != 0)
                     throw new Exception();
             }
@@ -277,7 +277,7 @@ namespace ZMQ {
         public void SetSockOpt(SocketOpt option, long value) {
             int sizeOfValue = Marshal.SizeOf(typeof(long));
             using (DisposableIntPtr valPtr = new DisposableIntPtr(sizeOfValue)) {
-                WriteSizeT(valPtr.Ptr, value);
+                Marshal.WriteInt64(valPtr.Ptr, Convert.ToInt64(value));
                 if (C.zmq_setsockopt(_ptr, (int)option, valPtr.Ptr, sizeOfValue) != 0)
                     throw new Exception();
             }
