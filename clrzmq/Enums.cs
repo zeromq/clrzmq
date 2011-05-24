@@ -21,6 +21,8 @@
 
 */
 
+using System;
+
 namespace ZMQ {
     /// <summary>
     /// Message transport types
@@ -66,14 +68,18 @@ namespace ZMQ {
         SUB = 2,
         REQ = 3,
         REP = 4,
+        [Obsolete("To be removed in 3.x. Use DEALER instead.")]
         XREQ = 5,
         DEALER = 5,
+        [Obsolete("To be removed in 3.x. Use ROUTER instead.")]
         XREP = 6,
         ROUTER = 6,
         PULL = 7,
-        UPSTREAM = 7,       //***OBSOLETE: To be removed in 3.x***
+        [Obsolete("To be removed in 3.x. Use PULL instead.")]
+        UPSTREAM = 7,
         PUSH = 8,
-        DOWNSTREAM = 8      //***OBSOLETE: To be removed in 3.x***
+        [Obsolete("To be removed in 3.x. Use PUSH instead.")]
+        DOWNSTREAM = 8
     }
 
     /// <summary>
