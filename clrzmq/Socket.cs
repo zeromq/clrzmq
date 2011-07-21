@@ -166,7 +166,7 @@ namespace ZMQ {
         /// <param name="ptr">Pointer to a size_t</param>
         /// <returns>Size_t value</returns>
         private static object ReadSizeT(IntPtr ptr) {
-            return unchecked(IntPtr.Size == sizeof(Int32) ? Marshal.ReadInt32(ptr) : Marshal.ReadInt64(ptr));
+            return unchecked(C.Is64BitProcess() ? Marshal.ReadInt64(ptr) : Marshal.ReadInt32(ptr));
         }
 
         /// <summary>
@@ -175,10 +175,10 @@ namespace ZMQ {
         /// <param name="ptr">Pointer to a size_</param>
         /// <param name="val">Value to write</param>
         private static void WriteSizeT(IntPtr ptr, object val) {
-            if (IntPtr.Size == sizeof(Int32))
-                Marshal.WriteInt32(ptr, unchecked(Convert.ToInt32(val)));
-            else
+            if (C.Is64BitProcess())
                 Marshal.WriteInt64(ptr, unchecked(Convert.ToInt64(val)));
+            else
+                Marshal.WriteInt32(ptr, unchecked(Convert.ToInt32(val)));
         }
 
         /// <summary>

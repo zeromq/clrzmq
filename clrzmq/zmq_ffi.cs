@@ -25,6 +25,7 @@ using System;
 using System.Runtime.InteropServices;
 
 namespace ZMQ {
+    using System.Collections.Generic;
     using System.Runtime.ConstrainedExecution;
     using System.Security.Permissions;
     using Microsoft.Win32.SafeHandles;
@@ -32,8 +33,13 @@ namespace ZMQ {
     internal static class C {
         private static readonly UnmanagedLibrary ZmqLib;
 
-        static C() {
-            ZmqLib = new UnmanagedLibrary("libzmq64", "libzmq32", "libzmq");
+        static C()
+        {
+            string[] libCandidates = Is64BitProcess()
+                                    ? new[] { "libzmq64", "libzmq32", "libzmq" }
+                                    : new[] { "libzmq32", "libzmq" };
+
+            ZmqLib = new UnmanagedLibrary(libCandidates);
             AssignDelegates();
         }
 
@@ -58,6 +64,10 @@ namespace ZMQ {
             zmq_device = ZmqLib.GetUnmanagedFunction<ZmqDeviceProc>("zmq_device");
             zmq_version = ZmqLib.GetUnmanagedFunction<ZmqVersionProc>("zmq_version");
             zmq_poll = ZmqLib.GetUnmanagedFunction<ZmqPollProc>("zmq_poll");
+        }
+
+        public static bool Is64BitProcess() {
+            return IntPtr.Size == sizeof(Int64);
         }
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
@@ -251,7 +261,7 @@ namespace ZMQ {
         /// <param name="fileNames">File names to try in order of precedence</param>
         /// <exception cref="System.IO.FileNotFoundException">if fileName can't be found</exception>
         /// <remarks>Throws exceptions on failure. Most common failure would be file-not-found, that the file is not a loadable image.</remarks>
-        public UnmanagedLibrary(params string[] fileNames) {
+        public UnmanagedLibrary(IEnumerable<string> fileNames) {
             foreach (var fileName in fileNames) {
                 _handle = NativeMethods.OpenHandle(fileName);
 
