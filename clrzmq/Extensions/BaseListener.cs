@@ -8,6 +8,7 @@
 	public abstract class BaseListener : IDisposable
 	{
 		private Thread thread;
+		private bool disposed;
 
 		protected BaseListener(ZContextAccessor zContextAccessor)
 		{
@@ -75,6 +76,10 @@
 
 		public void Dispose()
 		{
+			if (disposed) return;
+
+			disposed = true;
+
 			Logger.Info("Disposing " + GetType().Name);
 
 			if (thread != null)
