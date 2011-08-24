@@ -120,14 +120,21 @@
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Castle.Core">
+      <HintPath>..\lib\Castle.Core.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-    <Reference Include="Mono.Posix" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Context.cs" />
     <Compile Include="Enums.cs" />
+    <Compile Include="Extensions\BaseListener.cs" />
+    <Compile Include="Extensions\BaseRequest.cs" />
+    <Compile Include="Extensions\ZConfig.cs" />
+    <Compile Include="Extensions\ZContextAccessor.cs" />
+    <Compile Include="Extensions\ZSocket.cs" />
     <Compile Include="Polling.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Util.cs" />
