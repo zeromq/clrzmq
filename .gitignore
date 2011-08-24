@@ -1,5 +1,16 @@
 clrzmq.userprefs
-*/bin/
-*/obj/
-*.pidb
+
+/build
+AssemblyInfo.cs
+
+# Standard VS.NET and ReSharper Foo
+*/obj
+*/bin
+*.csproj.user
+_ReSharper*
+*ReSharper.*
+*.resharper.user
+*.resharper
 *.suo
+*.cache
+* Thumbs.db
