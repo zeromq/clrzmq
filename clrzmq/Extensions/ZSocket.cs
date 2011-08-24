@@ -1,4 +1,4 @@
-namespace clrzmq.Extensions
+namespace ZMQ.Extensions
 {
 	using System;
 	using System.Text;
