@@ -47,7 +47,9 @@
 				                    			{
 				                    				var bytes = socket.Recv();
 
-													socket.Send(GetReplyFor(bytes, socket));
+													var reply = bytes == null ? new byte[0] : GetReplyFor(bytes, socket);
+
+													socket.Send(reply);
 				                    			}
 				                    		}
 				                    		catch (System.Exception e)
