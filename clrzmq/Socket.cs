@@ -695,7 +695,7 @@ namespace ZMQ
             if (C.zmq_msg_init_size(_msg, message.Length) != 0)
                 throw new Exception();
             Marshal.Copy(message, 0, C.zmq_msg_data(_msg), message.Length);
-            if (C.zmq_sendmsg(_ptr, _msg, flagsVal) != 0)
+            if (C.zmq_sendmsg(_ptr, _msg, flagsVal) < 0)
                 throw new Exception();
         }
 
