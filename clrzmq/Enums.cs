@@ -3,6 +3,7 @@
     Copyright (c) 2010 Jeffrey Dik <s450r1@gmail.com>
     Copyright (c) 2010 Martin Sustrik <sustrik@250bpm.com>
     Copyright (c) 2010 Michael Compton <michael.compton@littleedge.co.uk>
+    Copyright (c) 2011 Calvin de Vries <devries.calvin@gmail.com>
 
     This file is part of clrzmq2.
 
@@ -23,11 +24,13 @@
 
 using System;
 
-namespace ZMQ {
+namespace ZMQ
+{
     /// <summary>
     /// Message transport types
     /// </summary>
-    public enum Transport {
+    public enum Transport
+    {
         INPROC = 1,
         TCP = 2,
         IPC = 3,
@@ -38,16 +41,14 @@ namespace ZMQ {
     /// <summary>
     /// Socket options
     /// </summary>
-    public enum SocketOpt {
-        HWM = 1,
-        SWAP = 3,
+    public enum SocketOpt
+    {
         AFFINITY = 4,
         IDENTITY = 5,
         SUBSCRIBE = 6,
         UNSUBSCRIBE = 7,
         RATE = 8,
         RECOVERY_IVL = 9,
-        MCAST_LOOP = 10,
         SNDBUF = 11,
         RCVBUF = 12,
         RCVMORE = 13,
@@ -56,13 +57,22 @@ namespace ZMQ {
         TYPE = 16,
         LINGER = 17,
         RECONNECT_IVL = 18,
-        BACKLOG = 19
+        BACKLOG = 19,
+        RECONNECT_IVL_MAX = 21,
+        MAXMSGSIZE = 22,
+        SNDHWM = 23,
+        RCVHWM = 24,
+        MULTICAST_HOPS = 25,
+        RCVTIME0 = 27,
+        SNDTIME0 = 28,
+        RCVLABEL = 29
     }
 
     /// <summary>
     /// Socket types
     /// </summary>
-    public enum SocketType {
+    public enum SocketType
+    {
         PAIR = 0,
         PUB = 1,
         SUB = 2,
@@ -70,22 +80,21 @@ namespace ZMQ {
         REP = 4,
         [Obsolete("To be removed in 3.x. Use DEALER instead.")]
         XREQ = 5,
-        DEALER = 5,
         [Obsolete("To be removed in 3.x. Use ROUTER instead.")]
         XREP = 6,
-        ROUTER = 6,
         PULL = 7,
-        [Obsolete("To be removed in 3.x. Use PULL instead.")]
-        UPSTREAM = 7,
         PUSH = 8,
-        [Obsolete("To be removed in 3.x. Use PUSH instead.")]
-        DOWNSTREAM = 8
+        XPUB = 9,
+        XSUB = 10,
+        ZMQ_ROUTER = 11,
+        ZMQ_DEALER = 12
     }
 
     /// <summary>
     /// Device types
     /// </summary>
-    public enum DeviceType {
+    public enum DeviceType
+    {
         STREAMER = 1,
         FORWARDER = 2,
         QUEUE = 3
@@ -94,33 +103,38 @@ namespace ZMQ {
     /// <summary>
     /// Send and receive options
     /// </summary>
-    public enum SendRecvOpt {
+    public enum SendRecvOpt
+    {
         NONE = 0,
-        NOBLOCK = 1,
-        SNDMORE = 2
+        DONTWAIT = 1,
+        SNDMORE = 2,
+        SNDLABEL = 4
     }
 
     /// <summary>
     /// IO Multiplexing polling events bit flags
     /// </summary>
-    public enum IOMultiPlex {
+    public enum IOMultiPlex
+    {
         POLLIN = 0x1,
         POLLOUT = 0x2,
         POLLERR = 0x4
     }
 
-    public enum ERRNOS {
-        ENOTSUP = ZHelpers.HAUSNUMERO,
-        EPROTONOSUPPORT,
-        ENOBUFS,
-        ENETDOWN,
-        EADDRINUSE,
-        EADDRNOTAVAIL,
-        ECONNREFUSED,
-        EINPROGRESS,
+    public enum ERRNOS
+    {
+        ENOTSUP = ZHelpers.HAUSNUMERO + 1,
+        EPROTONOSUPPORT = ZHelpers.HAUSNUMERO + 2,
+        ENOBUFS = ZHelpers.HAUSNUMERO + 3,
+        ENETDOWN = ZHelpers.HAUSNUMERO + 4,
+        EADDRINUSE = ZHelpers.HAUSNUMERO + 5,
+        EADDRNOTAVAIL = ZHelpers.HAUSNUMERO + 6,
+        ECONNREFUSED = ZHelpers.HAUSNUMERO + 7,
+        EINPROGRESS = ZHelpers.HAUSNUMERO + 8,
+        ENOTSOCK = ZHelpers.HAUSNUMERO + 9,
         EFSM = ZHelpers.HAUSNUMERO + 51,
-        ENOCOMPATPROTO,
-        ETERM,
-        EMTHREAD
+        ENOCOMPATPROTO = ZHelpers.HAUSNUMERO + 52,
+        ETERM = ZHelpers.HAUSNUMERO + 53,
+        EMTHREAD = ZHelpers.HAUSNUMERO + 54
     }
 }

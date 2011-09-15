@@ -3,6 +3,7 @@
     Copyright (c) 2010 Jeffrey Dik <s450r1@gmail.com>
     Copyright (c) 2010 Martin Sustrik <sustrik@250bpm.com>
     Copyright (c) 2010 Michael Compton <michael.compton@littleedge.co.uk>
+    Copyright (c) 2011 Calvin de Vries <devries.calvin@gmail.com>
 
     This file is part of clrzmq2.
 
@@ -31,7 +32,8 @@ using Mono.Posix;
 using Mono.Unix;
 #endif
 
-namespace ZMQ {
+namespace ZMQ
+{
 #if POSIX
     public static class SignalHandler {
         private static object _sync = new object();
@@ -63,7 +65,8 @@ namespace ZMQ {
     /// <summary>
     /// ZMQ Context
     /// </summary>
-    public class Context : IDisposable {
+    public class Context : IDisposable
+    {
         private static int _defaultIOThreads = 1;
         private IntPtr _ptr;
 
@@ -72,7 +75,8 @@ namespace ZMQ {
         /// Create ZMQ Context
         /// </summary>
         /// <param name="io_threads">Thread pool size</param>
-        public Context(int io_threads) {
+        public Context(int io_threads)
+        {
 #if POSIX
             SignalHandler.StartHandler();
 #endif
@@ -81,7 +85,8 @@ namespace ZMQ {
                 throw new Exception();
         }
 
-        public Context() {
+        public Context()
+        {
 #if POSIX
             SignalHandler.StartHandler();
 #endif
@@ -90,7 +95,8 @@ namespace ZMQ {
                 throw new Exception();
         }
 
-        ~Context() {
+        ~Context()
+        {
             Dispose(false);
         }
 
@@ -99,24 +105,29 @@ namespace ZMQ {
         /// </summary>
         /// <param name="type">Type of socket to be created</param>
         /// <returns>A new ZMQ socket</returns>
-        public Socket Socket(SocketType type) {
+        public Socket Socket(SocketType type)
+        {
             return new Socket(CreateSocketPtr(type));
         }
 
-        internal IntPtr CreateSocketPtr(SocketType type) {
+        internal IntPtr CreateSocketPtr(SocketType type)
+        {
             IntPtr socket_ptr = C.zmq_socket(_ptr, (int)type);
             if (_ptr == IntPtr.Zero)
                 throw new Exception();
             return socket_ptr;
         }
 
-        public void Dispose() {
+        public void Dispose()
+        {
             Dispose(true);
             GC.SuppressFinalize(this);
         }
 
-        protected virtual void Dispose(bool disposing) {
-            if (_ptr != IntPtr.Zero) {
+        protected virtual void Dispose(bool disposing)
+        {
+            if (_ptr != IntPtr.Zero)
+            {
                 int rc = C.zmq_term(_ptr);
                 _ptr = IntPtr.Zero;
                 if (rc != 0)
@@ -124,7 +135,8 @@ namespace ZMQ {
             }
         }
 
-        public static int DefaultIOThreads {
+        public static int DefaultIOThreads
+        {
             get { return _defaultIOThreads; }
             set { _defaultIOThreads = value; }
         }
@@ -133,9 +145,10 @@ namespace ZMQ {
         /// Polls the supplied items for events.
         /// </summary>
         /// <param name="items">Items to Poll</param>
-        /// <param name="timeout">Timeout(micro seconds)</param>
+        /// <param name="timeout">Timeout(milliseconds)</param>
         /// <returns>Number of Poll items with events</returns>
-        public int Poll(PollItem[] items, long timeout) {
+        public int Poll(PollItem[] items, long timeout)
+        {
             return Poller(items, timeout);
         }
 
@@ -144,7 +157,8 @@ namespace ZMQ {
         /// </summary>
         /// <param name="items">Items to Poll</param>
         /// <returns>Number of Poll items with events</returns>
-        public int Poll(PollItem[] items) {
+        public int Poll(PollItem[] items)
+        {
             return Poll(items, -1);
         }
 
@@ -153,40 +167,55 @@ namespace ZMQ {
         /// Polls the supplied items for events. Static method.
         /// </summary>
         /// <param name="items">Items to Poll</param>
-        /// <param name="timeout">Timeout(micro seconds)</param>
+        /// <param name="timeout">Timeout(milliseconds)</param>
         /// <returns>Number of Poll items with events</returns>
-        public static int Poller(PollItem[] items, long timeout) {
+        public static int Poller(PollItem[] items, long timeout)
+        {
             Stopwatch spentTimeout = new Stopwatch();
             int rc = -1;
-            if (timeout >= 0) {
+            if (timeout >= 0)
+            {
                 spentTimeout.Start();
             }
-            while (rc != 0) {
+            while (rc != 0)
+            {
                 ZMQPollItem[] zitems = new ZMQPollItem[items.Length];
                 int index = 0;
-                foreach (PollItem item in items) {
+                foreach (PollItem item in items)
+                {
                     item.ZMQPollItem.ResetRevents();
                     zitems[index] = item.ZMQPollItem;
                     index++;
                 }
                 rc = C.zmq_poll(zitems, items.Length, timeout);
-                if (rc > 0) {
-                    for (index = 0; index < items.Length; index++) {
+                if (rc > 0)
+                {
+                    for (index = 0; index < items.Length; index++)
+                    {
                         items[index].ZMQPollItem = zitems[index];
                         items[index].FireEvents();
                     }
                     break;
-                } else if (rc < 0) {
-                    if (ZMQ.C.zmq_errno() == 4) {
-                        if (spentTimeout.IsRunning) {
-                            long elapsed = spentTimeout.ElapsedMilliseconds * 1000;
-                            if (timeout < elapsed) {
+                }
+                else if (rc < 0)
+                {
+                    if (ZMQ.C.zmq_errno() == 4)
+                    {
+                        if (spentTimeout.IsRunning)
+                        {
+                            long elapsed = spentTimeout.ElapsedMilliseconds;
+                            if (timeout < elapsed)
+                            {
                                 break;
-                            } else {
+                            }
+                            else
+                            {
                                 timeout -= elapsed;
                                 continue;
                             }
-                        } else {
+                        }
+                        else
+                        {
                             continue;
                         }
                     }
@@ -202,15 +231,18 @@ namespace ZMQ {
         /// </summary>
         /// <param name="items">Items to Poll</param>
         /// <returns>Number of Poll items with events</returns>
-        public static int Poller(PollItem[] items) {
+        public static int Poller(PollItem[] items)
+        {
             return Poller(items, -1);
         }
 
-        public static int Poller(params Socket[] sockets) {
+        public static int Poller(params Socket[] sockets)
+        {
             return Poller(new List<Socket>(sockets));
         }
 
-        public static int Poller(long timeout, params Socket[] sockets) {
+        public static int Poller(long timeout, params Socket[] sockets)
+        {
             return Poller(new List<Socket>(sockets), timeout);
         }
 
@@ -219,11 +251,13 @@ namespace ZMQ {
         /// Static method
         /// </summary>
         /// <param name="skts">Socket List</param>
-        /// <param name="timeout">Timeout(micro seconds)</param>
+        /// <param name="timeout">Timeout(milliseconds)</param>
         /// <returns>Number of Poll items with events</returns>
-        public static int Poller(IList<Socket> skts, long timeout) {
+        public static int Poller(IList<Socket> skts, long timeout)
+        {
             List<PollItem> items = new List<PollItem>(skts.Count);
-            foreach (Socket skt in skts) {
+            foreach (Socket skt in skts)
+            {
                 items.Add(skt.PollItem);
             }
             return Poller(items.ToArray(), timeout);
@@ -235,7 +269,8 @@ namespace ZMQ {
         /// </summary>
         /// <param name="skts">Socket List</param>
         /// <returns>Number of Poll items with events</returns>
-        public static int Poller(IList<Socket> skts) {
+        public static int Poller(IList<Socket> skts)
+        {
             return Poller(skts, -1);
         }
     }

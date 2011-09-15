@@ -3,6 +3,7 @@
     Copyright (c) 2010 Jeffrey Dik <s450r1@gmail.com>
     Copyright (c) 2010 Martin Sustrik <sustrik@250bpm.com>
     Copyright (c) 2010 Michael Compton <michael.compton@littleedge.co.uk>
+    Copyright (c) 2011 Calvin de Vries <devries.calvin@gmail.com>
      
     This file is part of clrzmq.
      
@@ -25,8 +26,10 @@ using System;
 using System.Text;
 using System.Runtime.InteropServices;
 
-namespace ZMQ {
-    internal static class C {
+namespace ZMQ
+{
+    internal static class C
+    {
         [DllImport("libzmq", CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr zmq_init(int io_threads);
 
@@ -53,11 +56,19 @@ namespace ZMQ {
         CallingConvention = CallingConvention.Cdecl)]
         public static extern int zmq_connect(IntPtr socket, string addr);
 
-        [DllImport("libzmq", CallingConvention = CallingConvention.Cdecl)]
-        public static extern int zmq_recv(IntPtr socket, IntPtr msg, int flags);
+        // This is included for POSIX compliance, Windows is not a POSIX platform, leaving it out
+        //[DllImport("libzmq", CallingConvention = CallingConvention.Cdecl)]
+        //public static extern int zmq_recv(IntPtr socket, IntPtr buffer, int bufflen, int flags);
 
         [DllImport("libzmq", CallingConvention = CallingConvention.Cdecl)]
-        public static extern int zmq_send(IntPtr socket, IntPtr msg, int flags);
+        public static extern int zmq_recvmsg(IntPtr socket, IntPtr msg, int flags);
+
+        // This is included for POSIX compliance, Windows is not a POSIX platform, leaving it out
+        //[DllImport("libzmq", CallingConvention = CallingConvention.Cdecl)]
+        //public static extern int zmq_send(IntPtr socket, IntPtr buffer, int bufflen, int flags);
+
+        [DllImport("libzmq", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int zmq_sendmsg(IntPtr socket, IntPtr msg, int flags);
 
         [DllImport("libzmq", CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr zmq_socket(IntPtr context, int type);
