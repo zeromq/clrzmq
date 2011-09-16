@@ -493,6 +493,43 @@ namespace ZMQ
         /// <summary>
         /// Listen for message
         /// </summary>
+        /// <param name="buffer">Message Buffer</param>
+        /// <param name="bufferlen">Buffer Length</param>
+        /// <param name="flags">Receive Options</param>
+        /// <returns>Message</returns>
+        /// <exception cref="ZMQ.Exception">ZMQ Exception</exception>
+        public int Recv(IntPtr buffer, int bufferlen, params SendRecvOpt[] flags)
+        {
+            int flagsVal = 0;
+            foreach (SendRecvOpt opt in flags) {
+                flagsVal += (int)opt;
+            }
+            if (C.zmq_msg_init(_msg) != 0)
+                throw new Exception();
+            while (true)
+            {
+                int nbytes = C.zmq_recv(_ptr, buffer, bufferlen, flagsVal);
+                if (nbytes >= 0) {
+                    return nbytes;
+                }
+                else
+                {
+                    if (C.zmq_errno() == 4) {
+                        continue;
+                    }
+                    else if (C.zmq_errno() != EAGAIN) {
+                        throw new Exception();
+                    }
+                    else {
+                        return 0;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Listen for message
+        /// </summary>
         /// <param name="flags">Receive Options</param>
         /// <returns>Message</returns>
         /// <exception cref="ZMQ.Exception">ZMQ Exception</exception>
@@ -517,17 +554,13 @@ namespace ZMQ
                 }
                 else
                 {
-                    if (C.zmq_errno() == 4)
-                    {
+                    if (C.zmq_errno() == 4) {
                         continue;
                     }
-                    else if (C.zmq_errno() != EAGAIN)
-                    {
+                    else if (C.zmq_errno() != EAGAIN) {
                         throw new Exception();
                     }
-                    else
-                    {
-                        Console.WriteLine("ZMQ Error #: " + C.zmq_errno());
+                    else {
                         break;
                     }
                 }
@@ -679,6 +712,26 @@ namespace ZMQ
             return messages;
         }
 
+
+        /// <summary>
+        /// Send Message
+        /// </summary>
+        /// <param name="buffer">Message Buffer</param>
+        /// <param name="bufferlen">Buffer Length</param>
+        /// <param name="flags">Send Options</param>
+        /// <exception cref="ZMQ.Exception">ZMQ Exception</exception>
+        public void Send(IntPtr buffer, int bufferlen, params SendRecvOpt[] flags)
+        {
+            int flagsVal = 0;
+            foreach (SendRecvOpt opt in flags) {
+                flagsVal += (int)opt;
+            }
+            if (C.zmq_msg_init_size(_msg, bufferlen) != 0)
+                throw new Exception();
+            if (C.zmq_send(_ptr, buffer, bufferlen, flagsVal) < 0)
+                throw new Exception();
+        }
+
         /// <summary>
         /// Send Message
         /// </summary>
@@ -688,8 +741,7 @@ namespace ZMQ
         public void Send(byte[] message, params SendRecvOpt[] flags)
         {
             int flagsVal = 0;
-            foreach (SendRecvOpt opt in flags)
-            {
+            foreach (SendRecvOpt opt in flags) {
                 flagsVal += (int)opt;
             }
             if (C.zmq_msg_init_size(_msg, message.Length) != 0)

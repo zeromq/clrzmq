@@ -56,16 +56,16 @@ namespace ZMQ
         CallingConvention = CallingConvention.Cdecl)]
         public static extern int zmq_connect(IntPtr socket, string addr);
 
-        // This is included for POSIX compliance, Windows is not a POSIX platform, leaving it out
-        //[DllImport("libzmq", CallingConvention = CallingConvention.Cdecl)]
-        //public static extern int zmq_recv(IntPtr socket, IntPtr buffer, int bufflen, int flags);
+        // This is included for POSIX compliance
+        [DllImport("libzmq", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int zmq_recv(IntPtr socket, IntPtr buffer, int bufflen, int flags);
 
         [DllImport("libzmq", CallingConvention = CallingConvention.Cdecl)]
         public static extern int zmq_recvmsg(IntPtr socket, IntPtr msg, int flags);
 
-        // This is included for POSIX compliance, Windows is not a POSIX platform, leaving it out
-        //[DllImport("libzmq", CallingConvention = CallingConvention.Cdecl)]
-        //public static extern int zmq_send(IntPtr socket, IntPtr buffer, int bufflen, int flags);
+        // This is included for POSIX compliance
+        [DllImport("libzmq", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int zmq_send(IntPtr socket, IntPtr buffer, int bufflen, int flags);
 
         [DllImport("libzmq", CallingConvention = CallingConvention.Cdecl)]
         public static extern int zmq_sendmsg(IntPtr socket, IntPtr msg, int flags);
