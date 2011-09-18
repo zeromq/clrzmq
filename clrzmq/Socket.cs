@@ -331,7 +331,8 @@ namespace ZMQ
         public object GetSockOpt(SocketOpt option)
         {
             const int IDLenSize = 255;  //Identity value length 255 bytes
-            const int lenSize = 8;      //Non-Identity value size 8 bytes
+            const int lenSize32 = 4;      //Non-Identity value size 4 or 8 bytes
+            const int lenSize64 = 8;
             object output;
             using (DisposableIntPtr len = new DisposableIntPtr(IntPtr.Size))
             {
@@ -347,31 +348,45 @@ namespace ZMQ
                         output = buffer;
                     }
                 }
+                else if (option == SocketOpt.AFFINITY || option == SocketOpt.MAXMSGSIZE)
+                {
+                    using (DisposableIntPtr val = new DisposableIntPtr(lenSize64))
+                    {
+                        WriteSizeT(len.Ptr, lenSize64);
+                        if (C.zmq_getsockopt(_ptr, (int)option, val.Ptr, len.Ptr) != 0)
+                            throw new Exception();
+
+                        if (option == SocketOpt.AFFINITY)
+                            output = unchecked((ulong)Marshal.ReadInt64(val.Ptr));
+                        else
+                            output = Marshal.ReadInt64(val.Ptr);
+                    }
+                }
                 else
                 {
-                    using (DisposableIntPtr val = new DisposableIntPtr(lenSize))
+                    using (DisposableIntPtr val = new DisposableIntPtr(lenSize32))
                     {
-                        WriteSizeT(len.Ptr, lenSize);
+                        WriteSizeT(len.Ptr, lenSize32);
                         if (C.zmq_getsockopt(_ptr, (int)option, val.Ptr, len.Ptr) != 0)
                             throw new Exception();
 
                         switch (option)
                         {
+                            case SocketOpt.RATE:
+                            case SocketOpt.MULTICAST_HOPS:
                             case SocketOpt.SNDHWM:
                             case SocketOpt.RCVHWM:
-                            case SocketOpt.AFFINITY:
                             case SocketOpt.SNDBUF:
                             case SocketOpt.RCVBUF:
-                                //Unchecked casting of uint64 options
-                                output = unchecked((ulong)Marshal.ReadInt32(val.Ptr));
-                                break;
+                            case SocketOpt.RCVLABEL:
+                            case SocketOpt.SNDTIME0:
+                            case SocketOpt.RCVTIME0:
                             case SocketOpt.LINGER:
                             case SocketOpt.BACKLOG:
                             case SocketOpt.RECONNECT_IVL:
-                                output = Marshal.ReadInt32(val.Ptr);
-                                break;
+                            case SocketOpt.RECONNECT_IVL_MAX:
                             case SocketOpt.EVENTS:
-                                output = unchecked((uint)Marshal.ReadInt32(val.Ptr));
+                                output = Marshal.ReadInt32(val.Ptr);
                                 break;
                             case SocketOpt.FD:
 #if POSIX
@@ -381,7 +396,7 @@ namespace ZMQ
 #endif
                                 break;
                             default:
-                                output = Marshal.ReadInt64(val.Ptr);
+                                output = Marshal.ReadInt32(val.Ptr);
                                 break;
                         }
                     }
@@ -526,7 +541,7 @@ namespace ZMQ
                 }
             }
         }
-
+        
         /// <summary>
         /// Listen for message
         /// </summary>
@@ -835,6 +850,64 @@ namespace ZMQ
         }
 
         /// <summary>
+        /// Subscribe to XPUB socket.
+        /// </summary>
+        /// <param name="message">Message data</param>
+        /// <param name="encoding">String encoding</param>
+        /// <exception cref="ZMQ.Exception">ZMQ Exception</exception>
+        public void XSubscribe(string filter, Encoding encoding)
+        {
+            byte[] message = new byte[filter.Length + 1];
+            message[0] = 1;
+            encoding.GetBytes(filter).CopyTo(message, 1);
+
+            Send(message);
+        }
+
+        /// <summary>
+        /// Subscribe to XPUB socket.
+        /// </summary>
+        /// <param name="message">Message data</param>
+        /// <exception cref="ZMQ.Exception">ZMQ Exception</exception>
+        public void XSubscribe(byte[] filter)
+        {
+            byte[] message = new byte[filter.Length + 1];
+            message[0] = 1;
+            filter.CopyTo(message, 1);
+
+            Send(message);
+        }
+
+        /// <summary>
+        /// Unsubscribe from XPUB socket.
+        /// </summary>
+        /// <param name="message">Message data</param>
+        /// <param name="encoding">String encoding</param>
+        /// <exception cref="ZMQ.Exception">ZMQ Exception</exception>
+        public void XUnsubscribe(string filter, Encoding encoding)
+        {
+            byte[] message = new byte[filter.Length + 1];
+            message[0] = 0;
+            encoding.GetBytes(filter).CopyTo(message, 1);
+
+            Send(message);
+        }
+
+        /// <summary>
+        /// Unsubscribe from XPUB socket.
+        /// </summary>
+        /// <param name="message">Message data</param>
+        /// <exception cref="ZMQ.Exception">ZMQ Exception</exception>
+        public void XUnsubscribe(byte[] filter)
+        {
+            byte[] message = new byte[filter.Length + 1];
+            message[0] = 0;
+            filter.CopyTo(message, 1);
+
+            Send(message);
+        }
+
+        /// <summary>
         /// Retrieve identity as a string
         /// </summary>
         /// <param name="encoding">String encoding</param>
@@ -876,11 +949,11 @@ namespace ZMQ
         /// Gets or Sets socket Sender High Water Mark
         /// </summary>
         /// <exception cref="ZMQ.Exception">ZMQ Exception</exception>
-        public ulong SNDHWM
+        public int SNDHWM
         {
             get
             {
-                return (ulong)GetSockOpt(SocketOpt.SNDHWM);
+                return (int)GetSockOpt(SocketOpt.SNDHWM);
             }
             set
             {
@@ -892,11 +965,11 @@ namespace ZMQ
         /// Gets or Sets socket Sender High Water Mark
         /// </summary>
         /// <exception cref="ZMQ.Exception">ZMQ Exception</exception>
-        public ulong RCVHWM
+        public int RCVHWM
         {
             get
             {
-                return (ulong)GetSockOpt(SocketOpt.RCVHWM);
+                return (int)GetSockOpt(SocketOpt.RCVHWM);
             }
             set
             {
@@ -912,7 +985,7 @@ namespace ZMQ
         {
             get
             {
-                return (long)GetSockOpt(SocketOpt.RCVMORE) == 1;
+                return (int)GetSockOpt(SocketOpt.RCVMORE) == 1;
             }
         }
 
@@ -936,11 +1009,11 @@ namespace ZMQ
         /// Gets or Sets socket transfer rate
         /// </summary>
         /// <exception cref="ZMQ.Exception">ZMQ Exception</exception>
-        public long Rate
+        public int Rate
         {
             get
             {
-                return (long)GetSockOpt(SocketOpt.RATE);
+                return (int)GetSockOpt(SocketOpt.RATE);
             }
             set
             {
@@ -952,11 +1025,11 @@ namespace ZMQ
         /// Gets or Sets socket recovery interval
         /// </summary>
         /// <exception cref="ZMQ.Exception">ZMQ Exception</exception>
-        public long RecoveryIvl
+        public int RecoveryIvl
         {
             get
             {
-                return (long)GetSockOpt(SocketOpt.RECOVERY_IVL);
+                return (int)GetSockOpt(SocketOpt.RECOVERY_IVL);
             }
             set
             {
@@ -968,11 +1041,11 @@ namespace ZMQ
         /// Gets or Sets socket Send buffer size(bytes)
         /// </summary>
         /// <exception cref="ZMQ.Exception">ZMQ Exception</exception>
-        public ulong SndBuf
+        public int SndBuf
         {
             get
             {
-                return (ulong)GetSockOpt(SocketOpt.SNDBUF);
+                return (int)GetSockOpt(SocketOpt.SNDBUF);
             }
             set
             {
@@ -984,11 +1057,11 @@ namespace ZMQ
         /// Gets or Sets socket Receive buffer size(bytes)
         /// </summary>
         /// <exception cref="ZMQ.Exception">ZMQ Exception</exception>
-        public ulong RcvBuf
+        public int RcvBuf
         {
             get
             {
-                return (ulong)GetSockOpt(SocketOpt.RCVBUF);
+                return (int)GetSockOpt(SocketOpt.RCVBUF);
             }
             set
             {
