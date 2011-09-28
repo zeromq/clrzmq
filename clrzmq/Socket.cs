@@ -316,7 +316,7 @@ namespace ZMQ
             int sizeOfValue = Marshal.SizeOf(typeof(long));
             using (DisposableIntPtr valPtr = new DisposableIntPtr(sizeOfValue))
             {
-                Marshal.WriteInt32(valPtr.Ptr, Convert.ToInt32(value));
+                Marshal.WriteInt64(valPtr.Ptr, Convert.ToInt64(value));
                 if (C.zmq_setsockopt(_ptr, (int)option, valPtr.Ptr, sizeOfValue) != 0)
                     throw new Exception();
             }
