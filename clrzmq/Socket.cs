@@ -319,7 +319,8 @@ namespace ZMQ {
                                 break;
                             case SocketOpt.LINGER:
                             case SocketOpt.BACKLOG:
-                            case SocketOpt.RECONNECT_IVL:                            
+                            case SocketOpt.RECONNECT_IVL:
+                            case SocketOpt.RECONNECT_IVL_MAX:
                                 output = Marshal.ReadInt32(val.Ptr);
                                 break;
                             case SocketOpt.EVENTS:
@@ -851,6 +852,19 @@ namespace ZMQ {
             }
             set {
                 SetSockOpt(SocketOpt.RECONNECT_IVL, value);
+            }
+        }
+
+        /// <summary>
+        /// Get or Set maximum reconnection interval
+        /// </summary>
+        /// <exception cref="ZMQ.Exception">ZMQ Exception</exception>
+        public int ReconnectIvlMax {
+            get {
+                return (int)GetSockOpt(SocketOpt.RECONNECT_IVL_MAX);
+            }
+            set {
+                SetSockOpt(SocketOpt.RECONNECT_IVL_MAX, value);
             }
         }
 

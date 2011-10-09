@@ -56,7 +56,8 @@ namespace ZMQ {
         TYPE = 16,
         LINGER = 17,
         RECONNECT_IVL = 18,
-        BACKLOG = 19
+        BACKLOG = 19,
+        RECONNECT_IVL_MAX = 20,
     }
 
     /// <summary>
