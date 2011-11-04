@@ -81,7 +81,7 @@ namespace ZMQ {
         private void CommonInit(bool local) {
             _msg = Marshal.AllocHGlobal(ZMQ_MSG_T_SIZE);
             _localSocket = local;
-            _pollItem = new PollItem(new ZMQPollItem(_ptr, 0, 0), this);
+            _pollItem = new PollItem(new ZMQPollItem(_ptr, IntPtr.Zero, 0), this);
         }
 
         ~Socket() {
@@ -160,50 +160,34 @@ namespace ZMQ {
             }
         }
 
-#if x86
         /// <summary>
-        /// Allows cross platform reading of size_t
+        /// Allows CPU architecture-agnostic reading of size_t
         /// </summary>
         /// <param name="ptr">Pointer to a size_t</param>
         /// <returns>Size_t value</returns>
-        private object ReadSizeT(IntPtr ptr) {
-            return unchecked((uint)Marshal.ReadInt32(ptr));
+        private static object ReadSizeT(IntPtr ptr) {
+            return unchecked(C.Is64BitProcess() ? Marshal.ReadInt64(ptr) : Marshal.ReadInt32(ptr));
         }
 
         /// <summary>
-        /// Allows cross platform writing of size_t
+        /// Allows CPU architecture-agnostic writing of size_t
         /// </summary>
         /// <param name="ptr">Pointer to a size_</param>
         /// <param name="val">Value to write</param>
-        private void WriteSizeT(IntPtr ptr, object val) {
-            Marshal.WriteInt32(ptr, unchecked(Convert.ToInt32(val)));
-        }
-#elif x64
-        /// <summary>
-        /// Allows cross platform reading of size_t
-        /// </summary>
-        /// <param name="ptr">Pointer to a size_t</param>
-        /// <returns>Size_t value</returns>
-        private object ReadSizeT(IntPtr ptr) {
-            return unchecked((ulong)Marshal.ReadInt64(ptr));
+        private static void WriteSizeT(IntPtr ptr, object val) {
+            if (C.Is64BitProcess())
+                Marshal.WriteInt64(ptr, unchecked(Convert.ToInt64(val)));
+            else
+                Marshal.WriteInt32(ptr, unchecked(Convert.ToInt32(val)));
         }
 
-        /// <summary>
-        /// Allows cross platform writing of size_t
-        /// </summary>
-        /// <param name="ptr">Pointer to a size_</param>
-        /// <param name="val">Value to write</param>
-        private void WriteSizeT(IntPtr ptr, object val) {
-            Marshal.WriteInt64(ptr, unchecked(Convert.ToInt64(val)));
-        }
-#endif
         /// <summary>
         /// Create poll item for ZMQ socket listening, for the supplied events
         /// </summary>
         /// <param name="events">Listening events</param>
         /// <returns>Socket Poll item</returns>
         public PollItem CreatePollItem(IOMultiPlex events) {
-            return new PollItem(new ZMQPollItem(_ptr, 0, (short)events), this);
+            return new PollItem(new ZMQPollItem(_ptr, IntPtr.Zero, (short)events), this);
         }
 
         /// <summary>
@@ -212,17 +196,9 @@ namespace ZMQ {
         /// <param name="events">Listening events</param>
         /// <param name="sysSocket">Raw Socket</param>
         /// <returns>Socket Poll item</returns>
-        public PollItem CreatePollItem(IOMultiPlex events,
-                                       SysSockets.Socket sysSocket) {
-#if x86 || POSIX
-            return new PollItem(new ZMQPollItem(_ptr, sysSocket.Handle.ToInt32(),
-                                                (short)events), this);
-#elif x64
-            return new PollItem(new ZMQPollItem(_ptr, sysSocket.Handle.ToInt64(),
-                                                (short)events), this);
-#endif
+        public PollItem CreatePollItem(IOMultiPlex events, SysSockets.Socket sysSocket) {
+            return new PollItem(new ZMQPollItem(_ptr, sysSocket.Handle, (short)events), this);
         }
-
 
         /// <summary>
         /// Set Socket Option

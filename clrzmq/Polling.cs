@@ -39,44 +39,25 @@ namespace ZMQ {
     public struct ZMQPollItem {
 #pragma warning disable 414 //Silence variable not used warnings
         private IntPtr _socket;
-#if x86 || POSIX
+#if POSIX
         private int _fd;
 #else
-        private long _fd;
+        private IntPtr _fd;
 #endif
         private short _events;
 #pragma warning restore //Restore full warnings
         private short _revents;
 
-#if x86 || POSIX
-        /// <summary>
-        /// Do not call directly
-        /// </summary>
-        /// <param name="socket">Target ZMQ socket ptr</param>
-        /// <param name="fd">Non ZMQ socket (Experimental)</param>
-        /// <param name="events">Desired events</param>
-        /// <param name="revents">Returned events</param>
-        internal ZMQPollItem(IntPtr socket, object fd, short events) {
-            _socket = socket;
-            _events = events;
-            _revents = 0;
-            _fd = Convert.ToInt32(fd);
-        }
-#else
-        /// <summary>
-        /// Do not call directly
-        /// </summary>
-        /// <param name="socket">Target ZMQ socket ptr</param>
-        /// <param name="fd">Non ZMQ socket (Not Supported)</param>
-        /// <param name="events">Desired events</param>
-        /// <param name="revents">Returned events</param>
-        internal ZMQPollItem(IntPtr socket, object fd, short events) {
+        internal ZMQPollItem(IntPtr socket, IntPtr fd, short events) {
             this._socket = socket;
             this._events = events;
             this._revents = 0;
-            this._fd = unchecked((long)Convert.ToInt64(fd));
-        }
+#if POSIX
+            this._fd = fd.ToInt32();
+#else
+            this._fd = fd;
 #endif
+        }
 
         /// <summary>
         /// Reset revents so that poll item can be safely reused
