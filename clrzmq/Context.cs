@@ -105,7 +105,7 @@ namespace ZMQ {
 
         internal IntPtr CreateSocketPtr(SocketType type) {
             IntPtr socket_ptr = C.zmq_socket(_ptr, (int)type);
-            if (_ptr == IntPtr.Zero)
+            if (socket_ptr == IntPtr.Zero)
                 throw new Exception();
             return socket_ptr;
         }
