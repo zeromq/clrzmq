@@ -791,6 +791,19 @@ namespace ZMQ {
         }
 
         /// <summary>
+        /// Gets or Sets socket recovery interval in milliseconds
+        /// </summary>
+        /// <exception cref="ZMQ.Exception">ZMQ Exception</exception>
+        public long RecoveryIvlMsec {
+            get {
+                return (long)GetSockOpt(SocketOpt.RECOVERY_IVL_MSEC);
+            }
+            set {
+                SetSockOpt(SocketOpt.RECOVERY_IVL_MSEC, value);
+            }
+        }
+
+        /// <summary>
         /// Gets or Sets socket MultiCast Loop
         /// </summary>
         /// <exception cref="ZMQ.Exception">ZMQ Exception</exception>
