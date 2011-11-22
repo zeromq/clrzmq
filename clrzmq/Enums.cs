@@ -74,6 +74,8 @@ namespace ZMQ {
         ROUTER = 6,
         PULL = 7,
         PUSH = 8,
+        XPUB = 9,
+        XSUB = 10,
         XREQ = DEALER,
         XREP = ROUTER,
         [Obsolete("To be removed in 3.x. Use PULL instead.")]
