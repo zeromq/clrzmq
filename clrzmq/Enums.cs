@@ -70,18 +70,16 @@ namespace ZMQ {
         SUB = 2,
         REQ = 3,
         REP = 4,
-        [Obsolete("To be removed in 3.x. Use DEALER instead.")]
-        XREQ = 5,
         DEALER = 5,
-        [Obsolete("To be removed in 3.x. Use ROUTER instead.")]
-        XREP = 6,
         ROUTER = 6,
         PULL = 7,
-        [Obsolete("To be removed in 3.x. Use PULL instead.")]
-        UPSTREAM = 7,
         PUSH = 8,
+        XREQ = DEALER,
+        XREP = ROUTER,
+        [Obsolete("To be removed in 3.x. Use PULL instead.")]
+        UPSTREAM = PULL,
         [Obsolete("To be removed in 3.x. Use PUSH instead.")]
-        DOWNSTREAM = 8
+        DOWNSTREAM = PUSH
     }
 
     /// <summary>
