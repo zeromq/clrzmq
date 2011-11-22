@@ -122,7 +122,7 @@ namespace ZMQ.ZMQDevice {
     }
 
     public class Forwarder : Device {
-        public Forwarder(string frontendAddr, string backendAddr, MessageProcessor msgProc)
+        public Forwarder(string frontendAddr, string backendAddr)
             : base(new Socket(SocketType.SUB), new Socket(SocketType.PUB)) {
             _frontend.Connect(frontendAddr);
             _backend.Bind(backendAddr);
@@ -138,7 +138,7 @@ namespace ZMQ.ZMQDevice {
     }
 
     public class Streamer : Device {
-        public Streamer(string frontendAddr, string backendAddr, MessageProcessor msgProc)
+        public Streamer(string frontendAddr, string backendAddr)
             : base(new Socket(SocketType.PUB), new Socket(SocketType.SUB)) {
             _frontend.Bind(frontendAddr);
             _backend.Connect(backendAddr);
