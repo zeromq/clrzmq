@@ -3,3 +3,7 @@ clrzmq.userprefs
 */obj/
 *.pidb
 *.suo
+_ReSharper.*
+*.ReSharper.user
+*.Cache
+*.cache
