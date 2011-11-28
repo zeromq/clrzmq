@@ -23,10 +23,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
-using System.Threading;
 using System.Diagnostics;
 #if POSIX
+using System.Runtime.InteropServices;
+using System.Threading;
 using Mono.Posix;
 using Mono.Unix;
 #endif
@@ -66,7 +66,6 @@ namespace ZMQ {
     public class Context : IDisposable {
         private static int _defaultIOThreads = 1;
         private IntPtr _ptr;
-
 
         /// <summary>
         /// Create ZMQ Context
@@ -148,7 +147,6 @@ namespace ZMQ {
             return Poll(items, -1);
         }
 
-
         /// <summary>
         /// Polls the supplied items for events. Static method.
         /// </summary>
@@ -156,13 +154,13 @@ namespace ZMQ {
         /// <param name="timeout">Timeout(micro seconds)</param>
         /// <returns>Number of Poll items with events</returns>
         public static int Poller(PollItem[] items, long timeout) {
-            Stopwatch spentTimeout = new Stopwatch();
+            var spentTimeout = new Stopwatch();
             int rc = -1;
             if (timeout >= 0) {
                 spentTimeout.Start();
             }
             while (rc != 0) {
-                ZMQPollItem[] zitems = new ZMQPollItem[items.Length];
+                var zitems = new ZMQPollItem[items.Length];
                 int index = 0;
                 foreach (PollItem item in items) {
                     item.ZMQPollItem.ResetRevents();
@@ -176,19 +174,18 @@ namespace ZMQ {
                         items[index].FireEvents();
                     }
                     break;
-                } else if (rc < 0) {
-                    if (ZMQ.C.zmq_errno() == 4) {
+                }
+                if (rc < 0) {
+                    if (C.zmq_errno() == 4) {
                         if (spentTimeout.IsRunning) {
                             long elapsed = spentTimeout.ElapsedMilliseconds * 1000;
                             if (timeout < elapsed) {
                                 break;
-                            } else {
-                                timeout -= elapsed;
-                                continue;
                             }
-                        } else {
+                            timeout -= elapsed;
                             continue;
                         }
+                        continue;
                     }
                     throw new Exception();
                 }
@@ -222,7 +219,7 @@ namespace ZMQ {
         /// <param name="timeout">Timeout(micro seconds)</param>
         /// <returns>Number of Poll items with events</returns>
         public static int Poller(IList<Socket> skts, long timeout) {
-            List<PollItem> items = new List<PollItem>(skts.Count);
+            var items = new List<PollItem>(skts.Count);
             foreach (Socket skt in skts) {
                 items.Add(skt.PollItem);
             }

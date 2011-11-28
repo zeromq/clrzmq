@@ -105,6 +105,7 @@ namespace ZMQ {
     /// <summary>
     /// IO Multiplexing polling events bit flags
     /// </summary>
+    [Flags]
     public enum IOMultiPlex {
         POLLIN = 0x1,
         POLLOUT = 0x2,

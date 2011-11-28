@@ -22,8 +22,6 @@
 */
 
 using System;
-using System.Runtime.InteropServices;
-using SysSockets = System.Net.Sockets;
 
 namespace ZMQ {
     /// <summary>
@@ -37,7 +35,7 @@ namespace ZMQ {
     /// ZMQ Poll item, sets target socket and events.
     /// </summary>
     public struct ZMQPollItem {
-#pragma warning disable 414 //Silence variable not used warnings
+#pragma warning disable 414 // ReSharper disable UnaccessedField.Local
         private IntPtr _socket;
 #if x86 || POSIX
         private int _fd;
@@ -45,7 +43,7 @@ namespace ZMQ {
         private long _fd;
 #endif
         private short _events;
-#pragma warning restore //Restore full warnings
+#pragma warning restore // ReSharper restore UnaccessedField.Local
         private short _revents;
 
 #if x86 || POSIX
@@ -55,7 +53,6 @@ namespace ZMQ {
         /// <param name="socket">Target ZMQ socket ptr</param>
         /// <param name="fd">Non ZMQ socket (Experimental)</param>
         /// <param name="events">Desired events</param>
-        /// <param name="revents">Returned events</param>
         internal ZMQPollItem(IntPtr socket, object fd, short events) {
             _socket = socket;
             _events = events;
@@ -67,14 +64,13 @@ namespace ZMQ {
         /// Do not call directly
         /// </summary>
         /// <param name="socket">Target ZMQ socket ptr</param>
-        /// <param name="fd">Non ZMQ socket (Not Supported)</param>
+        /// <param name="fd">Non ZMQ socket (Experimental)</param>
         /// <param name="events">Desired events</param>
-        /// <param name="revents">Returned events</param>
         internal ZMQPollItem(IntPtr socket, object fd, short events) {
-            this._socket = socket;
-            this._events = events;
-            this._revents = 0;
-            this._fd = unchecked((long)Convert.ToInt64(fd));
+            _socket = socket;
+            _events = events;
+            _revents = 0;
+            _fd = unchecked(Convert.ToInt64(fd));
         }
 #endif
 
@@ -109,8 +105,9 @@ namespace ZMQ {
     /// Polling item, provides the polling mechanism
     /// </summary>
     public class PollItem {
+        private readonly Socket _socket;
+
         private ZMQPollItem _zmqPollItem;
-        private Socket _socket;
 
         private event PollHandler _PollInHandlers;
         private event PollHandler _PollOutHandlers;
@@ -119,11 +116,11 @@ namespace ZMQ {
         /// <summary>
         /// Should not be created directly, use Socket.CreatePollItem
         /// </summary>
-        /// <param name="zmqPollItem"></param>
-        /// <param name="socket"></param>
+        /// <param name="zmqPollItem">Native poll item</param>
+        /// <param name="socket">Socket to poll</param>
         internal PollItem(ZMQPollItem zmqPollItem, Socket socket) {
-            this._socket = socket;
-            this._zmqPollItem = zmqPollItem;
+            _socket = socket;
+            _zmqPollItem = zmqPollItem;
         }
 
         /// <summary>
@@ -195,7 +192,7 @@ namespace ZMQ {
             }
         }
 
-        public bool CheckEvent (IOMultiPlex revent) {
+        public bool CheckEvent(IOMultiPlex revent) {
             return (_zmqPollItem.Revents & revent) > 0;
         }
 
@@ -203,12 +200,8 @@ namespace ZMQ {
         /// Get and Set ZMQ poll item
         /// </summary>
         public ZMQPollItem ZMQPollItem {
-            get {
-                return _zmqPollItem;
-            }
-            set {
-                _zmqPollItem = value;
-            }
+            get { return _zmqPollItem; }
+            set { _zmqPollItem = value; }
         }
     }
 }

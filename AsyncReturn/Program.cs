@@ -1,16 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using ZMQ;
-using ZMQ.ZMQExt;
-using ZMQ.ZMQDevice;
 using AsyncDevice = ZMQ.ZMQDevice.AsyncReturn;
 
 namespace AsyncReturn {
     class Program {
         static void AsyncReturn(byte[] identity, Queue<byte[]> msgParts) {
-            using (Socket skt = new Socket(SocketType.PUSH)) {
+            using (var skt = new Socket(SocketType.PUSH)) {
                 skt.Connect("inproc://asyncReturn");
                 skt.SendMore(identity);
                 skt.SendMore(msgParts.Dequeue());
@@ -19,19 +16,17 @@ namespace AsyncReturn {
             }
         }
         static void Main(string[] args) {
-            using (AsyncDevice ar = new AsyncDevice("inproc://server", "inproc://asyncReturn", AsyncReturn)) {
-                using (Socket clientA = new Socket(SocketType.REQ),
-                    clientB = new Socket(SocketType.REQ)) {
-                    ar.Start();
-                    System.Threading.Thread.Sleep(1000);
-                    clientA.Connect("inproc://server");
-                    clientB.Connect("inproc://server");
-                    clientA.Send("Hello from A", Encoding.Unicode);
-                    clientB.Send("Hello from B", Encoding.Unicode);
-                    Console.WriteLine(clientA.Recv(Encoding.Unicode));
-                    Console.WriteLine(clientB.Recv(Encoding.Unicode));
-                    Console.ReadLine();
-                }
+            using (var ar = new AsyncDevice("inproc://server", "inproc://asyncReturn", AsyncReturn))
+            using (Socket clientA = new Socket(SocketType.REQ), clientB = new Socket(SocketType.REQ)) {
+                ar.Start();
+                System.Threading.Thread.Sleep(1000);
+                clientA.Connect("inproc://server");
+                clientB.Connect("inproc://server");
+                clientA.Send("Hello from A", Encoding.Unicode);
+                clientB.Send("Hello from B", Encoding.Unicode);
+                Console.WriteLine(clientA.Recv(Encoding.Unicode));
+                Console.WriteLine(clientB.Recv(Encoding.Unicode));
+                Console.ReadLine();
             }
         }
     }

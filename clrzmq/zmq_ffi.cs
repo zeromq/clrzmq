@@ -1,5 +1,5 @@
 ﻿/*
- 
+
     Copyright (c) 2010 Jeffrey Dik <s450r1@gmail.com>
     Copyright (c) 2010 Martin Sustrik <sustrik@250bpm.com>
     Copyright (c) 2010 Michael Compton <michael.compton@littleedge.co.uk>
@@ -22,7 +22,6 @@
 */
 
 using System;
-using System.Text;
 using System.Runtime.InteropServices;
 
 namespace ZMQ {
@@ -37,13 +36,10 @@ namespace ZMQ {
         public static extern int zmq_close(IntPtr socket);
 
         [DllImport("libzmq", CallingConvention = CallingConvention.Cdecl)]
-        public static extern int zmq_setsockopt(IntPtr socket, int option,
-                                                IntPtr optval, int optvallen);
+        public static extern int zmq_setsockopt(IntPtr socket, int option, IntPtr optval, int optvallen);
 
         [DllImport("libzmq", CallingConvention = CallingConvention.Cdecl)]
-        public static extern int zmq_getsockopt(IntPtr socket, int option,
-                                                IntPtr optval,
-                                                IntPtr optvallen);
+        public static extern int zmq_getsockopt(IntPtr socket, int option, IntPtr optval, IntPtr optvallen);
 
         [DllImport("libzmq", CharSet = CharSet.Ansi,
         CallingConvention = CallingConvention.Cdecl)]
@@ -85,15 +81,12 @@ namespace ZMQ {
         public static extern IntPtr zmq_strerror(int errnum);
 
         [DllImport("libzmq", CallingConvention = CallingConvention.Cdecl)]
-        public static extern int zmq_device(int device, IntPtr inSocket,
-                                            IntPtr outSocket);
+        public static extern int zmq_device(int device, IntPtr inSocket, IntPtr outSocket);
 
         [DllImport("libzmq", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void zmq_version(IntPtr major, IntPtr minor,
-                                              IntPtr patch);
+        public static extern void zmq_version(IntPtr major, IntPtr minor, IntPtr patch);
 
         [DllImport("libzmq", CallingConvention = CallingConvention.Cdecl)]
-        public static extern int zmq_poll([In, Out] ZMQPollItem[] items,
-                                          int nItems, long timeout);
+        public static extern int zmq_poll([In, Out] ZMQPollItem[] items, int numItems, long timeout);
     }
 }

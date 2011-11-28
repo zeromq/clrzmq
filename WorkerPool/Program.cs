@@ -1,17 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
+using System.Threading;
 using ZMQ;
 using ZMQ.ZMQExt;
-using ZMQ.ZMQDevice;
-using System.Threading;
-using System.Runtime.Serialization;
 
 namespace WorkerPool {
-    [Serializable()]
+    [Serializable]
     class Message {
-        private string msg;
+        private readonly string msg;
+
         public Message(string msg) {
             this.msg = msg;
         }
@@ -28,35 +25,34 @@ namespace WorkerPool {
                 while (true) {
                     string message = receiver.Recv(Encoding.Unicode);
                     Thread.Sleep(1000);
-                    receiver.Send<Message>(new Message("World"));
+                    receiver.Send(new Message("World"));
                 }
             }
         }
 
         private static void Server() {
-            ZMQ.ZMQDevice.WorkerPool pool =
-                new ZMQ.ZMQDevice.WorkerPool("tcp://*:5555", "inproc://workers", Worker, 5);
+            var pool = new ZMQ.ZMQDevice.WorkerPool("tcp://*:5555", "inproc://workers", Worker, 5);
             Thread.Sleep(Timeout.Infinite);
         }
 
-        public static  void Transmit() {
-            using (Socket socket = new Socket(SocketType.REQ)) {
+        public static void Transmit() {
+            using (var socket = new Socket(SocketType.REQ)) {
                 socket.Connect("tcp://localhost:5555");
-                string request = "Hello";
+                const string request = "Hello";
                 for (int requestNbr = 0; requestNbr < 10; requestNbr++) {
                     Console.WriteLine("Sending request {0}...", requestNbr);
-                    socket.Send<Message>(new Message(request));
-                    Message reply = socket.Recv<Message>();
+                    socket.Send(new Message(request));
+                    var reply = socket.Recv<Message>();
                     Console.WriteLine("Received reply {0}: {1}", requestNbr, reply.Msg);
                 }
             }
         }
 
         static void Main(string[] args) {
-            Thread server = new Thread(Server);
+            var server = new Thread(Server);
             server.Start();
 
-            Thread[] clientThreads = new Thread[5];
+            var clientThreads = new Thread[5];
             for (int count = 0; count < clientThreads.Length; count++) {
                 clientThreads[count] = new Thread(Transmit);
                 clientThreads[count].Start();

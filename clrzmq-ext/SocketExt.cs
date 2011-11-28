@@ -19,12 +19,10 @@
 
 */
 
-using System;
-using ZMQ;
-using System.IO;
 using System.Collections.Generic;
-using System.Text;
+using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Text;
 
 namespace ZMQ.ZMQExt {
     /// <summary>
@@ -77,10 +75,9 @@ namespace ZMQ.ZMQExt {
         /// <param name="skt">Socket</param>
         /// <returns>T obj</returns>
         public static T Recv<T>(this Socket skt) {
-            BinaryFormatter bf = new BinaryFormatter();
-            MemoryStream ms = new MemoryStream(skt.Recv());
-            ms.Position = 0;
-            T obj = (T)bf.Deserialize(ms);
+            var bf = new BinaryFormatter();
+            var ms = new MemoryStream(skt.Recv()) { Position = 0 };
+            var obj = (T)bf.Deserialize(ms);
             ms.Close();
             return obj;
         }
@@ -90,14 +87,14 @@ namespace ZMQ.ZMQExt {
         /// </summary>
         /// <typeparam name="T">Received Object Type</typeparam>
         /// <param name="skt">Socket</param>
+        /// <param name="timeout">Non-blocking receive timeout</param>
         /// <returns>T obj</returns>
         public static T Recv<T>(this Socket skt, int timeout) where T : class {
             T obj = null;
             byte[] data = skt.Recv(timeout);
             if (data != null) {
-                BinaryFormatter bf = new BinaryFormatter();
-                MemoryStream ms = new MemoryStream();
-                ms.Position = 0;
+                var bf = new BinaryFormatter();
+                var ms = new MemoryStream { Position = 0 };
                 obj = (T)bf.Deserialize(ms);
                 ms.Close();
             }
@@ -111,8 +108,8 @@ namespace ZMQ.ZMQExt {
         /// <param name="skt">Socket</param>
         /// <param name="obj">T Object</param>
         public static void Send<T>(this Socket skt, T obj) {
-            BinaryFormatter bf = new BinaryFormatter();
-            MemoryStream ms = new MemoryStream();
+            var bf = new BinaryFormatter();
+            var ms = new MemoryStream();
             bf.Serialize(ms, obj);
             skt.Send(ms.ToArray());
             ms.Close();

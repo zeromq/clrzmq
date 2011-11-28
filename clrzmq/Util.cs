@@ -22,40 +22,38 @@
 */
 
 using System;
-using System.Text;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace ZMQ {
     /// <summary>
-    /// CLRZeroMQ Exception type
+    /// ZMQ Exception type
     /// </summary>
     public class Exception : System.Exception {
-        private int errno;
+        private readonly int _errno;
 
         /// <summary>
         /// Get ZeroMQ Errno
         /// </summary>
         public int Errno {
-            get { return errno; }
+            get { return _errno; }
         }
 
         public Exception()
             : base(Marshal.PtrToStringAnsi(C.zmq_strerror(C.zmq_errno()))) {
-            this.errno = C.zmq_errno();
+            _errno = C.zmq_errno();
         }
     }
 
     /// <summary>
-    /// CLRZMQ utility methods
+    /// Utility methods
     /// </summary>
     public static class ZHelpers {
         public const int HAUSNUMERO = 156384712;
-        private static Random rand;
+        private static Random _rand;
 
         private static Random GetRandomGen() {
-            if (rand == null)
-                rand = new Random(DateTime.Now.Millisecond);
-            return rand;
+            return _rand ?? (_rand = new Random(DateTime.Now.Millisecond));
         }
 
         /// <summary>
@@ -65,11 +63,11 @@ namespace ZMQ {
         /// <returns>String representation of UUID</returns>
         public static string DecodeUUID(byte[] data) {
             const string hex = "0123456789ABCDEF";
-            char[] uuid = new char[33];
+            var uuid = new char[33];
             uuid[0] = '@';
             for (int byteNbr = 0; byteNbr < 16; byteNbr++) {
-                uuid[byteNbr * 2 + 1] = hex[data[byteNbr + 1] >> 4];
-                uuid[byteNbr * 2 + 2] = hex[data[byteNbr + 1] & 15];
+                uuid[(byteNbr * 2) + 1] = hex[data[byteNbr + 1] >> 4];
+                uuid[(byteNbr * 2) + 2] = hex[data[byteNbr + 1] & 15];
             }
             return new String(uuid);
         }
@@ -80,7 +78,7 @@ namespace ZMQ {
         /// <param name="uuid">String representation of UUID</param>
         /// <returns>UUID</returns>
         public static byte[] EncodeUUID(string uuid) {
-            byte[] data = new byte[17];
+            var data = new byte[17];
             data[0] = 0;
             uuid = uuid.TrimStart('@');
             for (int byteNbr = 0; byteNbr < 16; byteNbr++) {
@@ -93,13 +91,15 @@ namespace ZMQ {
         /// Prints all pending messages to the console.
         /// </summary>
         /// <param name="socket">ZMQ Socket</param>
+        /// <param name="encoding">Encoding to use for message decoding</param>
         public static void Dump(Socket socket, Encoding encoding) {
             Console.WriteLine(new String('-', 38));
             foreach (byte[] msg in socket.RecvAll()) {
                 Console.Write("[{0}] ", String.Format("{0:d3}", msg.Length));
-                if (msg.Length == 17 && msg[0] == 0)  {
-                    Console.WriteLine(ZHelpers.DecodeUUID(msg).Substring(1));
-                } else {
+                if (msg.Length == 17 && msg[0] == 0) {
+                    Console.WriteLine(DecodeUUID(msg).Substring(1));
+                }
+                else {
                     Console.WriteLine(encoding.GetString(msg));
                 }
             }
@@ -109,9 +109,11 @@ namespace ZMQ {
         /// Sets socket Identity to a random number.
         /// </summary>
         /// <param name="socket">ZMQ Socket</param>
+        /// <param name="encoding">Encoding to use for the socket identity</param>
+        /// <returns>The identity assigned to the socket.</returns>
         public static string SetID(Socket socket, Encoding encoding) {
             Random rand = GetRandomGen();
-            string id = rand.Next().ToString() + "-" + rand.Next().ToString();
+            string id = rand.Next() + "-" + rand.Next();
             socket.StringToIdentity(id, encoding);
             return id;
         }
@@ -122,8 +124,7 @@ namespace ZMQ {
         /// <param name="major">Major</param>
         /// <param name="minor">Minor</param>
         /// <param name="patch">Patch</param>
-        public static void Version(out int major, out int minor,
-                                   out int patch) {
+        public static void Version(out int major, out int minor, out int patch) {
             int sizeofInt32 = Marshal.SizeOf(typeof(Int32));
             IntPtr maj = Marshal.AllocHGlobal(sizeofInt32);
             IntPtr min = Marshal.AllocHGlobal(sizeofInt32);
@@ -147,9 +148,8 @@ namespace ZMQ {
             Version(out major, out minor, out patch);
             if (major < wantMajor || (major == wantMajor && minor < wantMinor)) {
                 Console.WriteLine("Current 0MQ version is {0}.{1}", major, minor);
-                Console.WriteLine("Application needs at least {0}.{1} - cannot continue", 
-                    wantMajor, wantMinor);
-                throw (new System.Exception("Invalid 0MQ version"));
+                Console.WriteLine("Application needs at least {0}.{1} - cannot continue", wantMajor, wantMinor);
+                throw new System.Exception(string.Format("Invalid 0MQ version. Current: {0}.{1}; expected: {2}.{3}", major, minor, wantMajor, wantMinor));
             }
         }
 
@@ -160,8 +160,7 @@ namespace ZMQ {
         public static string Version() {
             int major, minor, patch;
             Version(out major, out minor, out patch);
-            return major.ToString() + "." + minor.ToString() + "." +
-                patch.ToString();
+            return major + "." + minor + "." + patch;
         }
     }
 

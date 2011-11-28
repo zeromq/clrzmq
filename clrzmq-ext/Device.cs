@@ -21,17 +21,17 @@
 
 using System;
 using System.Collections.Generic;
-using ZMQ;
 using System.Threading;
 
 namespace ZMQ.ZMQDevice {
     public abstract class Device : IDisposable {
-        private static long _pollingInterval = 750000;
+        private const long PollingInterval = 750000;
 
         protected bool _run;
         protected Socket _frontend;
         protected Socket _backend;
-        private Thread _runningThread;
+
+        private readonly Thread _runningThread;
         private bool _isRunning;        
 
         /// <summary>
@@ -39,7 +39,7 @@ namespace ZMQ.ZMQDevice {
         /// </summary>
         /// <param name="frontend">Fontend Socket</param>
         /// <param name="backend">Backend Socket</param>
-        public Device(Socket frontend, Socket backend) {
+        protected Device(Socket frontend, Socket backend) {
             _backend = backend;
             _frontend = frontend;
             _isRunning = false;
@@ -61,7 +61,7 @@ namespace ZMQ.ZMQDevice {
         protected virtual void Dispose(bool disposing) {
             if (_isRunning) {
                 Stop();
-                while (_isRunning) { Thread.Sleep((int)_pollingInterval); }
+                while (_isRunning) { Thread.Sleep((int)PollingInterval); }
             }
             _frontend.Dispose();
             _backend.Dispose();
@@ -92,11 +92,9 @@ namespace ZMQ.ZMQDevice {
         }
 
         protected virtual void RunningLoop() {
-            List<Socket> skts = new List<Socket>();
-            skts.Add(_frontend);
-            skts.Add(_backend);
+            var skts = new List<Socket> { _frontend, _backend };
             while (_run) {
-                Context.Poller(skts, _pollingInterval);
+                Context.Poller(skts, PollingInterval);
             }
             IsRunning = false;
         }
@@ -156,17 +154,18 @@ namespace ZMQ.ZMQDevice {
     public delegate void MessageProcessor(byte[] identity, Queue<byte[]> msgParts);
 
     public class AsyncReturn : Device {
-        private MessageProcessor messageProcessor;
+        private readonly MessageProcessor _messageProcessor;
+
         public AsyncReturn(string frontendAddr, string backendAddr, MessageProcessor msgProc)
             : base(new Socket(SocketType.XREP), new Socket(SocketType.PULL)) {
-            messageProcessor = msgProc;
+            _messageProcessor = msgProc;
             _frontend.Bind(frontendAddr);
             _backend.Bind(backendAddr);
         }
 
         protected override void FrontendHandler(Socket socket, IOMultiPlex revents) {
             Queue<byte[]> msgs = socket.RecvAll();
-            messageProcessor(msgs.Dequeue(), msgs);
+            _messageProcessor(msgs.Dequeue(), msgs);
         }
 
         protected override void BackendHandler(Socket socket, IOMultiPlex revents) {

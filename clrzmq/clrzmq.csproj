@@ -8,7 +8,7 @@
     <ProjectGuid>{FE6D6CDD-8A04-4A3A-A654-5C687AB724E3}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>clrzmq</RootNamespace>
+    <RootNamespace>ZMQ</RootNamespace>
     <AssemblyName>clrzmq</AssemblyName>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />

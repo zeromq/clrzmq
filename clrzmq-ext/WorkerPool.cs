@@ -18,12 +18,9 @@
 
 */
 
-using System;
-using ZMQ;
 using System.Threading;
 
 namespace ZMQ.ZMQDevice {
-
     /// <summary>
     /// Worker pool device
     /// </summary>
