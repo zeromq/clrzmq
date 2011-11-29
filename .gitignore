@@ -1,6 +1,7 @@
 clrzmq.userprefs
-*/bin/
-*/obj/
+obj
+bin
+!/bin
 *.pidb
 *.suo
 _ReSharper.*
