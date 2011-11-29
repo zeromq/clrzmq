@@ -17,6 +17,23 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorkerPool", "WorkerPool\Wo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AsyncReturn", "AsyncReturn\AsyncReturn.csproj", "{B06D0C3B-37E4-49E8-986A-ABE2DC6A2A93}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{1C71420E-3277-4855-A266-E50593D8164D}"
+	ProjectSection(SolutionItems) = preProject
+		README = README
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "settings", "settings", "{F931F059-9877-4554-85E6-771DFECDFE00}"
+	ProjectSection(SolutionItems) = preProject
+		clrzmq.5.1.ReSharper = clrzmq.5.1.ReSharper
+		Settings.StyleCop = Settings.StyleCop
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "perf", "perf", "{137A2F03-0D94-40F2-ADC7-3C194B143A78}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{30C08BF9-B591-4038-A54E-2D6D70F6EAB7}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{FED23C0F-5417-4B04-BCF3-B18DDDCF15E9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -299,6 +316,16 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{E30D3D43-99B4-48ED-B060-56D88C77CCD0} = {137A2F03-0D94-40F2-ADC7-3C194B143A78}
+		{0AF25616-C9CB-4137-B281-2100161A610C} = {137A2F03-0D94-40F2-ADC7-3C194B143A78}
+		{CB79FF77-F94F-4E4B-A860-7BF941EAA2B6} = {137A2F03-0D94-40F2-ADC7-3C194B143A78}
+		{35C65BA4-86AF-43AE-9159-5CEE9D27C51D} = {137A2F03-0D94-40F2-ADC7-3C194B143A78}
+		{FE6D6CDD-8A04-4A3A-A654-5C687AB724E3} = {30C08BF9-B591-4038-A54E-2D6D70F6EAB7}
+		{7203CF55-A452-407E-B767-4AA7BA616794} = {30C08BF9-B591-4038-A54E-2D6D70F6EAB7}
+		{B06D0C3B-37E4-49E8-986A-ABE2DC6A2A93} = {FED23C0F-5417-4B04-BCF3-B18DDDCF15E9}
+		{45D99DFA-FB55-4765-BB8B-B05C69D431E7} = {FED23C0F-5417-4B04-BCF3-B18DDDCF15E9}
 	EndGlobalSection
 	GlobalSection(MonoDevelopProperties) = preSolution
 		StartupItem = clrzmq\clrzmq.csproj
