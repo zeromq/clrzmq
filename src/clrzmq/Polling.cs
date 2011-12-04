@@ -119,6 +119,10 @@ namespace ZMQ {
         /// <param name="zmqPollItem">Native poll item</param>
         /// <param name="socket">Socket to poll</param>
         internal PollItem(ZMQPollItem zmqPollItem, Socket socket) {
+            if (socket == null) {
+                throw new ArgumentNullException("socket");
+            }
+
             _socket = socket;
             _zmqPollItem = zmqPollItem;
         }

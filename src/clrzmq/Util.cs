@@ -62,6 +62,10 @@ namespace ZMQ {
         /// <param name="data">UUID</param>
         /// <returns>String representation of UUID</returns>
         public static string DecodeUUID(byte[] data) {
+            if (data == null) {
+                throw new ArgumentNullException("data");
+            }
+
             const string hex = "0123456789ABCDEF";
             var uuid = new char[33];
             uuid[0] = '@';
@@ -78,6 +82,10 @@ namespace ZMQ {
         /// <param name="uuid">String representation of UUID</param>
         /// <returns>UUID</returns>
         public static byte[] EncodeUUID(string uuid) {
+            if (uuid == null) {
+                throw new ArgumentNullException("uuid");
+            }
+
             var data = new byte[17];
             data[0] = 0;
             uuid = uuid.TrimStart('@');
@@ -93,6 +101,10 @@ namespace ZMQ {
         /// <param name="socket">ZMQ Socket</param>
         /// <param name="encoding">Encoding to use for message decoding</param>
         public static void Dump(Socket socket, Encoding encoding) {
+            if (socket == null) {
+                throw new ArgumentNullException("socket");
+            }
+
             Console.WriteLine(new String('-', 38));
             foreach (byte[] msg in socket.RecvAll()) {
                 Console.Write("[{0}] ", String.Format("{0:d3}", msg.Length));
@@ -112,6 +124,10 @@ namespace ZMQ {
         /// <param name="encoding">Encoding to use for the socket identity</param>
         /// <returns>The identity assigned to the socket.</returns>
         public static string SetID(Socket socket, Encoding encoding) {
+            if (socket == null) {
+                throw new ArgumentNullException("socket");
+            }
+
             Random rand = GetRandomGen();
             string id = rand.Next() + "-" + rand.Next();
             socket.StringToIdentity(id, encoding);

@@ -154,6 +154,10 @@ namespace ZMQ {
         /// <param name="timeout">Timeout(micro seconds)</param>
         /// <returns>Number of Poll items with events</returns>
         public static int Poller(PollItem[] items, long timeout) {
+            if (items == null) {
+                throw new ArgumentNullException("items");
+            }
+
             var spentTimeout = new Stopwatch();
             int rc = -1;
             if (timeout >= 0) {
@@ -219,6 +223,10 @@ namespace ZMQ {
         /// <param name="timeout">Timeout(micro seconds)</param>
         /// <returns>Number of Poll items with events</returns>
         public static int Poller(IList<Socket> skts, long timeout) {
+            if (skts == null) {
+                throw new ArgumentNullException("skts");
+            }
+
             var items = new List<PollItem>(skts.Count);
             foreach (Socket skt in skts) {
                 items.Add(skt.PollItem);

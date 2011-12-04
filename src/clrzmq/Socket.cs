@@ -210,6 +210,10 @@ namespace ZMQ {
         /// <param name="sysSocket">Raw Socket</param>
         /// <returns>Socket Poll item</returns>
         public PollItem CreatePollItem(IOMultiPlex events, SysSockets.Socket sysSocket) {
+            if (sysSocket == null) {
+                throw new ArgumentNullException("sysSocket");
+            }
+
 #if x86 || POSIX
             return new PollItem(new ZMQPollItem(Ptr, sysSocket.Handle.ToInt32(), (short)events), this);
 #elif x64
@@ -239,6 +243,10 @@ namespace ZMQ {
         /// <param name="value">Option value</param>
         /// <exception cref="ZMQ.Exception">ZMQ Exception</exception>
         public void SetSockOpt(SocketOpt option, byte[] value) {
+            if (value == null) {
+                throw new ArgumentNullException("value");
+            }
+
             using (var valPtr = new DisposableIntPtr(value.Length)) {
                 Marshal.Copy(value, 0, valPtr.Ptr, value.Length);
                 if (C.zmq_setsockopt(Ptr, (int)option, valPtr.Ptr, value.Length) != 0)
@@ -343,6 +351,10 @@ namespace ZMQ {
         /// <param name="addr">Socket Address</param>
         /// <exception cref="ZMQ.Exception">ZMQ Exception</exception>
         public void Bind(string addr) {
+            if (addr == null) {
+                throw new ArgumentNullException("addr");
+            }
+
             _address = addr;
             if (C.zmq_bind(Ptr, addr) != 0)
                 throw new Exception();
@@ -356,8 +368,11 @@ namespace ZMQ {
         /// <param name="port">Socket port</param>
         /// <exception cref="ZMQ.Exception">ZMQ Exception</exception>
         public void Bind(Transport transport, string addr, uint port) {
-            Bind(Enum.GetName(typeof(Transport), transport).ToLower() + "://" +
-                 addr + ":" + port);
+            if (addr == null) {
+                throw new ArgumentNullException("addr");
+            }
+
+            Bind(Enum.GetName(typeof(Transport), transport).ToLower() + "://" + addr + ":" + port);
         }
 
         /// <summary>
@@ -367,8 +382,11 @@ namespace ZMQ {
         /// <param name="addr">Socket address</param>
         /// <exception cref="ZMQ.Exception">ZMQ Exception</exception>
         public void Bind(Transport transport, string addr) {
-            Bind(Enum.GetName(typeof(Transport), transport).ToLower() + "://" +
-                 addr);
+            if (addr == null) {
+                throw new ArgumentNullException("addr");
+            }
+
+            Bind(Enum.GetName(typeof(Transport), transport).ToLower() + "://" + addr);
         }
 
         /// <summary>
@@ -377,6 +395,10 @@ namespace ZMQ {
         /// <param name="addr">Destination Address</param>
         /// <exception cref="ZMQ.Exception">ZMQ Exception</exception>
         public void Connect(string addr) {
+            if (addr == null) {
+                throw new ArgumentNullException("addr");
+            }
+
             _address = addr;
             if (C.zmq_connect(Ptr, addr) != 0)
                 throw new Exception();
@@ -390,8 +412,11 @@ namespace ZMQ {
         /// <param name="port">Socket port</param>
         /// <exception cref="ZMQ.Exception">ZMQ Exception</exception>
         public void Connect(Transport transport, string addr, uint port) {
-            Connect(Enum.GetName(typeof(Transport), transport).ToLower() +
-                    "://" + addr + ":" + port);
+            if (addr == null) {
+                throw new ArgumentNullException("addr");
+            }
+
+            Connect(Enum.GetName(typeof(Transport), transport).ToLower() + "://" + addr + ":" + port);
         }
 
         /// <summary>
@@ -401,8 +426,11 @@ namespace ZMQ {
         /// <param name="addr">Socket address</param>
         /// <exception cref="ZMQ.Exception">ZMQ Exception</exception>
         public void Connect(Transport transport, string addr) {
-            Connect(Enum.GetName(typeof(Transport), transport).ToLower() +
-                    "://" + addr);
+            if (addr == null) {
+                throw new ArgumentNullException("addr");
+            }
+
+            Connect(Enum.GetName(typeof(Transport), transport).ToLower() + "://" + addr);
         }
 
         /// <summary>
@@ -410,6 +438,10 @@ namespace ZMQ {
         /// </summary>
         /// <param name="destination">Destination Socket</param>
         public void Forward(Socket destination) {
+            if (destination == null) {
+                throw new ArgumentNullException("destination");
+            }
+
             SendRecvOpt opt = SendRecvOpt.SNDMORE;
             while (opt == SendRecvOpt.SNDMORE) {
                 if (C.zmq_msg_init(_msg) != 0)
@@ -588,6 +620,10 @@ namespace ZMQ {
         /// <param name="flags">Send Options</param>
         /// <exception cref="ZMQ.Exception">ZMQ Exception</exception>
         public void Send(byte[] message, params SendRecvOpt[] flags) {
+            if (message == null) {
+                throw new ArgumentNullException("message");
+            }
+
             int flagsVal = 0;
             foreach (SendRecvOpt opt in flags) {
                 flagsVal += (int)opt;
