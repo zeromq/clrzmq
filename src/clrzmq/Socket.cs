@@ -43,10 +43,6 @@ namespace ZMQ {
         private IntPtr _msg;
         private string _address;
 
-        //  TODO:  This won't hold on different platforms.
-        //  Isn't there a way to access POSIX error codes in CLR?
-        private const int EAGAIN = 11;
-
         //  Figure out size of zmq_msg_t structure.
         //  It's size of pointer + 2 bytes + VSM buffer size.
         private const int ZMQ_MAX_VSM_SIZE = 30;
@@ -453,7 +449,7 @@ namespace ZMQ {
                     C.zmq_msg_close(_msg);
                 }
                 else {
-                    if (C.zmq_errno() != EAGAIN)
+                    if (C.zmq_errno() != (int)ERRNOS.EAGAIN)
                         throw new Exception();
                 }
             }
@@ -483,7 +479,7 @@ namespace ZMQ {
                 if (C.zmq_errno() == 4) {
                     continue;
                 }
-                if (C.zmq_errno() != EAGAIN) {
+                if (C.zmq_errno() != (int)ERRNOS.EAGAIN) {
                     throw new Exception();
                 }
                 break;
