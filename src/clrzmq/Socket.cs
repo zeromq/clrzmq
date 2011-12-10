@@ -533,7 +533,7 @@ namespace ZMQ {
             while (timer.ElapsedMilliseconds <= timeout) {
                 data = Recv(SendRecvOpt.NOBLOCK);
 
-                if (data == null)
+                if (data == null && timeout > 1)
                 {
                     if (iterations < 20 && ProcessorCount > 1)
                     {
