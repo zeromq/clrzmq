@@ -455,17 +455,18 @@ namespace ZMQ {
             }
         }
 
-
-
         /// <summary>
         /// Listen for message
         /// </summary>
         /// <param name="message">Message buffer</param>
+        /// <param name="size">The size of the read message</param>
         /// <param name="flags">Receive Options</param>
         /// <returns>Message</returns>
         /// <exception cref="ZMQ.Exception">ZMQ Exception</exception>
-        public byte[] Recv(byte[] message, params SendRecvOpt[] flags)
+        public byte[] Recv(byte[] message, out int size, params SendRecvOpt[] flags)
         {
+            size = -1;
+
             int flagsVal = 0;
             foreach (SendRecvOpt opt in flags)
             {
@@ -477,7 +478,7 @@ namespace ZMQ {
             {
                 if (C.zmq_recv(Ptr, _msg, flagsVal) == 0)
                 {
-                    int size = C.zmq_msg_size(_msg);
+                    size = C.zmq_msg_size(_msg);
 
                     if (message == null || size > message.Length)
                     {
@@ -509,7 +510,8 @@ namespace ZMQ {
         /// <exception cref="ZMQ.Exception">ZMQ Exception</exception>
         public byte[] Recv(params SendRecvOpt[] flags)
         {
-            return Recv((byte[])null, flags);
+            int size;
+            return Recv((byte[])null, out size, flags);
         }
 
         /// <summary>
