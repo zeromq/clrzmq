@@ -455,36 +455,61 @@ namespace ZMQ {
             }
         }
 
+
+
+        /// <summary>
+        /// Listen for message
+        /// </summary>
+        /// <param name="message">Message buffer</param>
+        /// <param name="flags">Receive Options</param>
+        /// <returns>Message</returns>
+        /// <exception cref="ZMQ.Exception">ZMQ Exception</exception>
+        public byte[] Recv(byte[] message, params SendRecvOpt[] flags)
+        {
+            int flagsVal = 0;
+            foreach (SendRecvOpt opt in flags)
+            {
+                flagsVal += (int)opt;
+            }
+            if (C.zmq_msg_init(_msg) != 0)
+                throw new Exception();
+            while (true)
+            {
+                if (C.zmq_recv(Ptr, _msg, flagsVal) == 0)
+                {
+                    int size = C.zmq_msg_size(_msg);
+
+                    if (message == null || size > message.Length)
+                    {
+                        message = new byte[size];
+                    }
+
+                    Marshal.Copy(C.zmq_msg_data(_msg), message, 0, message.Length);
+                    C.zmq_msg_close(_msg);
+                    break;
+                }
+                if (C.zmq_errno() == 4)
+                {
+                    continue;
+                }
+                if (C.zmq_errno() != (int)ERRNOS.EAGAIN)
+                {
+                    throw new Exception();
+                }
+                break;
+            }
+            return message;
+        }
+
         /// <summary>
         /// Listen for message
         /// </summary>
         /// <param name="flags">Receive Options</param>
         /// <returns>Message</returns>
         /// <exception cref="ZMQ.Exception">ZMQ Exception</exception>
-        public byte[] Recv(params SendRecvOpt[] flags) {
-            byte[] message = null;
-            int flagsVal = 0;
-            foreach (SendRecvOpt opt in flags) {
-                flagsVal += (int)opt;
-            }
-            if (C.zmq_msg_init(_msg) != 0)
-                throw new Exception();
-            while (true) {
-                if (C.zmq_recv(Ptr, _msg, flagsVal) == 0) {
-                    message = new byte[C.zmq_msg_size(_msg)];
-                    Marshal.Copy(C.zmq_msg_data(_msg), message, 0, message.Length);
-                    C.zmq_msg_close(_msg);
-                    break;
-                }
-                if (C.zmq_errno() == 4) {
-                    continue;
-                }
-                if (C.zmq_errno() != (int)ERRNOS.EAGAIN) {
-                    throw new Exception();
-                }
-                break;
-            }
-            return message;
+        public byte[] Recv(params SendRecvOpt[] flags)
+        {
+            return Recv((byte[])null, flags);
         }
 
         /// <summary>
