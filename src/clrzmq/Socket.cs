@@ -466,10 +466,8 @@ namespace ZMQ {
         public byte[] Recv(byte[] message, out int size, params SendRecvOpt[] flags)
         {
             size = -1;
-
             int flagsVal = 0;
-            foreach (SendRecvOpt opt in flags)
-            {
+            foreach (SendRecvOpt opt in flags) {
                 flagsVal += (int)opt;
             }
             if (C.zmq_msg_init(_msg) != 0)
@@ -481,9 +479,7 @@ namespace ZMQ {
                     size = C.zmq_msg_size(_msg);
 
                     if (message == null || size > message.Length)
-                    {
                         message = new byte[size];
-                    }
 
                     Marshal.Copy(C.zmq_msg_data(_msg), message, 0, size);
                     C.zmq_msg_close(_msg);
