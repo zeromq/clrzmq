@@ -587,8 +587,22 @@ namespace ZMQ {
         /// <param name="flags">Receive options</param>
         /// <returns>Queue of message parts</returns>
         /// <exception cref="ZMQ.Exception">ZMQ Exception</exception>
-        public Queue<byte[]> RecvAll(params SendRecvOpt[] flags) {
-            var messages = new Queue<byte[]>();
+        public Queue<byte[]> RecvAll(params SendRecvOpt[] flags)
+        {
+            return RecvAll((Queue<byte[]>)null, flags);
+        }
+
+        /// <summary>
+        /// Listen for message, retrieving all pending message parts
+        /// </summary>
+        /// <param name="messages">The queue object to put the message into</param>
+        /// <param name="flags">Receive options</param>
+        /// <returns>Queue of message parts</returns>
+        /// <exception cref="ZMQ.Exception">ZMQ Exception</exception>
+        public Queue<byte[]> RecvAll(Queue<byte[]> messages, params SendRecvOpt[] flags) {
+            if (messages == null)
+                messages = new Queue<byte[]>();
+
             messages.Enqueue(Recv(flags));
             while (RcvMore) {
                 messages.Enqueue(Recv(flags));
