@@ -485,7 +485,7 @@ namespace ZMQ {
                         message = new byte[size];
                     }
 
-                    Marshal.Copy(C.zmq_msg_data(_msg), message, 0, message.Length);
+                    Marshal.Copy(C.zmq_msg_data(_msg), message, 0, size);
                     C.zmq_msg_close(_msg);
                     break;
                 }
