@@ -463,8 +463,7 @@ namespace ZMQ {
         /// <param name="flags">Receive Options</param>
         /// <returns>Message</returns>
         /// <exception cref="ZMQ.Exception">ZMQ Exception</exception>
-        public byte[] Recv(byte[] message, out int size, params SendRecvOpt[] flags)
-        {
+        public byte[] Recv(byte[] message, out int size, params SendRecvOpt[] flags) {
             size = -1;
             int flagsVal = 0;
             foreach (SendRecvOpt opt in flags) {
@@ -485,12 +484,10 @@ namespace ZMQ {
                     C.zmq_msg_close(_msg);
                     break;
                 }
-                if (C.zmq_errno() == 4)
-                {
+                if (C.zmq_errno() == 4) {
                     continue;
                 }
-                if (C.zmq_errno() != (int)ERRNOS.EAGAIN)
-                {
+                if (C.zmq_errno() != (int)ERRNOS.EAGAIN) {
                     throw new Exception();
                 }
                 break;
