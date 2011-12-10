@@ -530,23 +530,12 @@ namespace ZMQ {
             timer.Start();
             int iterations = 0;
 
-            while (data == null && timer.ElapsedMilliseconds <= timeout) {
+            while (timer.ElapsedMilliseconds <= timeout) {
                 data = Recv(SendRecvOpt.NOBLOCK);
 
                 if (data == null)
                 {
-                    // Always yield the current time slice
-                    // to another thread if we only have one CPU
-                    if (ProcessorCount == 1)
-                    {
-                        // Yield my remaining time slice to another thread
-#if NET_4
-                        Thread.Yield();
-#else
-                        Thread.Sleep(0);
-#endif
-                    }
-                    else if(iterations < 20)
+                    if (iterations < 20 && ProcessorCount > 1)
                     {
                         // If we have a short wait (< 20 iterations) we
                         // SpinWait to allow other threads on HT CPUs
@@ -564,6 +553,10 @@ namespace ZMQ {
                         Thread.Sleep(0);
 #endif
                     }
+                }
+                else
+                {
+                    break;
                 }
 
                 ++iterations;
