@@ -47,6 +47,7 @@ namespace ZMQ {
         //  It's size of pointer + 2 bytes + VSM buffer size.
         private const int ZMQ_MAX_VSM_SIZE = 30;
         private readonly int ZMQ_MSG_T_SIZE = IntPtr.Size + 2 + ZMQ_MAX_VSM_SIZE;
+        private readonly int ProcessorCount;
 
         /// <summary>
         /// This constructor should not be called directly, use the Context
@@ -56,6 +57,7 @@ namespace ZMQ {
         internal Socket(IntPtr ptr) {
             Ptr = ptr;
             CommonInit(false);
+            ProcessorCount = Environment.ProcessorCount;
         }
 
         /// <summary>
@@ -526,8 +528,45 @@ namespace ZMQ {
             var timer = new Stopwatch();
             byte[] data = null;
             timer.Start();
+            int iterations = 0;
+
             while (data == null && timer.ElapsedMilliseconds <= timeout) {
                 data = Recv(SendRecvOpt.NOBLOCK);
+
+                if (data == null)
+                {
+                    // Always yield the current time slice
+                    // to another thread if we only have one CPU
+                    if (ProcessorCount == 1)
+                    {
+                        // Yield my remaining time slice to another thread
+#if NET_4
+                        Thread.Yield();
+#else
+                        Thread.Sleep(0);
+#endif
+                    }
+                    else if(iterations < 20)
+                    {
+                        // If we have a short wait (< 20 iterations) we
+                        // SpinWait to allow other threads on HT CPUs
+                        // to use the CPU, the more CPUs we have
+                        // the longer it's "ok" to spin wait since
+                        // we stall the overall system less
+                        Thread.SpinWait(100 * ProcessorCount);
+                    }
+                    else
+                    {
+                        // Yield my remaining time slice to another thread
+#if NET_4
+                        Thread.Yield();
+#else
+                        Thread.Sleep(0);
+#endif
+                    }
+                }
+
+                ++iterations;
             }
             return data;
         }
