@@ -38,6 +38,8 @@ namespace ZMQ {
         private static int _appSocketCount;
         private static readonly Object _lockObj = new object();
 
+        private readonly int _processorCount;
+
         private PollItem _pollItem;
         private bool _localSocket;
         private IntPtr _msg;
@@ -56,6 +58,7 @@ namespace ZMQ {
         internal Socket(IntPtr ptr) {
             Ptr = ptr;
             CommonInit(false);
+            _processorCount = Environment.ProcessorCount;
         }
 
         /// <summary>
@@ -458,11 +461,13 @@ namespace ZMQ {
         /// <summary>
         /// Listen for message
         /// </summary>
+        /// <param name="message">Message buffer</param>
+        /// <param name="size">The size of the read message</param>
         /// <param name="flags">Receive Options</param>
         /// <returns>Message</returns>
         /// <exception cref="ZMQ.Exception">ZMQ Exception</exception>
-        public byte[] Recv(params SendRecvOpt[] flags) {
-            byte[] message = null;
+        public byte[] Recv(byte[] message, out int size, params SendRecvOpt[] flags) {
+            size = -1;
             int flagsVal = 0;
             foreach (SendRecvOpt opt in flags) {
                 flagsVal += (int)opt;
@@ -471,8 +476,13 @@ namespace ZMQ {
                 throw new Exception();
             while (true) {
                 if (C.zmq_recv(Ptr, _msg, flagsVal) == 0) {
-                    message = new byte[C.zmq_msg_size(_msg)];
-                    Marshal.Copy(C.zmq_msg_data(_msg), message, 0, message.Length);
+                    size = C.zmq_msg_size(_msg);
+
+                    if (message == null || size > message.Length) {
+                        message = new byte[size];
+                    }
+
+                    Marshal.Copy(C.zmq_msg_data(_msg), message, 0, size);
                     C.zmq_msg_close(_msg);
                     break;
                 }
@@ -485,6 +495,17 @@ namespace ZMQ {
                 break;
             }
             return message;
+        }
+
+        /// <summary>
+        /// Listen for message
+        /// </summary>
+        /// <param name="flags">Receive Options</param>
+        /// <returns>Message</returns>
+        /// <exception cref="ZMQ.Exception">ZMQ Exception</exception>
+        public byte[] Recv(params SendRecvOpt[] flags) {
+            int size;
+            return Recv(null, out size, flags);
         }
 
         /// <summary>
@@ -503,11 +524,36 @@ namespace ZMQ {
         /// <returns>Message</returns>
         /// <exception cref="ZMQ.Exception">ZMQ Exception</exception>
         public byte[] Recv(int timeout) {
-            var timer = new Stopwatch();
             byte[] data = null;
-            timer.Start();
-            while (data == null && timer.ElapsedMilliseconds <= timeout) {
+            int iterations = 0;
+            var timer = Stopwatch.StartNew();
+
+            while (timer.ElapsedMilliseconds <= timeout) {
                 data = Recv(SendRecvOpt.NOBLOCK);
+
+                if (data == null && timeout > 1) {
+                    if (iterations < 20 && _processorCount > 1) {
+                        // If we have a short wait (< 20 iterations) we
+                        // SpinWait to allow other threads on HT CPUs
+                        // to use the CPU, the more CPUs we have
+                        // the longer it's "ok" to spin wait since
+                        // we stall the overall system less
+                        Thread.SpinWait(100 * _processorCount);
+                    }
+                    else {
+                        // Yield my remaining time slice to another thread
+#if NET_4
+                        Thread.Yield();
+#else
+                        Thread.Sleep(0);
+#endif
+                    }
+                }
+                else {
+                    break;
+                }
+
+                ++iterations;
             }
             return data;
         }
@@ -568,7 +614,21 @@ namespace ZMQ {
         /// <returns>Queue of message parts</returns>
         /// <exception cref="ZMQ.Exception">ZMQ Exception</exception>
         public Queue<byte[]> RecvAll(params SendRecvOpt[] flags) {
-            var messages = new Queue<byte[]>();
+            return RecvAll((Queue<byte[]>)null, flags);
+        }
+
+        /// <summary>
+        /// Listen for message, retrieving all pending message parts
+        /// </summary>
+        /// <param name="messages">The queue object to put the message into</param>
+        /// <param name="flags">Receive options</param>
+        /// <returns>Queue of message parts</returns>
+        /// <exception cref="ZMQ.Exception">ZMQ Exception</exception>
+        public Queue<byte[]> RecvAll(Queue<byte[]> messages, params SendRecvOpt[] flags) {
+            if (messages == null) {
+                messages = new Queue<byte[]>();
+            }
+
             messages.Enqueue(Recv(flags));
             while (RcvMore) {
                 messages.Enqueue(Recv(flags));
@@ -613,6 +673,49 @@ namespace ZMQ {
         /// Send Message
         /// </summary>
         /// <param name="message">Message</param>
+        /// <param name="length">Length of data to send from message</param>
+        /// <param name="flags">Send Options</param>
+        public void Send(byte[] message, int length, params SendRecvOpt[] flags) {
+            Send(message, 0, length, flags);
+        }
+
+        /// <summary>
+        /// Send Message
+        /// </summary>
+        /// <param name="message">Message</param>
+        /// <param name="startIndex">Index to start reading data from</param>
+        /// <param name="length">Length of data to send from message, starting at startIndex</param>
+        /// <param name="flags">Send Options</param>
+        public void Send(byte[] message, int startIndex, int length, params SendRecvOpt[] flags) {
+            if (message == null) {
+                throw new ArgumentNullException("message");
+            }
+
+            if ((startIndex + length) > message.Length) {
+                throw new InvalidOperationException("The value of startIndex + length must not exceed message.Length.");
+            }
+
+            int flagsVal = 0;
+
+            foreach (SendRecvOpt opt in flags) {
+                flagsVal += (int)opt;
+            }
+
+            if (C.zmq_msg_init_size(_msg, length) != 0) {
+                throw new Exception();
+            }
+
+            Marshal.Copy(message, startIndex, C.zmq_msg_data(_msg), length);
+
+            if (C.zmq_send(Ptr, _msg, flagsVal) != 0) {
+                throw new Exception();
+            }
+        }
+
+        /// <summary>
+        /// Send Message
+        /// </summary>
+        /// <param name="message">Message</param>
         /// <param name="flags">Send Options</param>
         /// <exception cref="ZMQ.Exception">ZMQ Exception</exception>
         public void Send(byte[] message, params SendRecvOpt[] flags) {
@@ -620,15 +723,7 @@ namespace ZMQ {
                 throw new ArgumentNullException("message");
             }
 
-            int flagsVal = 0;
-            foreach (SendRecvOpt opt in flags) {
-                flagsVal += (int)opt;
-            }
-            if (C.zmq_msg_init_size(_msg, message.Length) != 0)
-                throw new Exception();
-            Marshal.Copy(message, 0, C.zmq_msg_data(_msg), message.Length);
-            if (C.zmq_send(Ptr, _msg, flagsVal) != 0)
-                throw new Exception();
+            Send(message, 0, message.Length, flags);
         }
 
         /// <summary>
