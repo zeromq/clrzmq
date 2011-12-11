@@ -675,26 +675,71 @@ namespace ZMQ {
             return messages;
         }
 
+        
+        /// <summary>
+        /// Send Message
+        /// </summary>
+        /// <param name="message">Message</param>
+        /// <param name="length">Length of data to send from message</param>
+        /// <param name="flags">Send Options</param>
+        public void Send(byte[] message, int length, params SendRecvOpt[] flags)
+        {
+            Send(message, 0, length, flags);
+        }
+
+        /// <summary>
+        /// Send Message
+        /// </summary>
+        /// <param name="message">Message</param>
+        /// <param name="startIndex">Index to start reading data from</param>
+        /// <param name="length">Length of data to send from message, starting at startIndex</param>
+        /// <param name="flags">Send Options</param>
+        public void Send(byte[] message, int startIndex, int length, params SendRecvOpt[] flags)
+        {
+            if (message == null)
+            {
+                throw new ArgumentNullException("message");
+            }
+
+            if (message.Length < (startIndex + length))
+            {
+                throw new InvalidOperationException("message was smaller then startindex + length");
+            }
+
+            int flagsVal = 0;
+
+            foreach (SendRecvOpt opt in flags)
+            {
+                flagsVal += (int)opt;
+            }
+
+            if (C.zmq_msg_init_size(_msg, length) != 0)
+            {
+                throw new Exception();
+            }
+
+            Marshal.Copy(message, startIndex, C.zmq_msg_data(_msg), length);
+
+            if (C.zmq_send(Ptr, _msg, flagsVal) != 0)
+            {
+                throw new Exception();
+            }
+        }
+
         /// <summary>
         /// Send Message
         /// </summary>
         /// <param name="message">Message</param>
         /// <param name="flags">Send Options</param>
         /// <exception cref="ZMQ.Exception">ZMQ Exception</exception>
-        public void Send(byte[] message, params SendRecvOpt[] flags) {
-            if (message == null) {
+        public void Send(byte[] message, params SendRecvOpt[] flags)
+        {
+            if (message == null)
+            {
                 throw new ArgumentNullException("message");
             }
 
-            int flagsVal = 0;
-            foreach (SendRecvOpt opt in flags) {
-                flagsVal += (int)opt;
-            }
-            if (C.zmq_msg_init_size(_msg, message.Length) != 0)
-                throw new Exception();
-            Marshal.Copy(message, 0, C.zmq_msg_data(_msg), message.Length);
-            if (C.zmq_send(Ptr, _msg, flagsVal) != 0)
-                throw new Exception();
+            Send(message, 0, message.Length, flags);
         }
 
         /// <summary>
