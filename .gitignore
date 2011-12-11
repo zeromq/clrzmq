@@ -2,7 +2,7 @@ clrzmq.userprefs
 obj
 bin
 !/bin
-lib/packages
+/packages
 nuget.exe
 *.pidb
 *.suo

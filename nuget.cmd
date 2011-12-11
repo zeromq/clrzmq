@@ -3,7 +3,7 @@ setlocal
 
 set NUGET_EXE=bin\nuget\nuget.exe
 set NUGET_BOOTSTRAPPER_EXE=bin\nuget\nuget-bootstrap.exe
-set PACKAGE_DIR=lib\packages
+set PACKAGE_DIR=packages
 
 if not exist %NUGET_EXE% (goto bootstrap) else (goto install)
 
