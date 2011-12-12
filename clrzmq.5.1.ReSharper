@@ -390,6 +390,25 @@
         <ExtraRule Prefix="" Suffix="" Style="AA_BB" />
       </PredefinedRule>
       <PredefinedRule Inspect="True" Prefix="" Suffix="" Style="AaBb" ElementKind="Other" />
+      <UserRule Inspect="True" Prefix="" Suffix="" Style="AaBb" StaticnessKind="Static, Instance" AccessRight="Private, Protected, ProtectedInternal, Internal, Public" Description="">
+        <ElementKinds>
+          <Kind Name="CLASS" />
+          <Kind Name="Machine.Specifications_Behavior" />
+          <Kind Name="Machine.Specifications_Context" />
+          <Kind Name="Machine.Specifications_ContextBase" />
+          <Kind Name="Machine.Specifications_Specification" />
+          <Kind Name="Machine.Specifications_SupportingField" />
+          <Kind Name="Machine.Specifications_Constant" />
+        </ElementKinds>
+        <ExtraRule Prefix="" Suffix="" Style="aa_bb" />
+      </UserRule>
+      <UserRule Inspect="True" Prefix="" Suffix="" Style="aaBb" StaticnessKind="Static, Instance" AccessRight="Private, Protected, ProtectedInternal, Internal, Public" Description="">
+        <ElementKinds>
+          <Kind Name="Machine.Specifications_Field" />
+          <Kind Name="Machine.Specifications_Local" />
+        </ElementKinds>
+        <ExtraRule Prefix="" Suffix="" Style="AaBb" />
+      </UserRule>
       <Abbreviation Text="MQ" />
       <Abbreviation Text="ZMQ" />
       <Abbreviation Text="IO" />
