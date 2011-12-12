@@ -486,7 +486,7 @@ namespace ZMQ {
                     C.zmq_msg_close(_msg);
                     break;
                 }
-                if (C.zmq_errno() == 4) {
+                if (C.zmq_errno() == (int)ERRNOS.EINTR) {
                     continue;
                 }
                 if (C.zmq_errno() != (int)ERRNOS.EAGAIN) {
