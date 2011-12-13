@@ -2,6 +2,9 @@ clrzmq.userprefs
 obj
 bin
 !/bin
+/packages
+nuget.exe
+lib/**/libzmq.dll
 *.pidb
 *.suo
 _ReSharper.*
