@@ -4,6 +4,25 @@
     using System.Threading;
     using Machine.Specifications;
 
+    abstract class using_req
+    {
+        protected static Socket socket;
+        protected static Context zmqContext;
+        protected static Exception exception;
+
+        Establish context = () =>
+        {
+            zmqContext = new Context();
+            socket = zmqContext.Socket(SocketType.REQ);
+        };
+
+        Cleanup resources = () =>
+        {
+            socket.Dispose();
+            zmqContext.Dispose();
+        };
+    }
+
     abstract class using_req_rep
     {
         protected static Socket req;

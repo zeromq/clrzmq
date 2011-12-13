@@ -95,6 +95,7 @@
     <Compile Include="SocketSpecs\Bind_Connect.cs" />
     <Compile Include="SocketSpecs\SendMore_RecvAll.cs" />
     <Compile Include="SocketSpecs\Send_Recv.cs" />
+    <Compile Include="SocketSpecs\SocketOptions.cs" />
     <Compile Include="SocketSpecs\SpecContext.cs" />
   </ItemGroup>
   <ItemGroup>
