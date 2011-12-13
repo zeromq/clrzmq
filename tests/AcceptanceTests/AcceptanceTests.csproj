@@ -92,6 +92,7 @@
   <ItemGroup>
     <Compile Include="Behaviors.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SocketSpecs\Bind_Connect.cs" />
     <Compile Include="SocketSpecs\SendMore_RecvAll.cs" />
     <Compile Include="SocketSpecs\Send_Recv.cs" />
     <Compile Include="SocketSpecs\SpecContext.cs" />

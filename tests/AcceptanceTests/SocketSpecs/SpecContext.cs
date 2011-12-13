@@ -4,6 +4,50 @@
     using System.Threading;
     using Machine.Specifications;
 
+    abstract class using_req_rep
+    {
+        protected static Socket req;
+        protected static Socket rep;
+        protected static Context zmqContext;
+        protected static Exception exception;
+
+        Establish context = () =>
+        {
+            zmqContext = new Context();
+            req = zmqContext.Socket(SocketType.REQ);
+            rep = zmqContext.Socket(SocketType.REP);
+        };
+
+        Cleanup resources = () =>
+        {
+            req.Dispose();
+            rep.Dispose();
+            zmqContext.Dispose();
+        };
+    }
+
+    abstract class using_pub_sub
+    {
+        protected static Socket pub;
+        protected static Socket sub;
+        protected static Context zmqContext;
+        protected static Exception exception;
+
+        Establish context = () =>
+        {
+            zmqContext = new Context();
+            pub = zmqContext.Socket(SocketType.PUB);
+            sub = zmqContext.Socket(SocketType.SUB);
+        };
+
+        Cleanup resources = () =>
+        {
+            sub.Dispose();
+            pub.Dispose();
+            zmqContext.Dispose();
+        };
+    }
+
     abstract class using_threaded_req_rep : using_threaded_socket_pair
     {
         static using_threaded_req_rep()
