@@ -76,6 +76,15 @@
         }
     }
 
+    abstract class using_threaded_pub_sub : using_threaded_socket_pair
+    {
+        static using_threaded_pub_sub()
+        {
+            createSender = () => zmqContext.Socket(SocketType.PUB);
+            createReceiver = () => zmqContext.Socket(SocketType.SUB);
+        }
+    }
+
     abstract class using_threaded_socket_pair
     {
         protected static Func<Socket> createSender;

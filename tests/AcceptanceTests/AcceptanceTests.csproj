@@ -97,6 +97,7 @@
     <Compile Include="SocketSpecs\Send_Recv.cs" />
     <Compile Include="SocketSpecs\SocketOptions.cs" />
     <Compile Include="SocketSpecs\SpecContext.cs" />
+    <Compile Include="SocketSpecs\Subscribe.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

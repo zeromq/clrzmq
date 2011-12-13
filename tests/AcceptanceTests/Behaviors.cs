@@ -86,6 +86,57 @@ namespace ZMQ.AcceptanceTests
         It should_not_have_more_parts_after_the_second_message = () =>
             receiver.RcvMore.ShouldBeFalse();
     }
+
+    [Behaviors]
+    class PubSubReceiveFirst
+    {
+        protected static byte[] message1;
+        protected static byte[] message2;
+        protected static bool receiveMore1;
+        protected static bool receiveMore2;
+
+        It should_receive_the_first_message_successfully = () =>
+            message1.ShouldNotBeNull();
+
+        It should_contain_the_correct_first_message_data = () =>
+            message1.ShouldEqual(Messages.PubSubFirst);
+
+        It should_not_have_more_parts_after_the_first_message = () =>
+            receiveMore1.ShouldBeFalse();
+
+        It should_tell_receiver_to_retry_the_second_message = () =>
+            message2.ShouldBeNull();
+
+        It should_not_have_more_parts_after_the_second_message = () =>
+            receiveMore2.ShouldBeFalse();
+    }
+
+    [Behaviors]
+    class PubSubReceiveAll
+    {
+        protected static byte[] message1;
+        protected static byte[] message2;
+        protected static bool receiveMore1;
+        protected static bool receiveMore2;
+
+        It should_receive_the_first_message_successfully = () =>
+            message1.ShouldNotBeNull();
+
+        It should_contain_the_correct_first_message_data = () =>
+            message1.ShouldEqual(Messages.PubSubFirst);
+
+        It should_not_have_more_parts_after_the_first_message = () =>
+            receiveMore1.ShouldBeFalse();
+
+        It should_receive_the_second_message_successfully = () =>
+            message2.ShouldNotBeNull();
+
+        It should_contain_the_correct_second_message_data = () =>
+            message2.ShouldEqual(Messages.PubSubSecond);
+
+        It should_not_have_more_parts_after_the_second_message = () =>
+            receiveMore2.ShouldBeFalse();
+    }
 }
 
 #pragma warning restore 649
