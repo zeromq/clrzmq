@@ -1,5 +1,4 @@
-﻿using System;
-namespace ZMQ.AcceptanceTests.SocketSpecs
+﻿namespace ZMQ.AcceptanceTests.SocketSpecs
 {
     using System.Threading;
     using Machine.Specifications;
@@ -86,13 +85,13 @@ namespace ZMQ.AcceptanceTests.SocketSpecs
     {
         Because of = () =>
             exception = Catch.Exception(() => rep.Bind("ipc:///tmp/testsock"));
-		
+        
         [Ignore("Deferred until EPROTONOSUPPORT is set correctly for all platforms.")] // TODO
         It should_have_an_error_code_of_eprotonosupport = () =>
             ((ZMQ.Exception)exception).Errno.ShouldEqual((int)ERRNOS.EPROTONOSUPPORT);
-		
+        
 #if POSIX
-		It should_not_fail = () =>
+        It should_not_fail = () =>
             exception.ShouldBeNull();
 #else
         It should_fail_because_ipc_is_not_supported_on_windows = () =>
@@ -108,13 +107,13 @@ namespace ZMQ.AcceptanceTests.SocketSpecs
     {
         Because of = () =>
             exception = Catch.Exception(() => rep.Connect("ipc:///tmp/testsock"));
-		
+        
         [Ignore("Deferred until EPROTONOSUPPORT is set correctly for all platforms.")] // TODO
         It should_have_an_error_code_of_eprotonosupport = () =>
             ((ZMQ.Exception)exception).Errno.ShouldEqual((int)ERRNOS.EPROTONOSUPPORT);
-		
+        
 #if POSIX
-		It should_not_fail = () =>
+        It should_not_fail = () =>
             exception.ShouldBeNull();
 #else
         It should_fail_because_ipc_is_not_supported_on_windows = () =>
