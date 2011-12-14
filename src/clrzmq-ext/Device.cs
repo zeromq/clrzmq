@@ -112,6 +112,13 @@ namespace ZMQ.ZMQDevice {
     /// Standard Queue Device
     /// </summary>
     public class Queue : Device {
+        public Queue(Context context, string frontendAddr, string backendAddr)
+            : base(context.Socket(SocketType.PUB), context.Socket(SocketType.SUB))
+        {
+            _frontend.Bind(frontendAddr);
+            _backend.Connect(backendAddr);
+        }
+
         public Queue(string frontendAddr, string backendAddr)
             : base(new Socket(SocketType.XREP), new Socket(SocketType.XREQ)) {
             _frontend.Bind(frontendAddr);
@@ -128,6 +135,14 @@ namespace ZMQ.ZMQDevice {
     }
 
     public class Forwarder : Device {
+
+        public Forwarder(Context context, string frontendAddr, string backendAddr)
+            : base(context.Socket(SocketType.PUB), context.Socket(SocketType.SUB))
+        {
+            _frontend.Bind(frontendAddr);
+            _backend.Connect(backendAddr);
+        }
+
         public Forwarder(string frontendAddr, string backendAddr)
             : base(new Socket(SocketType.SUB), new Socket(SocketType.PUB)) {
             _frontend.Connect(frontendAddr);
@@ -143,7 +158,15 @@ namespace ZMQ.ZMQDevice {
         }
     }
 
-    public class Streamer : Device {
+    public class Streamer : Device
+    {
+        public Streamer(Context context, string frontendAddr, string backendAddr)
+            : base(context.Socket(SocketType.PUB), context.Socket(SocketType.SUB))
+        {
+            _frontend.Bind(frontendAddr);
+            _backend.Connect(backendAddr);
+        }
+
         public Streamer(string frontendAddr, string backendAddr)
             : base(new Socket(SocketType.PUB), new Socket(SocketType.SUB)) {
             _frontend.Bind(frontendAddr);
@@ -163,6 +186,14 @@ namespace ZMQ.ZMQDevice {
 
     public class AsyncReturn : Device {
         private readonly MessageProcessor _messageProcessor;
+
+        public AsyncReturn(Context context, string frontendAddr, string backendAddr, MessageProcessor msgProc)
+            : base(context.Socket(SocketType.XREP), context.Socket(SocketType.PULL))
+        {
+            _messageProcessor = msgProc;
+            _frontend.Bind(frontendAddr);
+            _backend.Bind(backendAddr);
+        }
 
         public AsyncReturn(string frontendAddr, string backendAddr, MessageProcessor msgProc)
             : base(new Socket(SocketType.XREP), new Socket(SocketType.PULL)) {
