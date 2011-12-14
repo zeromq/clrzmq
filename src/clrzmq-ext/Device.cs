@@ -27,12 +27,16 @@ namespace ZMQ.ZMQDevice {
     public abstract class Device : IDisposable {
         private const long PollingInterval = 750000;
 
-        protected bool _run;
+        protected volatile bool _run;
         protected Socket _frontend;
         protected Socket _backend;
 
         private readonly Thread _runningThread;
-        private bool _isRunning;        
+        private bool _isRunning;
+
+        private ManualResetEvent _doneEvent;
+
+        public ManualResetEvent DoneEvent { get { return _doneEvent; } }
 
         /// <summary>
         /// Create Device
@@ -47,6 +51,7 @@ namespace ZMQ.ZMQDevice {
             _runningThread = new Thread(RunningLoop);
             _frontend.PollInHandler += FrontendHandler;
             _backend.PollInHandler += BackendHandler;
+            _doneEvent = new ManualResetEvent(false);
         }
 
         ~Device() {
@@ -73,7 +78,9 @@ namespace ZMQ.ZMQDevice {
         /// <summary>
         /// Start Device
         /// </summary>
-        public virtual void Start() {
+        public virtual void Start()
+        {
+            _doneEvent.Reset();
             _run = true;
             _runningThread.Start();
             _isRunning = true;
@@ -97,6 +104,7 @@ namespace ZMQ.ZMQDevice {
                 Context.Poller(skts, PollingInterval);
             }
             IsRunning = false;
+            _doneEvent.Set();
         }
     }
 
