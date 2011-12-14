@@ -136,7 +136,7 @@ namespace ZMQ.ZMQDevice {
     }
 
     public class Streamer : Device {
-        public Streamer(string frontendAddr, string backendAddr, MessageProcessor msgProc)
+        public Streamer(string frontendAddr, string backendAddr)
             : base(new Socket(SocketType.PUB), new Socket(SocketType.SUB)) {
             _frontend.Bind(frontendAddr);
             _backend.Connect(backendAddr);
