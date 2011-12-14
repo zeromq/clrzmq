@@ -34,7 +34,7 @@ namespace ZMQ.ZMQDevice {
         private readonly Thread _runningThread;
         private bool _isRunning;
 
-        private ManualResetEvent _doneEvent;
+        private readonly ManualResetEvent _doneEvent;
 
         public ManualResetEvent DoneEvent { get { return _doneEvent; } }
 
