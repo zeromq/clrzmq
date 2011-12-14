@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{1C71420E-3277-4855-A266-E50593D8164D}"
 	ProjectSection(SolutionItems) = preProject
-		README = README
+		AUTHORS = AUTHORS
+		LICENSE = LICENSE
+		README.md = README.md
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "settings", "settings", "{F931F059-9877-4554-85E6-771DFECDFE00}"
