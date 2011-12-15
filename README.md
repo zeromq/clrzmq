@@ -107,7 +107,7 @@ Before clrzmq can be used, the native `libzmq.dll` must be compiled for your tar
 2. Run `nuget.cmd`, which downloads any dependent packages (e.g., Machine.Specifications for acceptance tests).
 3. Copy `libzmq.dll` from the zeromq project to the appropriate location in the clrzmq lib folder (i.e., `/lib/x86` or `/lib/x64`).
 4. Run `build.cmd` to build the project and run the test suite. PGM-related tests will fail if a non-PGM build of libzmq is used.
-5. The resulting binaries will be available in `/out`.
+5. The resulting binaries will be available in `/build`.
 
 ### Mono
 
@@ -140,7 +140,7 @@ Use the `--with-pgm` option if possible.
 1. Clone the source.
 2. Run `nuget.sh`, which downloads any dependent packages (e.g., Machine.Specifications for acceptance tests).
 3. Run `build.sh` to build the project and run the test suite. PGM-related tests will fail if a non-PGM build of libzmq is used.
-4. The resulting binaries will be available in `/out`.
+4. The resulting binaries will be available in `/build`.
 
 ## Issues
 

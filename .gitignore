@@ -2,6 +2,7 @@ clrzmq.userprefs
 obj
 bin
 !/bin
+/build
 /packages
 nuget.exe
 lib/**/libzmq.dll
