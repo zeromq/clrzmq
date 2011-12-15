@@ -27,12 +27,16 @@ namespace ZMQ.ZMQDevice {
     public abstract class Device : IDisposable {
         private const long PollingInterval = 750000;
 
-        protected bool _run;
+        protected volatile bool _run;
         protected Socket _frontend;
         protected Socket _backend;
 
         private readonly Thread _runningThread;
-        private bool _isRunning;        
+        private bool _isRunning;
+
+        private readonly ManualResetEvent _doneEvent;
+
+        public ManualResetEvent DoneEvent { get { return _doneEvent; } }
 
         /// <summary>
         /// Create Device
@@ -47,6 +51,7 @@ namespace ZMQ.ZMQDevice {
             _runningThread = new Thread(RunningLoop);
             _frontend.PollInHandler += FrontendHandler;
             _backend.PollInHandler += BackendHandler;
+            _doneEvent = new ManualResetEvent(false);
         }
 
         ~Device() {
@@ -73,7 +78,9 @@ namespace ZMQ.ZMQDevice {
         /// <summary>
         /// Start Device
         /// </summary>
-        public virtual void Start() {
+        public virtual void Start()
+        {
+            _doneEvent.Reset();
             _run = true;
             _runningThread.Start();
             _isRunning = true;
@@ -97,6 +104,7 @@ namespace ZMQ.ZMQDevice {
                 Context.Poller(skts, PollingInterval);
             }
             IsRunning = false;
+            _doneEvent.Set();
         }
     }
 
@@ -104,6 +112,13 @@ namespace ZMQ.ZMQDevice {
     /// Standard Queue Device
     /// </summary>
     public class Queue : Device {
+        public Queue(Context context, string frontendAddr, string backendAddr)
+            : base(context.Socket(SocketType.PUB), context.Socket(SocketType.SUB))
+        {
+            _frontend.Bind(frontendAddr);
+            _backend.Connect(backendAddr);
+        }
+
         public Queue(string frontendAddr, string backendAddr)
             : base(new Socket(SocketType.XREP), new Socket(SocketType.XREQ)) {
             _frontend.Bind(frontendAddr);
@@ -120,7 +135,15 @@ namespace ZMQ.ZMQDevice {
     }
 
     public class Forwarder : Device {
-        public Forwarder(string frontendAddr, string backendAddr, MessageProcessor msgProc)
+
+        public Forwarder(Context context, string frontendAddr, string backendAddr)
+            : base(context.Socket(SocketType.PUB), context.Socket(SocketType.SUB))
+        {
+            _frontend.Bind(frontendAddr);
+            _backend.Connect(backendAddr);
+        }
+
+        public Forwarder(string frontendAddr, string backendAddr)
             : base(new Socket(SocketType.SUB), new Socket(SocketType.PUB)) {
             _frontend.Connect(frontendAddr);
             _backend.Bind(backendAddr);
@@ -135,8 +158,16 @@ namespace ZMQ.ZMQDevice {
         }
     }
 
-    public class Streamer : Device {
-        public Streamer(string frontendAddr, string backendAddr, MessageProcessor msgProc)
+    public class Streamer : Device
+    {
+        public Streamer(Context context, string frontendAddr, string backendAddr)
+            : base(context.Socket(SocketType.PUB), context.Socket(SocketType.SUB))
+        {
+            _frontend.Bind(frontendAddr);
+            _backend.Connect(backendAddr);
+        }
+
+        public Streamer(string frontendAddr, string backendAddr)
             : base(new Socket(SocketType.PUB), new Socket(SocketType.SUB)) {
             _frontend.Bind(frontendAddr);
             _backend.Connect(backendAddr);
@@ -155,6 +186,14 @@ namespace ZMQ.ZMQDevice {
 
     public class AsyncReturn : Device {
         private readonly MessageProcessor _messageProcessor;
+
+        public AsyncReturn(Context context, string frontendAddr, string backendAddr, MessageProcessor msgProc)
+            : base(context.Socket(SocketType.XREP), context.Socket(SocketType.PULL))
+        {
+            _messageProcessor = msgProc;
+            _frontend.Bind(frontendAddr);
+            _backend.Bind(backendAddr);
+        }
 
         public AsyncReturn(string frontendAddr, string backendAddr, MessageProcessor msgProc)
             : base(new Socket(SocketType.XREP), new Socket(SocketType.PULL)) {
