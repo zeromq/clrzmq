@@ -111,6 +111,13 @@ namespace ZMQ.ZMQDevice {
     /// Standard Queue Device
     /// </summary>
     public class Queue : Device {
+        public Queue(Context context, string frontendAddr, string backendAddr)
+            : base(context.Socket(SocketType.XREP), context.Socket(SocketType.XREQ)) {
+            _frontend.Bind(frontendAddr);
+            _backend.Connect(backendAddr);
+        }
+
+        [Obsolete("Use the constructor that accepts a Context. Will be removed in 3.x.")]
         public Queue(string frontendAddr, string backendAddr)
             : base(new Socket(SocketType.XREP), new Socket(SocketType.XREQ)) {
             _frontend.Bind(frontendAddr);
@@ -127,6 +134,13 @@ namespace ZMQ.ZMQDevice {
     }
 
     public class Forwarder : Device {
+        public Forwarder(Context context, string frontendAddr, string backendAddr, MessageProcessor msgProc)
+            : base(context.Socket(SocketType.SUB), context.Socket(SocketType.PUB)) {
+            _frontend.Bind(frontendAddr);
+            _backend.Connect(backendAddr);
+        }
+
+        [Obsolete("Use the constructor that accepts a Context. Will be removed in 3.x.")]
         public Forwarder(string frontendAddr, string backendAddr, MessageProcessor msgProc)
             : base(new Socket(SocketType.SUB), new Socket(SocketType.PUB)) {
             _frontend.Connect(frontendAddr);
@@ -143,6 +157,13 @@ namespace ZMQ.ZMQDevice {
     }
 
     public class Streamer : Device {
+        public Streamer(Context context, string frontendAddr, string backendAddr, MessageProcessor msgProc)
+            : base(context.Socket(SocketType.PUB), context.Socket(SocketType.SUB)) {
+            _frontend.Bind(frontendAddr);
+            _backend.Connect(backendAddr);
+        }
+
+        [Obsolete("Use the constructor that accepts a Context. Will be removed in 3.x.")]
         public Streamer(string frontendAddr, string backendAddr, MessageProcessor msgProc)
             : base(new Socket(SocketType.PUB), new Socket(SocketType.SUB)) {
             _frontend.Bind(frontendAddr);
@@ -163,6 +184,14 @@ namespace ZMQ.ZMQDevice {
     public class AsyncReturn : Device {
         private readonly MessageProcessor _messageProcessor;
 
+        public AsyncReturn(Context context, string frontendAddr, string backendAddr, MessageProcessor msgProc)
+            : base(context.Socket(SocketType.XREP), context.Socket(SocketType.PULL)) {
+            _messageProcessor = msgProc;
+            _frontend.Bind(frontendAddr);
+            _backend.Bind(backendAddr);
+        }
+
+        [Obsolete("Use the constructor that accepts a Context. Will be removed in 3.x.")]
         public AsyncReturn(string frontendAddr, string backendAddr, MessageProcessor msgProc)
             : base(new Socket(SocketType.XREP), new Socket(SocketType.PULL)) {
             _messageProcessor = msgProc;
