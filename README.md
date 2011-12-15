@@ -1,7 +1,9 @@
 # clrzmq &mdash; Official 0MQ Bindings for .NET and Mono
 *(Formerly clrzmq2; legacy bindings have moved to [clrzmq-old][clrzmq-old])*
 
-This project aims to provide the full functionality of the underlying ZeroMQ API to CLR projects. The version of libzmq currently being targeted is **2.1 (stable)**.
+This project aims to provide the full functionality of the underlying ZeroMQ API to CLR projects.
+
+The version of libzmq currently being targeted is **2.1 (stable)**.
 
 ## Getting Started
 
@@ -47,6 +49,7 @@ namespace ZMQGuide
         }
     }
 }
+```
 
 ### Example client
 
