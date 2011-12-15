@@ -1,0 +1,45 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Test">
+
+  <PropertyGroup>
+    <SolutionDir Condition="'$(SolutionDir)' == ''">src\</SolutionDir>
+    <BuildOutput>..\build</BuildOutput>
+    <Platform Condition="'$(Platform)' == ''">x86</Platform>
+    <Configuration Condition="'$(Configuration)' == ''">WIN_DEBUG</Configuration>
+    <BuildVersion Condition="'$(BuildVersion)' == ''">0.0.0.0</BuildVersion>
+    <MSpecOptions Condition="'$(MSpecOptions)' == ''"></MSpecOptions>
+  </PropertyGroup>
+
+  <Target Name="Clean">
+    <ItemGroup>
+      <CleanFiles Include="$(BuildOutput)" />
+      <CleanFiles Include="**\bin\$(Platform)\$(Configuration)\**" />
+      <CleanFiles Include="**\bin\*.*" />
+      <CleanFiles Include="**\obj\$(Platform)\$(Configuration)\**" />
+      <CleanFiles Include="**\obj\*.*" />
+    </ItemGroup>
+
+    <Delete Files="@(CleanFiles)" />
+  </Target>
+
+  <Target Name="Initialize" DependsOnTargets="Clean">
+    <MakeDir Directories="$(BuildOutput)" />
+  </Target>
+  
+  <Target Name="Build" DependsOnTargets="Initialize">
+    <MSBuild Projects="clrzmq.sln" Targets="Build" ToolsVersion="3.5" Properties="Configuration=$(Configuration);Platform=$(Platform)" />
+  </Target>
+
+  <Target Name="Test" DependsOnTargets="Build">
+    <PropertyGroup>
+      <MSpecExe Condition="'$(MSpecExe)' == '' and '$(Platform)' == 'x64'">$([System.IO.Directory]::GetDirectories("packages", "Machine.Specifications.*")[0])\tools\mspec.exe</MSpecExe>
+      <MSpecExe Condition="'$(MSpecExe)' == '' and '$(Platform)' == 'x86'">$([System.IO.Directory]::GetDirectories("packages", "Machine.Specifications.*")[0])\tools\mspec-x86.exe</MSpecExe>
+    </PropertyGroup>
+    
+    <ItemGroup>
+      <TestAssmbly Include="tests\**\bin\$(Platform)\$(Configuration)\*Tests.dll" />
+    </ItemGroup>
+  
+    <Exec Command="$(MSpecExe) $(MSpecOptions) %(TestAssmbly.Identity)" />
+  </Target>
+
+</Project>

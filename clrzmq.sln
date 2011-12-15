@@ -38,6 +38,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorkerPool", "tests\WorkerP
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AcceptanceTests", "tests\AcceptanceTests\AcceptanceTests.csproj", "{7B12A63E-EC15-4F13-A91C-C03C7E97D8B6}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{FD546D7B-B1CF-43AF-81B1-A96AF545FDD7}"
+	ProjectSection(SolutionItems) = preProject
+		build.proj = build.proj
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		POSIX_DEBUG|x64 = POSIX_DEBUG|x64
