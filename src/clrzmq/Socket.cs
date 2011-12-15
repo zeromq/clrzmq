@@ -62,9 +62,11 @@ namespace ZMQ {
         }
 
         /// <summary>
-        /// Create Socket using application wide Context
+        /// Create Socket using application wide Context. OBSOLETE: use <see cref="Context.Socket"/> and
+        /// avoid using application-wide Context objects.
         /// </summary>
         /// <param name="type">Socket type</param>
+        [Obsolete("Sockets should be constructed using Context.Socket. Will be removed in 3.x.")]
         public Socket(SocketType type) {
             lock (_lockObj) {
                 if (_appContext == null) {
