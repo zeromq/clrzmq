@@ -10,7 +10,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{1C71420E-3
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "settings", "settings", "{F931F059-9877-4554-85E6-771DFECDFE00}"
 	ProjectSection(SolutionItems) = preProject
+		nuget\clrzmq-x64.nuspec = nuget\clrzmq-x64.nuspec
 		clrzmq.5.1.ReSharper = clrzmq.5.1.ReSharper
+		nuget\clrzmq.nuspec = nuget\clrzmq.nuspec
 		Settings.StyleCop = Settings.StyleCop
 	EndProjectSection
 EndProject

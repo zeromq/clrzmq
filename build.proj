@@ -3,17 +3,18 @@
   <PropertyGroup>
     <SolutionDir Condition="'$(SolutionDir)' == ''">src</SolutionDir>
     <LibDir Condition="'$(LibDir)' == ''">lib</LibDir>
-    <BuildOutput>build</BuildOutput>
+    <BuildDir>build</BuildDir>
+    <PackageDir>publish</PackageDir>
     <Platform Condition="'$(Platform)' == ''">x86</Platform>
     <Configuration Condition="'$(Configuration)' == ''">Release</Configuration>
     <OSConfiguration Condition="'$(OSConfiguration)' == ''">WIN_RELEASE</OSConfiguration>
-    <BuildVersion Condition="'$(BuildVersion)' == ''">0.0.0.0</BuildVersion>
     <MSpecOptions Condition="'$(MSpecOptions)' == ''"></MSpecOptions>
+    <KeyFileProperty Condition="'$(SignAssembly)' == 'true'">KeyOriginatorFile=src\clrzmq.snk</KeyFileProperty>
   </PropertyGroup>
 
   <Target Name="Clean">
     <ItemGroup>
-      <CleanFiles Include="$(BuildOutput)" />
+      <CleanFiles Include="$(BuildDir)" />
       <CleanFiles Include="$(SolutionDir)\**\bin\$(Configuration)\**" />
       <CleanFiles Include="$(SolutionDir)\**\bin\$(Platform)\$(OSConfiguration)\**" />
       <CleanFiles Include="$(SolutionDir)\**\bin\*.*" />
@@ -26,11 +27,11 @@
   </Target>
 
   <Target Name="Initialize" DependsOnTargets="Clean">
-    <MakeDir Directories="$(BuildOutput)" />
+    <MakeDir Directories="$(BuildDir)" />
   </Target>
   
   <Target Name="Compile" DependsOnTargets="Initialize">
-    <MSBuild Projects="clrzmq.sln" Targets="Build" ToolsVersion="3.5" Properties="Configuration=$(OSConfiguration);Platform=$(Platform)" />
+    <MSBuild Projects="clrzmq.sln" Targets="Build" ToolsVersion="3.5" Properties="Configuration=$(OSConfiguration);Platform=$(Platform);$(KeyFileProperty)" />
   </Target>
 
   <Target Name="Test" DependsOnTargets="Compile">
@@ -49,11 +50,25 @@
   <Target Name="Build" DependsOnTargets="Test">
     <ItemGroup>
       <OutputFiles Include="$(SolutionDir)\**\bin\$(Platform)\$(OSConfiguration)\*.dll" />
+      <OutputFiles Include="$(SolutionDir)\**\bin\$(Platform)\$(OSConfiguration)\*.pdb" />
+      <OutputFiles Include="$(SolutionDir)\**\bin\$(Platform)\$(OSConfiguration)\*.xml" />
       <OutputFiles Include="$(SolutionDir)\**\bin\$(Configuration)\*.dll" />
+      <OutputFiles Include="$(SolutionDir)\**\bin\$(Configuration)\*.pdb" />
+      <OutputFiles Include="$(SolutionDir)\**\bin\$(Configuration)\*.xml" />
       <OutputFiles Include="$(LibDir)\$(Platform)\*.dll" />
     </ItemGroup>
 
-    <Copy SourceFiles="@(OutputFiles)" DestinationFolder="$(BuildOutput)" ContinueOnError="true" />
+    <Copy SourceFiles="@(OutputFiles)" DestinationFolder="$(BuildDir)" ContinueOnError="true" />
+  </Target>
+
+  <Target Name="Package" DependsOnTargets="Build">
+    <ItemGroup>
+      <BuildOutput Include="$(BuildDir)\*.*" />
+    </ItemGroup>
+    
+    <RemoveDir Directories="$(PackageDir)\$(Platform)" />
+    <MakeDir Directories="$(PackageDir)\$(Platform)" />
+    <Copy SourceFiles="@(BuildOutput)" DestinationFolder="$(PackageDir)\$(Platform)" ContinueOnError="false" />
   </Target>
 
 </Project>

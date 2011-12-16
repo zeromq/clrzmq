@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>clrzmq</id>
+    <version>0.0.0</version>
+    <authors>zeromq</authors>
+    <owners>John Gozde</owners>
+    <projectUrl>http://www.zeromq.org/bindings:clr</projectUrl>
+    <licenseUrl>http://www.zeromq.org/area:licensing</licenseUrl>
+    <iconUrl>http://gravatar.com/avatar/810f6c181bb9cf3dea392892bac793f0?s=32</iconUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <summary>Official .NET bindings for ZeroMQ (x86)</summary>
+    <description>The clrzmq project contains .NET bindings for ØMQ (ZeroMQ), an open source, high performance transport layer. Includes a compiled version of the native libzmq library. WARNING: This package targets the x86 build platform.</description>
+    <language>en-US</language>
+    <tags>zeromq zmq 0mq messaging transport distributed</tags>
+  </metadata>
+  <files>
+    <file src="publish\x86\clrzmq*.dll" target="lib\net20" />
+    <file src="publish\x86\*.pdb" target="lib\net20" />
+    <file src="publish\x86\*.xml" target="lib\net20" />
+    <file src="lib\x86\*.dll" target="content" />
+    <file src="nuget\install.ps1" target="tools" />
+    <file src="LICENSE"/>
+  </files>
+</package>

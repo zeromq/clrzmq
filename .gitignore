@@ -4,8 +4,10 @@ bin
 !/bin
 /build
 /packages
+/publish
 nuget.exe
 lib/**/libzmq.dll
+*.snk
 *.pidb
 *.suo
 _ReSharper.*
