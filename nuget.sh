@@ -1,7 +1,7 @@
 #!/bin/sh
 
-NUGET_EXE=bin/nuget/nuget.exe
-NUGET_BOOTSTRAPPER_EXE=bin/nuget/nuget-bootstrap.exe
+NUGET_EXE=nuget/nuget.exe
+NUGET_BOOTSTRAPPER_EXE=nuget/nuget-bootstrap.exe
 PACKAGE_DIR=packages
 
 if [ ! -e $NUGET_EXE ]; then
