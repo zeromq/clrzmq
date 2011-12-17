@@ -15,9 +15,9 @@
     <tags>zeromq zmq 0mq messaging transport distributed</tags>
   </metadata>
   <files>
-    <file src="publish\x64\clrzmq*.dll" target="lib\net20" />
-    <file src="publish\x64\*.pdb" target="lib\net20" />
-    <file src="publish\x64\*.xml" target="lib\net20" />
+    <file src="publish\x64\clrzmq*.dll" target="lib" />
+    <file src="publish\x64\*.pdb" target="lib" />
+    <file src="publish\x64\*.xml" target="lib" />
     <file src="lib\x64\*.dll" target="content" />
     <file src="nuget\install.ps1" target="tools" />
     <file src="LICENSE"/>
