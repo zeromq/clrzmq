@@ -1,0 +1,41 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZeroMQ", "ZeroMQ\ZeroMQ.csproj", "{6FFD872F-A4A4-4EFA-9B4D-4342BA6CF250}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Project", "Project", "{C6247C9C-7812-403F-B22F-43C225479505}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Build", "Build", "{067B8B29-D6AB-43F6-B141-E18846AE57EE}"
+	ProjectSection(SolutionItems) = preProject
+		build.proj = build.proj
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{F35C131C-418F-4B0E-B26B-31F616ABD0BC}"
+	ProjectSection(SolutionItems) = preProject
+		..\AUTHORS = ..\AUTHORS
+		..\LICENSE = ..\LICENSE
+		..\README.md = ..\README.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Performance", "Performance", "{787AC211-42C4-43CA-92F6-127EE66B1BDC}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{344CA41B-C7CB-49B0-BC6D-730C8BE49FB8}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6FFD872F-A4A4-4EFA-9B4D-4342BA6CF250}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6FFD872F-A4A4-4EFA-9B4D-4342BA6CF250}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6FFD872F-A4A4-4EFA-9B4D-4342BA6CF250}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6FFD872F-A4A4-4EFA-9B4D-4342BA6CF250}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{6FFD872F-A4A4-4EFA-9B4D-4342BA6CF250} = {C6247C9C-7812-403F-B22F-43C225479505}
+	EndGlobalSection
+EndGlobal
