@@ -123,8 +123,7 @@ NuGet relies on several certificates to be registered with Mono. The following i
 This assumes you have already installed Mono 2.10.7 or higher.
 
 ```shell
-$ mozroots --import
-... typing 'yes' many, many times...
+$ mozroots --import --sync
 
 $ certmgr -ssl https://go.microsoft.com
 $ certmgr -ssl https://nugetgallery.blob.core.windows.net
