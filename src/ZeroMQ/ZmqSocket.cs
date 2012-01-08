@@ -29,6 +29,11 @@
             SocketType = socketType;
         }
 
+        ~ZmqSocket()
+        {
+            Dispose(false);
+        }
+
         /// <summary>
         /// Gets the <see cref="ZeroMQ.SocketType"/> value for the current socket.
         /// </summary>
