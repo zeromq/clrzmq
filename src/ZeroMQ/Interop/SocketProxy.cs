@@ -3,9 +3,16 @@
     using System;
     using System.Runtime.InteropServices;
 
-    internal class SocketProxy
+    internal class SocketProxy : IDisposable
     {
         private const int MaxBinaryOptionSize = 255;
+
+        // From zmq.h:
+        // typedef struct {unsigned char _ [32];} zmq_msg_t;
+        private static readonly int ZmqMsgTSize = IntPtr.Size + 32;
+
+        private IntPtr _message;
+        private bool _disposed;
 
         public SocketProxy(IntPtr socketHandle)
         {
@@ -15,6 +22,12 @@
             }
 
             SocketHandle = socketHandle;
+            _message = Marshal.AllocHGlobal(ZmqMsgTSize);
+        }
+
+        ~SocketProxy()
+        {
+            Dispose(false);
         }
 
         public IntPtr SocketHandle { get; private set; }
@@ -42,6 +55,50 @@
             SocketHandle = IntPtr.Zero;
 
             return rc;
+        }
+
+        public int Receive(byte[] buffer, SocketFlags flags)
+        {
+            GCHandle bufferHandle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
+
+            if (LibZmq.zmq_msg_init_data(_message, bufferHandle.AddrOfPinnedObject(), buffer.Length, FreeBufferHandle, IntPtr.Zero) == -1)
+            {
+                return -1;
+            }
+
+            int bytesReceived = -1;
+            RetryIfInterrupted(() => bytesReceived = LibZmq.zmq_recvmsg(SocketHandle, _message, (int)flags));
+
+            return bytesReceived;
+        }
+
+        public byte[] Receive(byte[] buffer, SocketFlags flags, out int size)
+        {
+            size = -1;
+
+            if (LibZmq.zmq_msg_init(_message) == -1)
+            {
+                return buffer;
+            }
+
+            int bytesReceived = -1;
+            RetryIfInterrupted(() => bytesReceived = LibZmq.zmq_recvmsg(SocketHandle, _message, (int)flags));
+
+            if (bytesReceived >= 0)
+            {
+                size = bytesReceived;
+
+                if (buffer == null || size > buffer.Length)
+                {
+                    buffer = new byte[size];
+                }
+
+                Marshal.Copy(LibZmq.zmq_msg_data(_message), buffer, 0, size);
+            }
+
+            LibZmq.zmq_msg_close(_message);
+
+            return buffer;
         }
 
         public int GetSocketOption(int option, out int value)
@@ -142,6 +199,28 @@
             }
         }
 
+        public virtual void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposed)
+            {
+                if (_message != IntPtr.Zero)
+                {
+                    Marshal.FreeHGlobal(_message);
+                    _message = IntPtr.Zero;
+                }
+
+                Close();
+            }
+
+            _disposed = true;
+        }
+
         private static int RetryIfInterrupted(Func<int> func)
         {
             int rc;
@@ -153,6 +232,12 @@
             while (rc == -1 && LibZmq.zmq_errno() == ErrorCode.EINTR);
 
             return rc;
+        }
+
+        private static void FreeBufferHandle(IntPtr data, IntPtr hint)
+        {
+            GCHandle bufferHandle = GCHandle.FromIntPtr(data);
+            bufferHandle.Free();
         }
     }
 }

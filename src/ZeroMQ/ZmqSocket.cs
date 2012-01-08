@@ -1,6 +1,8 @@
 ﻿namespace ZeroMQ
 {
     using System;
+    using System.Diagnostics;
+    using System.Threading;
 
     using ZeroMQ.Interop;
 
@@ -10,9 +12,10 @@
     /// </summary>
     public class ZmqSocket
     {
+        private static readonly int ProcessorCount = Environment.ProcessorCount;
+
         private readonly SocketProxy _socketProxy;
 
-        private bool _closed;
         private bool _disposed;
 
         internal ZmqSocket(SocketProxy socketProxy, SocketType socketType)
@@ -228,6 +231,11 @@
             set { SetSocketOption(SocketOption.IPV4_ONLY, (int)value); }
         }
 
+        /// <summary>
+        /// Gets the status of the last Receive operation.
+        /// </summary>
+        public ReceiveStatus ReceiveStatus { get; private set; }
+
         internal IntPtr SocketHandle
         {
             get { return _socketProxy.SocketHandle; }
@@ -286,21 +294,97 @@
         /// </summary>
         /// <remarks>
         /// Any outstanding messages physically received from the network but not yet received by the application
-        /// with <see cref="Receive"/> shall be discarded. The behaviour for discarding messages sent by the application
-        /// with <see cref="Send"/> but not yet physically transferred to the network depends on the value of
+        /// with Receive shall be discarded. The behaviour for discarding messages sent by the application
+        /// with Send but not yet physically transferred to the network depends on the value of
         /// the <see cref="Linger"/> socket option.
         /// </remarks>
         /// <exception cref="ZmqSocketException">The underlying socket object is not valid.</exception>
         public void Close()
         {
-            if (_disposed || _closed)
-            {
-                return;
-            }
-
             HandleProxyResult(_socketProxy.Close());
+        }
 
-            _closed = true;
+        /// <summary>
+        /// Receive a single message-part from a remote socket in blocking mode.
+        /// </summary>
+        /// <remarks>
+        /// Warning: This overload will only receive as much data as can fit in the supplied <paramref name="buffer"/>.
+        /// It is intended to be used when the maximum messaging performance is required, as it does not perform
+        /// any unnecessary memory allocation, copying or marshalling.
+        /// If the maximum message size is not known in advance, use the <see cref="Receive(ZeroMQ.Frame)"/> overload.
+        /// </remarks>
+        /// <param name="buffer">A <see cref="byte"/> array that will store the received data.</param>
+        /// <returns>The number of bytes contained in the resulting message.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="buffer"/> is null.</exception>
+        /// <exception cref="ZmqSocketException">An error occurred receiving data from a remote endpoint.</exception>
+        /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
+        /// <exception cref="NotSupportedException">The current socket type does not support Receive operations.</exception>
+        public int Receive(byte[] buffer)
+        {
+            return Receive(buffer, SocketFlags.None);
+        }
+
+        /// <summary>
+        /// Receive a single message-part from a remote socket in non-blocking mode with a specified timeout.
+        /// </summary>
+        /// <remarks>
+        /// Warning: This overload will only receive as much data as can fit in the supplied <paramref name="buffer"/>.
+        /// It is intended to be used when the maximum messaging performance is required, as it does not perform
+        /// any unnecessary memory allocation, copying or marshalling.
+        /// If the maximum message size is not known in advance, use the <see cref="Receive(ZeroMQ.Frame,TimeSpan)"/> overload.
+        /// </remarks>
+        /// <param name="buffer">A <see cref="byte"/> array that will store the received data.</param>
+        /// <param name="timeout">A <see cref="TimeSpan"/> specifying the receive timeout.</param>
+        /// <returns>
+        /// The number of bytes contained in the resulting message or -1 if the timeout expired or an interrupt occurred.
+        /// See <see cref="ReceiveStatus"/> for details.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="buffer"/> is null.</exception>
+        /// <exception cref="ZmqSocketException">An error occurred receiving data from a remote endpoint.</exception>
+        /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
+        /// <exception cref="NotSupportedException">The current socket type does not support Receive operations.</exception>
+        public int Receive(byte[] buffer, TimeSpan timeout)
+        {
+            return timeout == TimeSpan.MaxValue
+                       ? Receive(buffer)
+                       : ReceiveWithTimeout(() => Receive(buffer, SocketFlags.DontWait), timeout);
+        }
+
+        /// <summary>
+        /// Receive a single frame from a remote socket in blocking mode.
+        /// </summary>
+        /// <remarks>
+        /// This overload will receive all available data in the message-part. If the buffer size of <paramref name="frame"/>
+        /// is insufficient, a new buffer will be allocated.
+        /// </remarks>
+        /// <param name="frame">A <see cref="Frame"/> that will store the received data.</param>
+        /// <returns>A <see cref="Frame"/> containing the data received from the remote endpoint.</returns>
+        /// <exception cref="ZmqSocketException">An error occurred receiving data from a remote endpoint.</exception>
+        /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
+        /// <exception cref="NotSupportedException">The current socket type does not support Receive operations.</exception>
+        public Frame Receive(Frame frame)
+        {
+            return Receive(frame, SocketFlags.None);
+        }
+
+        /// <summary>
+        /// Receive a single frame from a remote socket in non-blocking mode with a specified timeout.
+        /// </summary>
+        /// <remarks>
+        /// This overload will receive all available data in the message-part. If the buffer size of <paramref name="frame"/>
+        /// is insufficient, a new buffer will be allocated.
+        /// </remarks>
+        /// <param name="frame">A <see cref="Frame"/> that will store the received data.</param>
+        /// <param name="timeout">A <see cref="TimeSpan"/> specifying the receive timeout.</param>
+        /// <returns>A <see cref="Frame"/> containing the data received from the remote endpoint.</returns>
+        /// <exception cref="ZmqSocketException">An error occurred receiving data from a remote endpoint.</exception>
+        /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
+        /// <exception cref="NotSupportedException">The current socket type does not support Receive operations.</exception>
+        public Frame Receive(Frame frame, TimeSpan timeout)
+        {
+            return timeout == TimeSpan.MaxValue
+                       ? Receive(frame)
+                       : ReceiveWithTimeout(() => Receive(frame, SocketFlags.DontWait), timeout);
         }
 
         /// <summary>
@@ -310,6 +394,111 @@
         {
             Dispose(true);
             GC.SuppressFinalize(this);
+        }
+
+        internal virtual int Receive(byte[] buffer, SocketFlags flags)
+        {
+            EnsureNotDisposed();
+
+            if (buffer == null)
+            {
+                throw new ArgumentNullException("buffer");
+            }
+
+            int receivedBytes = _socketProxy.Receive(buffer, flags);
+
+            if (receivedBytes >= 0)
+            {
+                ReceiveStatus = ReceiveStatus.Received;
+                return receivedBytes;
+            }
+
+            if (ErrorProxy.ShouldTryAgain)
+            {
+                ReceiveStatus = ReceiveStatus.TryAgain;
+                return -1;
+            }
+
+            if (ErrorProxy.ContextWasTerminated)
+            {
+                ReceiveStatus = ReceiveStatus.Interrupted;
+                return -1;
+            }
+
+            throw ErrorProxy.GetLastSocketError();
+        }
+
+        internal virtual Frame Receive(Frame frame, SocketFlags flags)
+        {
+            EnsureNotDisposed();
+
+            if (frame == null)
+            {
+                frame = new Frame(0);
+            }
+
+            int receivedBytes;
+
+            frame.Buffer = _socketProxy.Receive(frame.Buffer, flags, out receivedBytes);
+
+            if (receivedBytes >= 0)
+            {
+                frame.ReceiveStatus = ReceiveStatus = ReceiveStatus.Received;
+                frame.MessageSize = receivedBytes;
+                frame.HasMore = ReceiveMore;
+
+                return frame;
+            }
+
+            if (ErrorProxy.ShouldTryAgain)
+            {
+                frame.ReceiveStatus = ReceiveStatus = ReceiveStatus.TryAgain;
+                return frame;
+            }
+
+            if (ErrorProxy.ContextWasTerminated)
+            {
+                frame.ReceiveStatus = ReceiveStatus = ReceiveStatus.Interrupted;
+                return frame;
+            }
+
+            throw ErrorProxy.GetLastSocketError();
+        }
+
+        internal virtual TResult ReceiveWithTimeout<TResult>(Func<TResult> receive, TimeSpan timeout)
+        {
+            TResult receiveResult;
+
+            int iterations = 0;
+            var timeoutMilliseconds = (int)timeout.TotalMilliseconds;
+            var timer = Stopwatch.StartNew();
+
+            do
+            {
+                receiveResult = receive();
+
+                if (ReceiveStatus != ReceiveStatus.TryAgain || timeoutMilliseconds <= 1)
+                {
+                    break;
+                }
+
+                if (iterations < 20 && ProcessorCount > 1)
+                {
+                    // If we have a short wait (< 20 iterations) we SpinWait to allow other threads
+                    // on HyperThreaded CPUs to use the CPU. The more CPUs we have, the longer it's
+                    // acceptable to SpinWait since we stall the overall system less.
+                    Thread.SpinWait(100 * ProcessorCount);
+                }
+                else
+                {
+                    Thread.Yield();
+                }
+
+                ++iterations;
+            }
+            while (timer.Elapsed < timeout);
+
+            return receiveResult;
         }
 
         internal int GetSocketOptionInt32(SocketOption option)
@@ -395,9 +584,12 @@
         /// <param name="disposing">true to release both managed and unmanaged resources; false to release only unmanaged resources.</param>
         protected virtual void Dispose(bool disposing)
         {
-            if (disposing && !_disposed)
+            if (!_disposed)
             {
-                Close();
+                if (disposing)
+                {
+                    _socketProxy.Dispose();
+                }
             }
 
             _disposed = true;
