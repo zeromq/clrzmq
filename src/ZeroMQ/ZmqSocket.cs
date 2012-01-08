@@ -234,6 +234,54 @@
         }
 
         /// <summary>
+        /// Create an endpoint for accepting connections and bind it to the current socket.
+        /// </summary>
+        /// <param name="endpoint">A string consisting of a transport and an address, formatted as <c><em>transport</em>://<em>address</em></c>.</param>
+        /// <exception cref="System.ArgumentNullException"><paramref name="endpoint"/> is null.</exception>
+        /// <exception cref="ZmqSocketException">An error occurred binding the socket to an endpoint.</exception>
+        /// <exception cref="System.ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
+        public void Bind(string endpoint)
+        {
+            EnsureNotDisposed();
+
+            if (endpoint == null)
+            {
+                throw new ArgumentNullException("endpoint");
+            }
+
+            if (endpoint == string.Empty)
+            {
+                throw new ArgumentException("Unable to Bind to an empty endpoint.", "endpoint");
+            }
+
+            HandleProxyResult(_socketProxy.Bind(endpoint));
+        }
+
+        /// <summary>
+        /// Connect the current socket to the specified endpoint.
+        /// </summary>
+        /// <param name="endpoint">A string consisting of a transport and an address, formatted as <c><em>transport</em>://<em>address</em></c>.</param>
+        /// <exception cref="System.ArgumentNullException"><paramref name="endpoint"/> is null.</exception>
+        /// <exception cref="ZmqSocketException">An error occurred connecting the socket to a remote endpoint.</exception>
+        /// <exception cref="System.ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
+        public void Connect(string endpoint)
+        {
+            EnsureNotDisposed();
+
+            if (endpoint == null)
+            {
+                throw new ArgumentNullException("endpoint");
+            }
+
+            if (endpoint == string.Empty)
+            {
+                throw new ArgumentException("Unable to Connect to an empty endpoint.", "endpoint");
+            }
+
+            HandleProxyResult(_socketProxy.Connect(endpoint));
+        }
+
+        /// <summary>
         /// Destroy the current socket.
         /// </summary>
         /// <remarks>

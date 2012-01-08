@@ -19,6 +19,16 @@
 
         public IntPtr SocketHandle { get; private set; }
 
+        public int Bind(string endpoint)
+        {
+            return LibZmq.zmq_bind(SocketHandle, endpoint);
+        }
+
+        public int Connect(string endpoint)
+        {
+            return LibZmq.zmq_connect(SocketHandle, endpoint);
+        }
+
         public int Close()
         {
             // Allow Close to be called repeatedly without failure
