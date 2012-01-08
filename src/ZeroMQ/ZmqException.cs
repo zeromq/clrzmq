@@ -3,6 +3,8 @@
     using System;
     using System.Runtime.Serialization;
 
+    using ZeroMQ.Interop;
+
     /// <summary>
     /// An exception thrown by the result of a ZeroMQ library call.
     /// </summary>
@@ -42,6 +44,11 @@
         {
             ErrorCode = errorCode;
             ErrorName = GetErrorName(errorCode);
+        }
+
+        internal ZmqException(ErrorDetails errorDetails)
+            : this(errorDetails.ErrorCode, errorDetails.Message)
+        {
         }
 
         /// <summary>

@@ -20,26 +20,16 @@
 
         public int ThreadPoolSize { get; private set; }
 
-        public void Initialize()
+        public int Initialize()
         {
             ContextHandle = LibZmq.zmq_init(ThreadPoolSize);
 
-            if (ContextHandle == IntPtr.Zero)
-            {
-                throw ErrorProxy.GetLastError();
-            }
+            return ContextHandle == IntPtr.Zero ? -1 : 0;
         }
 
         public IntPtr CreateSocket(int socketType)
         {
-            IntPtr socket = LibZmq.zmq_socket(ContextHandle, socketType);
-
-            if (socket == IntPtr.Zero)
-            {
-                throw ErrorProxy.GetLastError();
-            }
-
-            return socket;
+            return LibZmq.zmq_socket(ContextHandle, socketType);
         }
 
         public void Terminate()

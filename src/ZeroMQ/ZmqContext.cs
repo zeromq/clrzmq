@@ -76,7 +76,11 @@
             }
 
             var contextProxy = new ContextProxy(threadPoolSize);
-            contextProxy.Initialize();
+
+            if (contextProxy.Initialize() == -1)
+            {
+                throw new ZmqException(ErrorProxy.GetLastError());
+            }
 
             return new ZmqContext(contextProxy);
         }
@@ -181,7 +185,14 @@
         {
             EnsureNotDisposed();
 
-            return constructor(new SocketProxy(_contextProxy.CreateSocket((int)socketType)));
+            IntPtr socketHandle = _contextProxy.CreateSocket((int)socketType);
+
+            if (socketHandle == IntPtr.Zero)
+            {
+                throw new ZmqException(ErrorProxy.GetLastError());
+            }
+
+            return constructor(new SocketProxy(socketHandle));
         }
 
         private void EnsureNotDisposed()

@@ -443,7 +443,7 @@
                 return -1;
             }
 
-            throw ErrorProxy.GetLastSocketError();
+            throw new ZmqSocketException(ErrorProxy.GetLastError());
         }
 
         /// <summary>
@@ -607,7 +607,7 @@
                 return -1;
             }
 
-            throw ErrorProxy.GetLastSocketError();
+            throw new ZmqSocketException(ErrorProxy.GetLastError());
         }
 
         internal virtual Frame Receive(Frame frame, SocketFlags flags)
@@ -644,7 +644,7 @@
                 return frame;
             }
 
-            throw ErrorProxy.GetLastSocketError();
+            throw new ZmqSocketException(ErrorProxy.GetLastError());
         }
 
         internal int GetSocketOptionInt32(SocketOption option)
@@ -747,7 +747,7 @@
             // ZmqContext was terminated during a socket method.
             if (result == -1 && !ErrorProxy.ContextWasTerminated)
             {
-                throw ErrorProxy.GetLastSocketError();
+                throw new ZmqSocketException(ErrorProxy.GetLastError());
             }
         }
 

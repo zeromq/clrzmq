@@ -3,6 +3,8 @@
     using System;
     using System.Runtime.Serialization;
 
+    using ZeroMQ.Interop;
+
     /// <summary>
     /// The exception that is thrown when a ZeroMQ socket error occurs.
     /// </summary>
@@ -36,6 +38,11 @@
         /// <param name="inner">The exception that is the cause of the current exception, or a null reference if no inner exception is specified.</param>
         public ZmqSocketException(int errorCode, string message, Exception inner)
             : base(errorCode, message, inner)
+        {
+        }
+
+        internal ZmqSocketException(ErrorDetails errorDetails)
+            : base(errorDetails)
         {
         }
 

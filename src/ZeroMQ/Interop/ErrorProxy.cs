@@ -1,9 +1,12 @@
 ﻿namespace ZeroMQ.Interop
 {
+    using System.Collections.Generic;
     using System.Runtime.InteropServices;
 
     internal static class ErrorProxy
     {
+        private static readonly Dictionary<int, ErrorDetails> KnownErrors = new Dictionary<int, ErrorDetails>();
+
         public static bool ShouldTryAgain
         {
             get { return GetErrorCode() == ErrorCode.EAGAIN; }
@@ -24,23 +27,21 @@
             return LibZmq.zmq_errno();
         }
 
-        public static ZmqException GetLastError()
+        public static ErrorDetails GetLastError()
         {
             int errorCode = GetErrorCode();
 
-            return new ZmqException(errorCode, GetErrorMessage(errorCode));
-        }
+            if (KnownErrors.ContainsKey(errorCode))
+            {
+                return KnownErrors[errorCode];
+            }
 
-        public static ZmqSocketException GetLastSocketError()
-        {
-            ZmqException lastError = GetLastError();
+            string message = Marshal.PtrToStringAuto(LibZmq.zmq_strerror(errorCode));
 
-            return new ZmqSocketException(lastError.ErrorCode, lastError.Message);
-        }
+            var errorDetails = new ErrorDetails(errorCode, message);
+            KnownErrors[errorCode] = errorDetails;
 
-        private static string GetErrorMessage(int errorCode)
-        {
-            return Marshal.PtrToStringAuto(LibZmq.zmq_strerror(errorCode));
+            return errorDetails;
         }
     }
 }

@@ -41,6 +41,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DuplexSocket.cs" />
+    <Compile Include="Interop\ErrorDetails.cs" />
     <Compile Include="SubscribeExtSocket.cs" />
     <Compile Include="SubscribeSocket.cs" />
     <Compile Include="Frame.cs" />
