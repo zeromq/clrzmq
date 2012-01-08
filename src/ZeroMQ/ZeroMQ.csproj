@@ -45,11 +45,12 @@
     <Compile Include="Interop\ErrorCode.cs" />
     <Compile Include="Interop\ErrorProxy.cs" />
     <Compile Include="Interop\LibZmq.cs" />
-    <Compile Include="Interop\SocketFlags.cs" />
+    <Compile Include="SocketFlags.cs" />
     <Compile Include="Interop\SocketProxy.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ProtocolType.cs" />
     <Compile Include="ReceiveStatus.cs" />
+    <Compile Include="SendStatus.cs" />
     <Compile Include="SocketOption.cs" />
     <Compile Include="SocketType.cs" />
     <Compile Include="ZmqException.cs" />

@@ -57,7 +57,7 @@
             return rc;
         }
 
-        public int Receive(byte[] buffer, SocketFlags flags)
+        public int Receive(byte[] buffer, int flags)
         {
             GCHandle bufferHandle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
 
@@ -67,12 +67,12 @@
             }
 
             int bytesReceived = -1;
-            RetryIfInterrupted(() => bytesReceived = LibZmq.zmq_recvmsg(SocketHandle, _message, (int)flags));
+            RetryIfInterrupted(() => bytesReceived = LibZmq.zmq_recvmsg(SocketHandle, _message, flags));
 
             return bytesReceived;
         }
 
-        public byte[] Receive(byte[] buffer, SocketFlags flags, out int size)
+        public byte[] Receive(byte[] buffer, int flags, out int size)
         {
             size = -1;
 
@@ -82,7 +82,7 @@
             }
 
             int bytesReceived = -1;
-            RetryIfInterrupted(() => bytesReceived = LibZmq.zmq_recvmsg(SocketHandle, _message, (int)flags));
+            RetryIfInterrupted(() => bytesReceived = LibZmq.zmq_recvmsg(SocketHandle, _message, flags));
 
             if (bytesReceived >= 0)
             {
@@ -99,6 +99,21 @@
             LibZmq.zmq_msg_close(_message);
 
             return buffer;
+        }
+
+        public int Send(byte[] buffer, int size, int flags)
+        {
+            GCHandle bufferHandle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
+
+            if (LibZmq.zmq_msg_init_data(_message, bufferHandle.AddrOfPinnedObject(), size, FreeBufferHandle, IntPtr.Zero) == -1)
+            {
+                return -1;
+            }
+
+            int bytesSent = -1;
+            RetryIfInterrupted(() => bytesSent = LibZmq.zmq_sendmsg(SocketHandle, _message, flags));
+
+            return bytesSent;
         }
 
         public int GetSocketOption(int option, out int value)

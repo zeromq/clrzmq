@@ -10,6 +10,8 @@
     /// </remarks>
     public class Frame
     {
+        private int _messageSize;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="Frame"/> class. The contents of <paramref name="buffer"/>
         /// will be copied into the resulting <see cref="Frame"/>.
@@ -25,6 +27,8 @@
 
             Buffer = new byte[buffer.Length];
             buffer.CopyTo(Buffer, 0);
+
+            MessageSize = Buffer.Length;
         }
 
         /// <summary>
@@ -41,6 +45,7 @@
             }
 
             Buffer = new byte[length];
+            MessageSize = length;
         }
 
         /// <summary>
@@ -57,14 +62,30 @@
         }
 
         /// <summary>
-        /// Gets the size of the last received message.
+        /// Gets or sets the size of the message data contained in the frame.
         /// </summary>
-        public int MessageSize { get; internal set; }
+        public int MessageSize
+        {
+            get
+            {
+                return _messageSize;
+            }
+
+            set
+            {
+                if (value < 0 || value > BufferSize)
+                {
+                    throw new ArgumentOutOfRangeException("value", "Expected non-negative value less than or equal to the buffer size.");
+                }
+
+                _messageSize = value;
+            }
+        }
 
         /// <summary>
-        /// Gets a value indicating whether more frames can be received in the multi-part message sequence.
+        /// Gets or sets a value indicating whether more frames will follow in a multi-part message sequence.
         /// </summary>
-        public bool HasMore { get; internal set; }
+        public bool HasMore { get; set; }
 
         /// <summary>
         /// Gets the status of the last Recieve operation.

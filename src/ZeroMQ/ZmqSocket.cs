@@ -236,6 +236,11 @@
         /// </summary>
         public ReceiveStatus ReceiveStatus { get; private set; }
 
+        /// <summary>
+        /// Gets the status of the last Send operation.
+        /// </summary>
+        public SendStatus SendStatus { get; private set; }
+
         internal IntPtr SocketHandle
         {
             get { return _socketProxy.SocketHandle; }
@@ -347,7 +352,7 @@
         {
             return timeout == TimeSpan.MaxValue
                        ? Receive(buffer)
-                       : ReceiveWithTimeout(() => Receive(buffer, SocketFlags.DontWait), timeout);
+                       : ExecuteWithTimeout(() => Receive(buffer, SocketFlags.DontWait), timeout);
         }
 
         /// <summary>
@@ -384,7 +389,125 @@
         {
             return timeout == TimeSpan.MaxValue
                        ? Receive(frame)
-                       : ReceiveWithTimeout(() => Receive(frame, SocketFlags.DontWait), timeout);
+                       : ExecuteWithTimeout(() => Receive(frame, SocketFlags.DontWait), timeout);
+        }
+
+        /// <summary>
+        /// Queue a single-part (or final multi-part) message buffer to be sent by the socket in blocking mode.
+        /// </summary>
+        /// <param name="buffer">A <see cref="byte"/> array that contains the message to be sent.</param>
+        /// <param name="size">The size of the message to send.</param>
+        /// <param name="flags">A combination of <see cref="SocketFlags"/> values to use when sending.</param>
+        /// <returns>The number of bytes sent by the socket.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="buffer"/> is null.</exception>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="size"/> is a negative value or is larger than the length of <paramref name="buffer"/>.</exception>
+        /// <exception cref="ZmqSocketException">An error occurred sending data to a remote endpoint.</exception>
+        /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
+        /// <exception cref="NotSupportedException">The current socket type does not support Send operations.</exception>
+        public virtual int Send(byte[] buffer, int size, SocketFlags flags)
+        {
+            EnsureNotDisposed();
+
+            if (buffer == null)
+            {
+                throw new ArgumentNullException("buffer");
+            }
+
+            if (size < 0 || size > buffer.Length)
+            {
+                throw new ArgumentOutOfRangeException("size", "Expected a non-negative value less than or equal to the buffer length.");
+            }
+
+            int sentBytes = _socketProxy.Send(buffer, size, (int)flags);
+
+            if (sentBytes >= 0)
+            {
+                SendStatus = SendStatus.Sent;
+                return sentBytes;
+            }
+
+            if (ErrorProxy.ShouldTryAgain)
+            {
+                SendStatus = SendStatus.TryAgain;
+                return -1;
+            }
+
+            if (ErrorProxy.ContextWasTerminated)
+            {
+                SendStatus = SendStatus.Interrupted;
+                return -1;
+            }
+
+            throw ErrorProxy.GetLastSocketError();
+        }
+
+        /// <summary>
+        /// Queue a single-part (or final multi-part) message buffer to be sent by the socket in non-blocking mode with a specified timeout.
+        /// </summary>
+        /// <param name="buffer">A <see cref="byte"/> array that contains the message to be sent.</param>
+        /// <param name="size">The size of the message to send.</param>
+        /// <param name="flags">A combination of <see cref="SocketFlags"/> values to use when sending.</param>
+        /// <param name="timeout">A <see cref="TimeSpan"/> specifying the send timeout.</param>
+        /// <returns>The number of bytes sent by the socket.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="buffer"/> is null.</exception>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="size"/> is a negative value or is larger than the length of <paramref name="buffer"/>.</exception>
+        /// <exception cref="ZmqSocketException">An error occurred sending data to a remote endpoint.</exception>
+        /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
+        /// <exception cref="NotSupportedException">The current socket type does not support Send operations.</exception>
+        public int Send(byte[] buffer, int size, SocketFlags flags, TimeSpan timeout)
+        {
+            return timeout == TimeSpan.Zero
+                       ? Send(buffer, size, flags & ~SocketFlags.DontWait)
+                       : ExecuteWithTimeout(() => Send(buffer, size, flags | SocketFlags.DontWait), timeout);
+        }
+
+        /// <summary>
+        /// Queue a message frame to be sent by the socket in blocking mode.
+        /// </summary>
+        /// <remarks>
+        /// The <see cref="Frame.HasMore"/> property on <paramref name="frame"/> will be used to indicate whether
+        /// more frames will follow in the current multi-part message sequence.
+        /// </remarks>
+        /// <param name="frame">A <see cref="Frame"/> that contains the message to be sent.</param>
+        /// <returns>The number of bytes sent by the socket.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="frame"/> is null.</exception>
+        /// <exception cref="ZmqSocketException">An error occurred sending data to a remote endpoint.</exception>
+        /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
+        /// <exception cref="NotSupportedException">The current socket type does not support Send operations.</exception>
+        public int Send(Frame frame)
+        {
+            if (frame == null)
+            {
+                throw new ArgumentNullException("frame");
+            }
+
+            return Send(frame.Buffer, frame.MessageSize, frame.HasMore ? SocketFlags.SendMore : SocketFlags.None);
+        }
+
+        /// <summary>
+        /// Queue a message frame to be sent by the socket in non-blocking mode with a specified timeout.
+        /// </summary>
+        /// <remarks>
+        /// The <see cref="Frame.HasMore"/> property on <paramref name="frame"/> will be used to indicate whether
+        /// more frames will follow in the current multi-part message sequence.
+        /// </remarks>
+        /// <param name="frame">A <see cref="Frame"/> that contains the message to be sent.</param>
+        /// <param name="timeout">A <see cref="TimeSpan"/> specifying the send timeout.</param>
+        /// <returns>The number of bytes sent by the socket.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="frame"/> is null.</exception>
+        /// <exception cref="ZmqSocketException">An error occurred sending data to a remote endpoint.</exception>
+        /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
+        /// <exception cref="NotSupportedException">The current socket type does not support Send operations.</exception>
+        public int Send(Frame frame, TimeSpan timeout)
+        {
+            if (frame == null)
+            {
+                throw new ArgumentNullException("frame");
+            }
+
+            SocketFlags flags = SocketFlags.DontWait | (frame.HasMore ? SocketFlags.SendMore : SocketFlags.None);
+
+            return Send(frame.Buffer, frame.MessageSize, flags, timeout);
         }
 
         /// <summary>
@@ -405,7 +528,7 @@
                 throw new ArgumentNullException("buffer");
             }
 
-            int receivedBytes = _socketProxy.Receive(buffer, flags);
+            int receivedBytes = _socketProxy.Receive(buffer, (int)flags);
 
             if (receivedBytes >= 0)
             {
@@ -439,7 +562,7 @@
 
             int receivedBytes;
 
-            frame.Buffer = _socketProxy.Receive(frame.Buffer, flags, out receivedBytes);
+            frame.Buffer = _socketProxy.Receive(frame.Buffer, (int)flags, out receivedBytes);
 
             if (receivedBytes >= 0)
             {
@@ -463,42 +586,6 @@
             }
 
             throw ErrorProxy.GetLastSocketError();
-        }
-
-        internal virtual TResult ReceiveWithTimeout<TResult>(Func<TResult> receive, TimeSpan timeout)
-        {
-            TResult receiveResult;
-
-            int iterations = 0;
-            var timeoutMilliseconds = (int)timeout.TotalMilliseconds;
-            var timer = Stopwatch.StartNew();
-
-            do
-            {
-                receiveResult = receive();
-
-                if (ReceiveStatus != ReceiveStatus.TryAgain || timeoutMilliseconds <= 1)
-                {
-                    break;
-                }
-
-                if (iterations < 20 && ProcessorCount > 1)
-                {
-                    // If we have a short wait (< 20 iterations) we SpinWait to allow other threads
-                    // on HyperThreaded CPUs to use the CPU. The more CPUs we have, the longer it's
-                    // acceptable to SpinWait since we stall the overall system less.
-                    Thread.SpinWait(100 * ProcessorCount);
-                }
-                else
-                {
-                    Thread.Yield();
-                }
-
-                ++iterations;
-            }
-            while (timer.Elapsed < timeout);
-
-            return receiveResult;
         }
 
         internal int GetSocketOptionInt32(SocketOption option)
@@ -603,6 +690,42 @@
             {
                 throw ErrorProxy.GetLastSocketError();
             }
+        }
+
+        private TResult ExecuteWithTimeout<TResult>(Func<TResult> method, TimeSpan timeout)
+        {
+            TResult receiveResult;
+
+            int iterations = 0;
+            var timeoutMilliseconds = (int)timeout.TotalMilliseconds;
+            var timer = Stopwatch.StartNew();
+
+            do
+            {
+                receiveResult = method();
+
+                if (ReceiveStatus != ReceiveStatus.TryAgain || timeoutMilliseconds <= 1)
+                {
+                    break;
+                }
+
+                if (iterations < 20 && ProcessorCount > 1)
+                {
+                    // If we have a short wait (< 20 iterations) we SpinWait to allow other threads
+                    // on HyperThreaded CPUs to use the CPU. The more CPUs we have, the longer it's
+                    // acceptable to SpinWait since we stall the overall system less.
+                    Thread.SpinWait(100 * ProcessorCount);
+                }
+                else
+                {
+                    Thread.Yield();
+                }
+
+                ++iterations;
+            }
+            while (timer.Elapsed < timeout);
+
+            return receiveResult;
         }
 
         private void EnsureNotDisposed()
