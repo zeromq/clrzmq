@@ -1,7 +1,7 @@
 ﻿namespace ZeroMQ
 {
     /// <summary>
-    /// Specifies the protocols that an <see cref="ISocket"/> supports.
+    /// Specifies the protocols that an <see cref="ZmqSocket"/> supports.
     /// </summary>
     public enum ProtocolType
     {
