@@ -88,7 +88,31 @@
         /// <returns>A <see cref="ZmqSocket"/> instance with the current context and the specified socket type.</returns>
         public ZmqSocket CreateSocket(SocketType socketType)
         {
-            return CreateSocket(sp => new ZmqSocket(sp, socketType), socketType);
+            switch (socketType)
+            {
+                case SocketType.REQ:
+                case SocketType.REP:
+                case SocketType.XREQ:
+                case SocketType.XREP:
+                case SocketType.XPUB:
+                case SocketType.PAIR:
+                    return CreateSocket(sp => new DuplexSocket(sp, socketType), socketType);
+
+                case SocketType.PUSH:
+                case SocketType.PUB:
+                    return CreateSocket(sp => new SendSocket(sp, socketType), socketType);
+
+                case SocketType.PULL:
+                    return CreateSocket(sp => new ReceiveSocket(sp, socketType), socketType);
+
+                case SocketType.SUB:
+                    return CreateSocket(sp => new SubscribeSocket(sp, socketType), socketType);
+
+                case SocketType.XSUB:
+                    return CreateSocket(sp => new SubscribeExtSocket(sp, socketType), socketType);
+            }
+
+            throw new InvalidOperationException("Invalid socket type specified: " + socketType);
         }
 
         /// <summary>

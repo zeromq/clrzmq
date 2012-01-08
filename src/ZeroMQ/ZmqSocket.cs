@@ -549,7 +549,7 @@
         /// </remarks>
         /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
         /// <exception cref="NotSupportedException">The current socket type does not support subscriptions.</exception>
-        public virtual void UnsubscribeAll()
+        public void UnsubscribeAll()
         {
             Unsubscribe(new byte[0]);
         }

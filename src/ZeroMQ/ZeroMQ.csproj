@@ -40,11 +40,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DuplexSocket.cs" />
+    <Compile Include="SubscribeExtSocket.cs" />
+    <Compile Include="SubscribeSocket.cs" />
     <Compile Include="Frame.cs" />
+    <Compile Include="Interop\ContextProxy.cs" />
     <Compile Include="Interop\DisposableIntPtr.cs" />
     <Compile Include="Interop\ErrorCode.cs" />
     <Compile Include="Interop\ErrorProxy.cs" />
     <Compile Include="Interop\LibZmq.cs" />
+    <Compile Include="ReceiveSocket.cs" />
+    <Compile Include="SendSocket.cs" />
     <Compile Include="SocketFlags.cs" />
     <Compile Include="Interop\SocketProxy.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -53,6 +59,7 @@
     <Compile Include="SendStatus.cs" />
     <Compile Include="SocketOption.cs" />
     <Compile Include="SocketType.cs" />
+    <Compile Include="ZmqContext.cs" />
     <Compile Include="ZmqException.cs" />
     <Compile Include="ZmqSocket.cs" />
     <Compile Include="ZmqSocketException.cs" />
