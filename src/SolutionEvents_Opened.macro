@@ -1,0 +1,13 @@
+# The following macro loads Indentation.vssettings (if present) when a solution is opened.
+# It is used to ensure consistent indentation on a per-solution basis.
+#
+# To use, open the Macros IDE (Alt+F11), find the 'EnvironmentEvents' script in MyMacros,
+# and paste the following code just above the 'End Module' statement:
+
+Private Sub SolutionEvents_Opened() Handles SolutionEvents.Opened
+    Dim item As ProjectItem = DTE.Solution.FindProjectItem("Indentation.vssettings")
+    If Not item Is Nothing Then
+        Dim name = item.FileNames(1)
+        DTE.ExecuteCommand("Tools.ImportandExportSettings", "/import:""" & name & """")
+    End If
+End Sub

@@ -21,6 +21,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Performance", "Performance"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{344CA41B-C7CB-49B0-BC6D-730C8BE49FB8}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Settings", "Settings", "{648BC7CF-C6DA-484B-A400-1FA3FDB53D11}"
+	ProjectSection(SolutionItems) = preProject
+		clrzmq.5.1.ReSharper = clrzmq.5.1.ReSharper
+		Indentation.vssettings = Indentation.vssettings
+		Projects.StyleCop = Projects.StyleCop
+		SolutionEvents_Opened.macro = SolutionEvents_Opened.macro
+		Tests.StyleCop = Tests.StyleCop
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
