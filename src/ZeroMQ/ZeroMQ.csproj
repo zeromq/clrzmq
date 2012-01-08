@@ -40,7 +40,18 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Interop\DisposableIntPtr.cs" />
+    <Compile Include="Interop\ErrorCode.cs" />
+    <Compile Include="Interop\ErrorProxy.cs" />
+    <Compile Include="Interop\LibZmq.cs" />
+    <Compile Include="Interop\SocketProxy.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ProtocolType.cs" />
+    <Compile Include="SocketOption.cs" />
+    <Compile Include="SocketType.cs" />
+    <Compile Include="ZmqException.cs" />
+    <Compile Include="ZmqSocket.cs" />
+    <Compile Include="ZmqSocketException.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
