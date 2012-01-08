@@ -36,7 +36,7 @@
                 return KnownErrors[errorCode];
             }
 
-            string message = Marshal.PtrToStringAuto(LibZmq.zmq_strerror(errorCode));
+            string message = Marshal.PtrToStringAnsi(LibZmq.zmq_strerror(errorCode));
 
             var errorDetails = new ErrorDetails(errorCode, message);
             KnownErrors[errorCode] = errorDetails;
