@@ -505,9 +505,63 @@
                 throw new ArgumentNullException("frame");
             }
 
-            SocketFlags flags = SocketFlags.DontWait | (frame.HasMore ? SocketFlags.SendMore : SocketFlags.None);
+            return Send(frame.Buffer, frame.MessageSize, frame.HasMore ? SocketFlags.SendMore : SocketFlags.None, timeout);
+        }
 
-            return Send(frame.Buffer, frame.MessageSize, flags, timeout);
+        /// <summary>
+        /// Subscribe to all messages.
+        /// </summary>
+        /// <remarks>
+        /// Only applies to <see cref="ZeroMQ.SocketType.SUB"/> and <see cref="ZeroMQ.SocketType.XSUB"/> sockets.
+        /// </remarks>
+        /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
+        /// <exception cref="NotSupportedException">The current socket type does not support subscriptions.</exception>
+        public void SubscribeAll()
+        {
+            Subscribe(new byte[0]);
+        }
+
+        /// <summary>
+        /// Subscribe to messages that begin with a specified prefix.
+        /// </summary>
+        /// <remarks>
+        /// Only applies to <see cref="ZeroMQ.SocketType.SUB"/> and <see cref="ZeroMQ.SocketType.XSUB"/> sockets.
+        /// </remarks>
+        /// <param name="prefix">Prefix for subscribed messages.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="prefix"/> is null.</exception>
+        /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
+        /// <exception cref="NotSupportedException">The current socket type does not support subscriptions.</exception>
+        public virtual void Subscribe(byte[] prefix)
+        {
+            SetSocketOption(SocketOption.SUBSCRIBE, prefix);
+        }
+
+        /// <summary>
+        /// Unsubscribe from all messages.
+        /// </summary>
+        /// <remarks>
+        /// Only applies to <see cref="ZeroMQ.SocketType.SUB"/> and <see cref="ZeroMQ.SocketType.XSUB"/> sockets.
+        /// </remarks>
+        /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
+        /// <exception cref="NotSupportedException">The current socket type does not support subscriptions.</exception>
+        public virtual void UnsubscribeAll()
+        {
+            Unsubscribe(new byte[0]);
+        }
+
+        /// <summary>
+        /// Unsubscribe from messages that begin with a specified prefix.
+        /// </summary>
+        /// <remarks>
+        /// Only applies to <see cref="ZeroMQ.SocketType.SUB"/> and <see cref="ZeroMQ.SocketType.XSUB"/> sockets.
+        /// </remarks>
+        /// <param name="prefix">Prefix for subscribed messages.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="prefix"/> is null.</exception>
+        /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
+        /// <exception cref="NotSupportedException">The current socket type does not support subscriptions.</exception>
+        public virtual void Unsubscribe(byte[] prefix)
+        {
+            SetSocketOption(SocketOption.UNSUBSCRIBE, prefix);
         }
 
         /// <summary>
