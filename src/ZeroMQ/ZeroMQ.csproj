@@ -42,6 +42,11 @@
   <ItemGroup>
     <Compile Include="DuplexSocket.cs" />
     <Compile Include="Interop\ErrorDetails.cs" />
+    <Compile Include="Interop\PollerProxy.cs" />
+    <Compile Include="Interop\PollEvents.cs" />
+    <Compile Include="Interop\PollItem.cs" />
+    <Compile Include="Poller.cs" />
+    <Compile Include="SocketEventArgs.cs" />
     <Compile Include="SubscribeExtSocket.cs" />
     <Compile Include="SubscribeSocket.cs" />
     <Compile Include="Frame.cs" />

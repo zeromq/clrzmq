@@ -35,6 +35,16 @@
         }
 
         /// <summary>
+        /// Occurs when at least one message may be received from the socket without blocking.
+        /// </summary>
+        public event EventHandler<SocketEventArgs> ReceiveReady;
+
+        /// <summary>
+        /// Occurs when at least one message may be sent via the socket without blocking.
+        /// </summary>
+        public event EventHandler<SocketEventArgs> SendReady;
+
+        /// <summary>
         /// Gets the <see cref="ZeroMQ.SocketType"/> value for the current socket.
         /// </summary>
         public SocketType SocketType { get; private set; }
@@ -724,6 +734,24 @@
             HandleProxyResult(_socketProxy.SetSocketOption((int)option, value));
         }
 
+        internal void InvokePollEvents(PollEvents readyEvents)
+        {
+            if (readyEvents.HasFlag(PollEvents.PollIn))
+            {
+                InvokeReceiveReady(readyEvents);
+            }
+
+            if (readyEvents.HasFlag(PollEvents.PollOut))
+            {
+                InvokeSendReady(readyEvents);
+            }
+        }
+
+        internal virtual PollEvents GetPollEvents()
+        {
+            return PollEvents.PollIn | PollEvents.PollOut;
+        }
+
         /// <summary>
         /// Releases the unmanaged resources used by the <see cref="ZmqSocket"/>, and optionally disposes of the managed resources.
         /// </summary>
@@ -785,6 +813,24 @@
             while (timer.Elapsed < timeout);
 
             return receiveResult;
+        }
+
+        private void InvokeReceiveReady(PollEvents readyEvents)
+        {
+            EventHandler<SocketEventArgs> handler = ReceiveReady;
+            if (handler != null)
+            {
+                handler(this, new SocketEventArgs(this, readyEvents));
+            }
+        }
+
+        private void InvokeSendReady(PollEvents readyEvents)
+        {
+            EventHandler<SocketEventArgs> handler = SendReady;
+            if (handler != null)
+            {
+                handler(this, new SocketEventArgs(this, readyEvents));
+            }
         }
 
         private void EnsureNotDisposed()

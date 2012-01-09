@@ -79,8 +79,8 @@
         [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
         public static extern void zmq_version(IntPtr major, IntPtr minor, IntPtr patch);
 
-        //// [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
-        //// public static extern int zmq_poll([In] [Out] ZMQPollItem[] items, int numItems, long timeout);
+        [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+        public static extern int zmq_poll([In] [Out] PollItem[] items, int numItems, long timeoutMsec);
     }
 // ReSharper restore InconsistentNaming
 }
