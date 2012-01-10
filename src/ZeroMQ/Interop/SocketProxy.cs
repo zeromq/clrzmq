@@ -1,6 +1,7 @@
 ﻿namespace ZeroMQ.Interop
 {
     using System;
+    using System.Collections.Generic;
     using System.Runtime.InteropServices;
 
     internal class SocketProxy : IDisposable
@@ -9,9 +10,12 @@
 
         // From zmq.h:
         // typedef struct {unsigned char _ [32];} zmq_msg_t;
-        private static readonly int ZmqMsgTSize = IntPtr.Size + 32;
+        private const int ZmqMsgTSize = 32;
+
+        private readonly Dictionary<long, GCHandle> _activeBufferHandles;
 
         private IntPtr _message;
+        private long _nextBufferHandle;
         private bool _disposed;
 
         public SocketProxy(IntPtr socketHandle)
@@ -22,6 +26,7 @@
             }
 
             SocketHandle = socketHandle;
+            _activeBufferHandles = new Dictionary<long, GCHandle>();
             _message = Marshal.AllocHGlobal(ZmqMsgTSize);
         }
 
@@ -59,15 +64,23 @@
 
         public int Receive(byte[] buffer, int flags)
         {
-            GCHandle bufferHandle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
-
-            if (LibZmq.zmq_msg_init_data(_message, bufferHandle.AddrOfPinnedObject(), buffer.Length, FreeBufferHandle, IntPtr.Zero) == -1)
+            if (LibZmq.zmq_msg_init_size(_message, buffer.Length) == -1)
             {
                 return -1;
             }
 
             int bytesReceived = -1;
             RetryIfInterrupted(() => bytesReceived = LibZmq.zmq_recvmsg(SocketHandle, _message, flags));
+
+            if (bytesReceived > 0)
+            {
+                Marshal.Copy(LibZmq.zmq_msg_data(_message), buffer, 0, bytesReceived);
+            }
+
+            if (LibZmq.zmq_msg_close(_message) == -1)
+            {
+                return -1;
+            }
 
             return bytesReceived;
         }
@@ -96,7 +109,10 @@
                 Marshal.Copy(LibZmq.zmq_msg_data(_message), buffer, 0, size);
             }
 
-            LibZmq.zmq_msg_close(_message);
+            if (LibZmq.zmq_msg_close(_message) == -1)
+            {
+                size = -1;
+            }
 
             return buffer;
         }
@@ -104,8 +120,11 @@
         public int Send(byte[] buffer, int size, int flags)
         {
             GCHandle bufferHandle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
+            long handleIndex = GetNextBufferHandle();
 
-            if (LibZmq.zmq_msg_init_data(_message, bufferHandle.AddrOfPinnedObject(), size, FreeBufferHandle, IntPtr.Zero) == -1)
+            _activeBufferHandles.Add(handleIndex, bufferHandle);
+
+            if (LibZmq.zmq_msg_init_data(_message, bufferHandle.AddrOfPinnedObject(), buffer.Length, FreeBufferHandle, new IntPtr(handleIndex)) == -1)
             {
                 return -1;
             }
@@ -249,10 +268,21 @@
             return rc;
         }
 
-        private static void FreeBufferHandle(IntPtr data, IntPtr hint)
+        private long GetNextBufferHandle()
         {
-            GCHandle bufferHandle = GCHandle.FromIntPtr(data);
-            bufferHandle.Free();
+            // We could use 'Interlocked.Increment(ref _nextBufferHandle)', but Sockets are not
+            // thread-safe, which means calls to Send/Receive will only happen from a single thread.
+            // 0MQ should be fast enough such that the FreeBufferHandle calls will be made before this
+            // incrementor goes through 9.2E18 values.
+            return _nextBufferHandle == long.MaxValue ? (_nextBufferHandle = 0) : ++_nextBufferHandle;
+        }
+
+        private void FreeBufferHandle(IntPtr data, IntPtr hint)
+        {
+            long index = hint.ToInt64();
+
+            _activeBufferHandles[index].Free();
+            _activeBufferHandles.Remove(index);
         }
     }
 }
