@@ -1,6 +1,8 @@
-﻿namespace ZMQ.AcceptanceTests.SocketSpecs
+﻿namespace ZeroMQ.AcceptanceTests.ZmqSocketSpecs
 {
+    using System;
     using System.Threading;
+
     using Machine.Specifications;
 
     [Subject("Bind/Connect")]
@@ -45,13 +47,13 @@
             exception.ShouldBeNull();
     }
 
-    [Subject("Connect")]
+    [Subject("Connect"), Ignore("PGM is broken - LIBZMQ-303")]
     class when_connecting_to_a_pgm_socket_with_pub_and_sub : using_pub_sub
     {
         Because of = () =>
             exception = Catch.Exception(() =>
             {
-                pub.Linger = 0;
+                pub.Linger = TimeSpan.Zero;
                 pub.Connect("epgm://127.0.0.1;239.192.1.1:5000");
 
                 sub.Connect("epgm://127.0.0.1;239.192.1.1:5000");
@@ -71,10 +73,10 @@
             exception = Catch.Exception(() => socket.Connect("epgm://127.0.0.1;239.192.1.1:5000"));
 
         It should_fail_because_pgm_is_not_supported = () =>
-            exception.ShouldBeOfType<ZMQ.Exception>();
+            exception.ShouldBeOfType<ZmqException>();
 
         It should_have_an_error_code_of_enocompatproto = () =>
-            ((ZMQ.Exception)exception).Errno.ShouldEqual((int)ERRNOS.ENOCOMPATPROTO);
+            ((ZmqException)exception).ErrorCode.ShouldEqual(ErrorCode.ENOCOMPATPROTO);
 
         It should_have_a_specific_error_message = () =>
             exception.Message.ShouldContain("protocol is not compatible with the socket type");
@@ -88,14 +90,14 @@
         
         [Ignore("Deferred until EPROTONOSUPPORT is set correctly for all platforms.")] // TODO
         It should_have_an_error_code_of_eprotonosupport = () =>
-            ((ZMQ.Exception)exception).Errno.ShouldEqual((int)ERRNOS.EPROTONOSUPPORT);
+            ((ZmqException)exception).ErrorCode.ShouldEqual(ErrorCode.EPROTONOSUPPORT);
         
 #if POSIX
         It should_not_fail = () =>
             exception.ShouldBeNull();
 #else
         It should_fail_because_ipc_is_not_supported_on_windows = () =>
-            exception.ShouldBeOfType<ZMQ.Exception>();
+            exception.ShouldBeOfType<ZmqException>();
 
         It should_have_a_specific_error_message = () =>
             exception.Message.ShouldContain("Protocol not supported");
@@ -110,14 +112,14 @@
         
         [Ignore("Deferred until EPROTONOSUPPORT is set correctly for all platforms.")] // TODO
         It should_have_an_error_code_of_eprotonosupport = () =>
-            ((ZMQ.Exception)exception).Errno.ShouldEqual((int)ERRNOS.EPROTONOSUPPORT);
+            ((ZmqException)exception).ErrorCode.ShouldEqual(ErrorCode.EPROTONOSUPPORT);
         
 #if POSIX
         It should_not_fail = () =>
             exception.ShouldBeNull();
 #else
         It should_fail_because_ipc_is_not_supported_on_windows = () =>
-            exception.ShouldBeOfType<ZMQ.Exception>();
+            exception.ShouldBeOfType<ZmqException>();
 
         It should_have_a_specific_error_message = () =>
             exception.Message.ShouldContain("Protocol not supported");

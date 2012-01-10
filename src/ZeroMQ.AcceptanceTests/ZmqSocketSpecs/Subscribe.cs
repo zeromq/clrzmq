@@ -1,15 +1,18 @@
-﻿namespace ZMQ.AcceptanceTests.SocketSpecs
+﻿namespace ZeroMQ.AcceptanceTests.ZmqSocketSpecs
 {
+    using System;
     using System.Threading;
+
     using Machine.Specifications;
+
+    using ZeroMQ;
+    using ZeroMQ.AcceptanceTests;
 
     [Subject("Subscribe")]
     class when_subscribing_to_a_specific_prefix : using_threaded_pub_sub
     {
-        protected static byte[] message1;
-        protected static byte[] message2;
-        protected static bool receiveMore1;
-        protected static bool receiveMore2;
+        protected static Frame message1;
+        protected static Frame message2;
 
         Establish context = () =>
         {
@@ -21,11 +24,8 @@
             {
                 signal.Set();
 
-                message1 = sub.Recv();
-                receiveMore1 = sub.RcvMore;
-
-                message2 = sub.Recv(500);
-                receiveMore2 = sub.RcvMore;
+                message1 = sub.Receive();
+                message2 = sub.Receive(TimeSpan.FromMilliseconds(500));
             };
 
             senderInit = pub => signal.WaitOne(1000);
@@ -45,10 +45,8 @@
     [Subject("Subscribe")]
     class when_subscribing_to_all_prefixes : using_threaded_pub_sub
     {
-        protected static byte[] message1;
-        protected static byte[] message2;
-        protected static bool receiveMore1;
-        protected static bool receiveMore2;
+        protected static Frame message1;
+        protected static Frame message2;
 
         Establish context = () =>
         {
@@ -60,11 +58,8 @@
             {
                 signal.Set();
 
-                message1 = sub.Recv();
-                receiveMore1 = sub.RcvMore;
-
-                message2 = sub.Recv(500);
-                receiveMore2 = sub.RcvMore;
+                message1 = sub.Receive();
+                message2 = sub.Receive(TimeSpan.FromMilliseconds(500));
             };
 
             senderInit = pub => signal.WaitOne(1000);

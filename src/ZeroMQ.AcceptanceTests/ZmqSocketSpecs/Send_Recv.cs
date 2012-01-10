@@ -1,17 +1,21 @@
-﻿namespace ZMQ.AcceptanceTests.SocketSpecs
+﻿namespace ZeroMQ.AcceptanceTests.ZmqSocketSpecs
 {
+    using System;
     using System.Threading;
+
     using Machine.Specifications;
 
-    [Subject("Send/Recv")]
+    using ZeroMQ.AcceptanceTests;
+
+    [Subject("Send/Receive")]
     class when_transferring_in_blocking_mode : using_threaded_req_rep
     {
-        protected static byte[] message;
+        protected static Frame message;
 
         Establish context = () =>
         {
             senderAction = req => req.Send(Messages.SingleMessage);
-            receiverAction = rep => message = rep.Recv();
+            receiverAction = rep => message = rep.Receive();
         };
 
         Because of = StartThreads;
@@ -19,10 +23,10 @@
         Behaves_like<SingleMessageReceived> successfully_received_single_message;
     }
 
-    [Subject("Send/Recv")]
+    [Subject("Send/Receive")]
     class when_transferring_with_an_ample_receive_timeout : using_threaded_req_rep
     {
-        protected static byte[] message;
+        protected static Frame message;
 
         Establish context = () =>
         {
@@ -32,7 +36,7 @@
                 req.Send(Messages.SingleMessage);
             };
 
-            receiverAction = rep => message = rep.Recv(2000);
+            receiverAction = rep => message = rep.Receive(TimeSpan.FromMilliseconds(2000));
         };
 
         Because of = StartThreads;
@@ -40,14 +44,14 @@
         Behaves_like<SingleMessageReceived> successfully_received_single_message;
     }
 
-    [Subject("Send/Recv")]
+    [Subject("Send/Receive")]
     class when_transferring_with_an_insufficient_receive_timeout : using_threaded_req_rep
     {
-        protected static byte[] message;
+        protected static Frame message;
 
         Establish context = () =>
         {
-            receiverAction = rep => message = rep.Recv(5);
+            receiverAction = rep => message = rep.Receive(TimeSpan.FromMilliseconds(5));
         };
 
         Because of = StartThreads;
@@ -55,19 +59,18 @@
         Behaves_like<SingleMessageNotReceived> receiver_must_try_again;
     }
 
-    [Subject("Send/Recv")]
+    [Subject("Send/Receive")]
     class when_transferring_with_an_ample_external_receive_buffer : using_threaded_req_rep
     {
-        protected static byte[] message;
-        protected static byte[] buffer;
-        protected static int size;
+        protected static Frame message;
+        protected static Frame buffer;
 
         Establish context = () =>
         {
             senderAction = req => req.Send(Messages.SingleMessage);
 
-            buffer = new byte[256];
-            receiverAction = rep => message = rep.Recv(buffer, out size);
+            buffer = new Frame(256);
+            receiverAction = rep => message = rep.Receive(buffer);
         };
 
         Because of = StartThreads;
@@ -78,26 +81,45 @@
             message.ShouldBeTheSameAs(buffer);
     }
 
-    [Subject("Send/Recv")]
+    [Subject("Send/Receive")]
     class when_transferring_with_an_undersized_external_receive_buffer : using_threaded_req_rep
     {
-        protected static byte[] message;
-        protected static byte[] buffer;
+        protected static Frame message;
+        protected static Frame buffer;
+
+        Establish context = () =>
+        {
+            senderAction = req => req.Send(Messages.SingleMessage);
+
+            buffer = new Frame(1);
+            receiverAction = rep => message = rep.Receive(buffer);
+        };
+
+        Because of = StartThreads;
+
+        Behaves_like<SingleMessageReceivedWithExternalBuffer> successfully_received_message_with_buffer;
+    }
+
+    [Subject("Send/Receive")]
+    class when_transferring_with_a_preallocated_receive_buffer : using_threaded_req_rep
+    {
+        protected static Frame message;
         protected static int size;
 
         Establish context = () =>
         {
             senderAction = req => req.Send(Messages.SingleMessage);
 
-            buffer = new byte[1];
-            receiverAction = rep => message = rep.Recv(buffer, out size);
+            message = new Frame(100);
+            receiverAction = rep =>
+            {
+                size = rep.Receive(message.Buffer);
+                message.MessageSize = size;
+            };
         };
 
         Because of = StartThreads;
 
-        Behaves_like<SingleMessageReceivedWithExternalBuffer> successfully_received_message_with_buffer;
-
-        It should_not_return_the_supplied_buffer = () =>
-            message.ShouldNotBeTheSameAs(buffer);
+        Behaves_like<SingleMessageReceived> successfully_received_message;
     }
 }

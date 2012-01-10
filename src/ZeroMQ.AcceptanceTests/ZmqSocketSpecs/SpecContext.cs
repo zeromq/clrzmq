@@ -1,19 +1,20 @@
-﻿namespace ZMQ.AcceptanceTests.SocketSpecs
+﻿namespace ZeroMQ.AcceptanceTests.ZmqSocketSpecs
 {
     using System;
     using System.Threading;
+
     using Machine.Specifications;
 
     abstract class using_req
     {
-        protected static Socket socket;
-        protected static Context zmqContext;
+        protected static ZmqSocket socket;
+        protected static ZmqContext zmqContext;
         protected static Exception exception;
 
         Establish context = () =>
         {
-            zmqContext = new Context();
-            socket = zmqContext.Socket(SocketType.REQ);
+            zmqContext = ZmqContext.Create();
+            socket = zmqContext.CreateSocket(SocketType.REQ);
         };
 
         Cleanup resources = () =>
@@ -25,16 +26,16 @@
 
     abstract class using_req_rep
     {
-        protected static Socket req;
-        protected static Socket rep;
-        protected static Context zmqContext;
+        protected static ZmqSocket req;
+        protected static ZmqSocket rep;
+        protected static ZmqContext zmqContext;
         protected static Exception exception;
 
         Establish context = () =>
         {
-            zmqContext = new Context();
-            req = zmqContext.Socket(SocketType.REQ);
-            rep = zmqContext.Socket(SocketType.REP);
+            zmqContext = ZmqContext.Create();
+            req = zmqContext.CreateSocket(SocketType.REQ);
+            rep = zmqContext.CreateSocket(SocketType.REP);
         };
 
         Cleanup resources = () =>
@@ -47,16 +48,16 @@
 
     abstract class using_pub_sub
     {
-        protected static Socket pub;
-        protected static Socket sub;
-        protected static Context zmqContext;
+        protected static ZmqSocket pub;
+        protected static ZmqSocket sub;
+        protected static ZmqContext zmqContext;
         protected static Exception exception;
 
         Establish context = () =>
         {
-            zmqContext = new Context();
-            pub = zmqContext.Socket(SocketType.PUB);
-            sub = zmqContext.Socket(SocketType.SUB);
+            zmqContext = ZmqContext.Create();
+            pub = zmqContext.CreateSocket(SocketType.PUB);
+            sub = zmqContext.CreateSocket(SocketType.SUB);
         };
 
         Cleanup resources = () =>
@@ -71,8 +72,8 @@
     {
         static using_threaded_req_rep()
         {
-            createSender = () => zmqContext.Socket(SocketType.REQ);
-            createReceiver = () => zmqContext.Socket(SocketType.REP);
+            createSender = () => zmqContext.CreateSocket(SocketType.REQ);
+            createReceiver = () => zmqContext.CreateSocket(SocketType.REP);
         }
     }
 
@@ -80,33 +81,33 @@
     {
         static using_threaded_pub_sub()
         {
-            createSender = () => zmqContext.Socket(SocketType.PUB);
-            createReceiver = () => zmqContext.Socket(SocketType.SUB);
+            createSender = () => zmqContext.CreateSocket(SocketType.PUB);
+            createReceiver = () => zmqContext.CreateSocket(SocketType.SUB);
         }
     }
 
     abstract class using_threaded_socket_pair
     {
-        protected static Func<Socket> createSender;
-        protected static Func<Socket> createReceiver;
+        private static readonly ManualResetEvent receiverReady = new ManualResetEvent(false);
 
-        protected static Socket sender;
-        protected static Socket receiver;
-        protected static Context zmqContext;
+        protected static Func<ZmqSocket> createSender;
+        protected static Func<ZmqSocket> createReceiver;
 
-        protected static Action<Socket> senderInit;
-        protected static Action<Socket> senderAction;
-        protected static Action<Socket> receiverInit;
-        protected static Action<Socket> receiverAction;
+        protected static ZmqSocket sender;
+        protected static ZmqSocket receiver;
+        protected static ZmqContext zmqContext;
+
+        protected static Action<ZmqSocket> senderInit;
+        protected static Action<ZmqSocket> senderAction;
+        protected static Action<ZmqSocket> receiverInit;
+        protected static Action<ZmqSocket> receiverAction;
 
         private static Thread receiverThread;
         private static Thread senderThread;
 
-        private static readonly ManualResetEvent receiverReady = new ManualResetEvent(false);
-
         Establish context = () =>
         {
-            zmqContext = new Context();
+            zmqContext = ZmqContext.Create();
             sender = createSender();
             receiver = createReceiver();
 
@@ -118,7 +119,7 @@
             senderThread = new Thread(() =>
             {
                 senderInit(sender);
-                sender.HWM = 1;
+                sender.SendHighWatermark = 1;
                 receiverReady.WaitOne();
                 sender.Connect("inproc://spec_context");
                 senderAction(sender);
@@ -127,7 +128,7 @@
             receiverThread = new Thread(() =>
             {
                 receiverInit(receiver);
-                receiver.HWM = 1;
+                receiver.SendHighWatermark = 1;
                 receiver.Bind("inproc://spec_context");
                 receiverReady.Set();
                 receiverAction(receiver);

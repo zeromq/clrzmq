@@ -8,7 +8,7 @@
     /// <remarks>
     /// The <see cref="Frame"/> class has a one-to-one correspondence with the native <c>zmq_msg_t</c> struct.
     /// </remarks>
-    public class Frame
+    public class Frame : IEquatable<Frame>
     {
         private int _messageSize;
 
@@ -97,9 +97,32 @@
         /// </summary>
         /// <param name="frame">The <see cref="Frame"/> to convert.</param>
         /// <returns>The data contained by <paramref name="frame"/>.</returns>
-        public static explicit operator byte[](Frame frame)
+        public static implicit operator byte[](Frame frame)
         {
             return frame.Buffer;
+        }
+
+        /// <summary>
+        /// Determines whether the specified <see cref="Frame"/> is equal to the current <see cref="Frame"/>.
+        /// </summary>
+        /// <param name="other">The <see cref="Frame"/> to compare with the current <see cref="Frame"/>.</param>
+        /// <returns>true if the specified System.Object is equal to the current System.Object; otherwise, false.</returns>
+        public bool Equals(Frame other)
+        {
+            if (MessageSize > other.BufferSize || MessageSize != other.MessageSize)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < MessageSize; i++)
+            {
+                if (Buffer[i] != other.Buffer[i])
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
     }
 }
