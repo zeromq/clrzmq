@@ -219,7 +219,7 @@
             {
                 Marshal.WriteInt64(optionValue, unchecked(Convert.ToInt64(value)));
 
-                return RetryIfInterrupted(() => LibZmq.zmq_setsockopt(SocketHandle, option, optionValue, sizeof(int)));
+                return RetryIfInterrupted(() => LibZmq.zmq_setsockopt(SocketHandle, option, optionValue, sizeof(ulong)));
             }
         }
 
