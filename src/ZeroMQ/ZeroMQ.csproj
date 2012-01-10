@@ -52,7 +52,7 @@
     <Compile Include="Frame.cs" />
     <Compile Include="Interop\ContextProxy.cs" />
     <Compile Include="Interop\DisposableIntPtr.cs" />
-    <Compile Include="Interop\ErrorCode.cs" />
+    <Compile Include="ErrorCode.cs" />
     <Compile Include="Interop\ErrorProxy.cs" />
     <Compile Include="Interop\LibZmq.cs" />
     <Compile Include="ReceiveSocket.cs" />

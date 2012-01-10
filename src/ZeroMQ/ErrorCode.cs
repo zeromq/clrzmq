@@ -1,11 +1,15 @@
-﻿namespace ZeroMQ.Interop
+﻿namespace ZeroMQ
 {
     using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
     using System.Linq;
     using System.Reflection;
 
-    internal static class ErrorCode
+    /// <summary>
+    /// Contains cross-platform error code definitions.
+    /// </summary>
+    [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1600:ElementsMustBeDocumented", Justification = "Reviewed. Suppression is OK here.")]
+    public static class ErrorCode
     {
         public static readonly int EPERM = 1;
         public static readonly int ENOENT = 2;

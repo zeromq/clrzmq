@@ -73,8 +73,8 @@
 
         private static string GetErrorName(int errorCode)
         {
-            return Interop.ErrorCode.ErrorNames.ContainsKey(errorCode)
-                       ? Interop.ErrorCode.ErrorNames[errorCode]
+            return ZeroMQ.ErrorCode.ErrorNames.ContainsKey(errorCode)
+                       ? ZeroMQ.ErrorCode.ErrorNames[errorCode]
                        : "Error " + errorCode;
         }
     }
