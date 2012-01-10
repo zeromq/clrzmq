@@ -6,16 +6,17 @@
 
     internal class SocketProxy : IDisposable
     {
-        private const int MaxBinaryOptionSize = 255;
-
         // From zmq.h:
         // typedef struct {unsigned char _ [32];} zmq_msg_t;
         private const int ZmqMsgTSize = 32;
 
-        private readonly Dictionary<long, GCHandle> _activeBufferHandles;
+        // From options.hpp: unsigned char identity [256];
+        private const int MaxBinaryOptionSize = 255;
+
+        private readonly Dictionary<ulong, GCHandle> _activeBufferHandles;
 
         private IntPtr _message;
-        private long _nextBufferHandle;
+        private ulong _nextBufferHandle;
         private bool _disposed;
 
         public SocketProxy(IntPtr socketHandle)
@@ -26,7 +27,7 @@
             }
 
             SocketHandle = socketHandle;
-            _activeBufferHandles = new Dictionary<long, GCHandle>();
+            _activeBufferHandles = new Dictionary<ulong, GCHandle>();
             _message = Marshal.AllocHGlobal(ZmqMsgTSize);
         }
 
@@ -120,11 +121,18 @@
         public int Send(byte[] buffer, int size, int flags)
         {
             GCHandle bufferHandle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
-            long handleIndex = GetNextBufferHandle();
+
+            // We *could* use 'Interlocked.Increment(ref _nextBufferHandle)', but Sockets are not meant to be
+            // thread-safe, which means Send calls *should* only happen from a single thread. And 0MQ *should*
+            // be fast enough such that FreeBufferHandle can free any outstanding buffer handles before this
+            // incrementor goes through 1.8E19 values.
+            ulong handleIndex = unchecked(_nextBufferHandle++);
+
+            var hint = new IntPtr(unchecked((long)handleIndex));
 
             _activeBufferHandles.Add(handleIndex, bufferHandle);
 
-            if (LibZmq.zmq_msg_init_data(_message, bufferHandle.AddrOfPinnedObject(), buffer.Length, FreeBufferHandle, new IntPtr(handleIndex)) == -1)
+            if (LibZmq.zmq_msg_init_data(_message, bufferHandle.AddrOfPinnedObject(), buffer.Length, FreeBufferHandle, hint) == -1)
             {
                 return -1;
             }
@@ -268,18 +276,9 @@
             return rc;
         }
 
-        private long GetNextBufferHandle()
-        {
-            // We could use 'Interlocked.Increment(ref _nextBufferHandle)', but Sockets are not
-            // thread-safe, which means calls to Send/Receive will only happen from a single thread.
-            // 0MQ should be fast enough such that the FreeBufferHandle calls will be made before this
-            // incrementor goes through 9.2E18 values.
-            return _nextBufferHandle == long.MaxValue ? (_nextBufferHandle = 0) : ++_nextBufferHandle;
-        }
-
         private void FreeBufferHandle(IntPtr data, IntPtr hint)
         {
-            long index = hint.ToInt64();
+            var index = unchecked((ulong)hint.ToInt64());
 
             _activeBufferHandles[index].Free();
             _activeBufferHandles.Remove(index);
