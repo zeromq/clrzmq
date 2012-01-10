@@ -46,6 +46,7 @@
     <Compile Include="Interop\PollEvents.cs" />
     <Compile Include="Interop\PollItem.cs" />
     <Compile Include="Poller.cs" />
+    <Compile Include="SendReceiveExtensions.cs" />
     <Compile Include="SocketEventArgs.cs" />
     <Compile Include="SubscribeExtSocket.cs" />
     <Compile Include="SubscribeSocket.cs" />
