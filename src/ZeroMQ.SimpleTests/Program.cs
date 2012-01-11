@@ -8,11 +8,16 @@
         {
             Console.WriteLine("Running test HelloWorld...");
             Console.WriteLine();
-
             var helloWorld = new HelloWorld();
             helloWorld.RunTest();
-
             Console.WriteLine();
+
+            Console.WriteLine("Running test HelloWorld...");
+            Console.WriteLine();
+            var receiveBenchmark = new ReceiveBenchmark();
+            receiveBenchmark.RunTest();
+            Console.WriteLine();
+
             Console.WriteLine("Press enter key to exit...");
             Console.ReadLine();
         }

@@ -11,6 +11,7 @@
     {
         public const string LibraryName = "libzmq";
 
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         public delegate void FreeMessageDataCallback(IntPtr data, IntPtr hint);
 
         [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
