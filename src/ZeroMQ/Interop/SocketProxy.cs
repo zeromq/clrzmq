@@ -133,6 +133,43 @@
             return bytesSent;
         }
 
+        public int Forward(IntPtr socketHandle, int receiveMoreOption, int sendMoreValue)
+        {
+            if (LibZmq.zmq_msg_init(_message) == -1)
+            {
+                return -1;
+            }
+
+            int receiveMore;
+            int bytesSent;
+
+            do
+            {
+                if (LibZmq.zmq_recvmsg(socketHandle, _message, 0) == -1)
+                {
+                    return -1;
+                }
+
+                if (GetSocketOption(receiveMoreOption, out receiveMore) == -1)
+                {
+                    return -1;
+                }
+
+                if ((bytesSent = LibZmq.zmq_sendmsg(socketHandle, _message, receiveMore == 1 ? sendMoreValue : 0)) == -1)
+                {
+                    return -1;
+                }
+            }
+            while (receiveMore == 1);
+
+            if (LibZmq.zmq_msg_close(_message) == -1)
+            {
+                return -1;
+            }
+
+            return bytesSent;
+        }
+
         public int GetSocketOption(int option, out int value)
         {
             using (var optionLength = new DisposableIntPtr(IntPtr.Size))

@@ -473,7 +473,8 @@
         }
 
         /// <summary>
-        /// Queue a single-part (or final multi-part) message buffer to be sent by the socket in non-blocking mode with a specified timeout.
+        /// Queue a single-part (or final multi-part) message buffer to be sent by the socket in
+        /// non-blocking mode with a specified timeout.
         /// </summary>
         /// <param name="buffer">A <see cref="byte"/> array that contains the message to be sent.</param>
         /// <param name="size">The size of the message to send.</param>
@@ -481,7 +482,9 @@
         /// <param name="timeout">A <see cref="TimeSpan"/> specifying the send timeout.</param>
         /// <returns>The number of bytes sent by the socket.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="buffer"/> is null.</exception>
-        /// <exception cref="ArgumentOutOfRangeException"><paramref name="size"/> is a negative value or is larger than the length of <paramref name="buffer"/>.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">
+        /// <paramref name="size"/> is a negative value or is larger than the length of <paramref name="buffer"/>.
+        /// </exception>
         /// <exception cref="ZmqSocketException">An error occurred sending data to a remote endpoint.</exception>
         /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
         /// <exception cref="NotSupportedException">The current socket type does not support Send operations.</exception>
@@ -490,6 +493,27 @@
             return timeout == TimeSpan.Zero
                        ? Send(buffer, size, flags & ~SocketFlags.DontWait)
                        : ExecuteWithTimeout(() => Send(buffer, size, flags | SocketFlags.DontWait), timeout);
+        }
+
+        /// <summary>
+        /// Forwards a single-part or all parts of a multi-part message to a destination socket.
+        /// </summary>
+        /// <remarks>
+        /// This is probably most useful when implementing devices. For example, all traffic from
+        /// the front-end socket could be forwarded directly to the backend socket.
+        /// </remarks>
+        /// <param name="destination">A <see cref="ZmqSocket"/> that will receive the incoming message(s).</param>
+        public void Forward(ZmqSocket destination)
+        {
+            if (destination == null)
+            {
+                throw new ArgumentNullException("destination");
+            }
+
+            if (_socketProxy.Forward(destination.SocketHandle, (int)SocketOption.RCVMORE, (int)SocketFlags.SendMore) == -1)
+            {
+                throw new ZmqSocketException(ErrorProxy.GetLastError());
+            }
         }
 
         /// <summary>
