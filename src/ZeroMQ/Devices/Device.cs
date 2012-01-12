@@ -57,7 +57,7 @@
             FrontendSocket = frontendSocket;
             BackendSocket = backendSocket;
             DoneEvent = new ManualResetEvent(false);
-            PollEvent = new ManualResetEvent(false);
+            ReadyEvent = new ManualResetEvent(false);
         }
 
         ~Device()
@@ -80,9 +80,9 @@
         public ManualResetEvent DoneEvent { get; private set; }
 
         /// <summary>
-        /// Gets a <see cref="ManualResetEvent"/> that signals each time the device polls.
+        /// Gets a <see cref="ManualResetEvent"/> that signals when the device is completely ready.
         /// </summary>
-        public ManualResetEvent PollEvent { get; private set; }
+        protected ManualResetEvent ReadyEvent { get; private set; }
 
         /// <summary>
         /// Initializes the frontend and backend sockets. Called automatically when starting the device,
@@ -203,7 +203,7 @@
             TimeSpan timeout = TimeSpan.FromMilliseconds(PollingIntervalMsec);
 
             DoneEvent.Reset();
-            PollEvent.Reset();
+            ReadyEvent.Reset();
             IsRunning = true;
 
             try
@@ -212,7 +212,7 @@
                 {
                     poller.Poll(timeout);
 
-                    PollEvent.Set();
+                    ReadyEvent.Set();
                 }
             }
             catch (ZmqException)
@@ -226,7 +226,6 @@
 
             IsRunning = false;
             DoneEvent.Set();
-            PollEvent.Reset();
         }
 
         /// <summary>

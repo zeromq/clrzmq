@@ -36,6 +36,7 @@
         public override void Start()
         {
             _runThread.Start();
+            ReadyEvent.WaitOne();
         }
 
         /// <summary>

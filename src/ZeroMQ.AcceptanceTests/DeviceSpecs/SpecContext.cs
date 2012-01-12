@@ -56,7 +56,6 @@
                 device.Initialize();
 
                 device.Start();
-                device.PollEvent.WaitOne();
                 deviceReady.Set();
             });
 
