@@ -6,20 +6,23 @@
     {
         public static void Main(string[] args)
         {
-            Console.WriteLine("Running test HelloWorld...");
-            Console.WriteLine();
-            var helloWorld = new HelloWorld();
-            helloWorld.RunTest();
-            Console.WriteLine();
+            RunTests(
+                new HelloWorld(),
+                new ReceiveBenchmark());
 
-            Console.WriteLine("Running test HelloWorld...");
-            Console.WriteLine();
-            var receiveBenchmark = new ReceiveBenchmark();
-            receiveBenchmark.RunTest();
-            Console.WriteLine();
-
-            Console.WriteLine("Press enter key to exit...");
+            Console.WriteLine("Finished running tests.");
             Console.ReadLine();
+        }
+
+        private static void RunTests(params ITest[] tests)
+        {
+            foreach (ITest test in tests)
+            {
+                Console.WriteLine("Running test {0}...", test.TestName);
+                Console.WriteLine();
+                test.RunTest();
+                Console.WriteLine();
+            }
         }
     }
 }

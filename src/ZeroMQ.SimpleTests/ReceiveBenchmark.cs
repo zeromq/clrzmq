@@ -4,13 +4,18 @@
     using System.Diagnostics;
     using System.Threading;
 
-    internal class ReceiveBenchmark
+    internal class ReceiveBenchmark : ITest
     {
         private const int RoundtripCount = 10000;
 
         private static readonly int[] MessageSizes = { 8, 64, 512, 4096, 8192, 16384, 32768 };
 
         private readonly ManualResetEvent _readyEvent = new ManualResetEvent(false);
+
+        public string TestName
+        {
+            get { return "Receive Benchmark"; }
+        }
 
         public void RunTest()
         {
@@ -34,7 +39,7 @@
             {
                 _readyEvent.WaitOne();
 
-                socket.Connect("inproc://receivebench");
+                socket.Connect("tcp://localhost:9000");
 
                 Console.WriteLine("Receive(Frame)");
 
@@ -105,7 +110,7 @@
             var context = (ZmqContext)contextObj;
             using (var socket = context.CreateSocket(SocketType.REP))
             {
-                socket.Bind("inproc://receivebench");
+                socket.Bind("tcp://*:9000");
 
                 _readyEvent.Set();
 

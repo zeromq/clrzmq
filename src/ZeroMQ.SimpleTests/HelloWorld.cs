@@ -5,8 +5,13 @@
     using System.Text;
     using System.Threading;
 
-    internal class HelloWorld
+    internal class HelloWorld : ITest
     {
+        public string TestName
+        {
+            get { return "Hello World"; }
+        }
+
         public void RunTest()
         {
             var client = new Thread(ClientThread);
