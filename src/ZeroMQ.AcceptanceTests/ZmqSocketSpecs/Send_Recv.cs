@@ -11,10 +11,11 @@
     class when_transferring_in_blocking_mode : using_threaded_req_rep
     {
         protected static Frame message;
+        protected static SendStatus sendResult;
 
         Establish context = () =>
         {
-            senderAction = req => req.SendFrame(Messages.SingleMessage);
+            senderAction = req => sendResult = req.SendFrame(Messages.SingleMessage);
             receiverAction = rep => message = rep.ReceiveFrame();
         };
 
@@ -27,13 +28,14 @@
     class when_transferring_with_an_ample_receive_timeout : using_threaded_req_rep
     {
         protected static Frame message;
+        protected static SendStatus sendResult;
 
         Establish context = () =>
         {
             senderAction = req =>
             {
                 Thread.Sleep(500);
-                req.SendFrame(Messages.SingleMessage);
+                sendResult = req.SendFrame(Messages.SingleMessage);
             };
 
             receiverAction = rep => message = rep.ReceiveFrame(TimeSpan.FromMilliseconds(2000));
@@ -104,11 +106,12 @@
     class when_transferring_with_a_preallocated_receive_buffer : using_threaded_req_rep
     {
         protected static Frame message;
+        protected static SendStatus sendResult;
         protected static int size;
 
         Establish context = () =>
         {
-            senderAction = req => req.SendFrame(Messages.SingleMessage);
+            senderAction = req => sendResult = req.SendFrame(Messages.SingleMessage);
 
             message = new Frame(100);
             receiverAction = rep =>

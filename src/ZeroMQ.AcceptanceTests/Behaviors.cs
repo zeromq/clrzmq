@@ -25,6 +25,10 @@ namespace ZeroMQ.AcceptanceTests
     class SingleMessageReceived
     {
         protected static Frame message;
+        protected static SendStatus sendResult;
+
+        It should_be_sent_successfully = () =>
+            sendResult.ShouldEqual(SendStatus.Sent);
 
         It should_be_successfully_received = () =>
             message.ShouldNotBeNull();
@@ -74,6 +78,14 @@ namespace ZeroMQ.AcceptanceTests
     class MultipleMessagesReceived
     {
         protected static List<Frame> messages;
+        protected static SendStatus sendResult1;
+        protected static SendStatus sendResult2;
+
+        It should_send_the_first_message_successfully = () =>
+            sendResult1.ShouldEqual(SendStatus.Sent);
+
+        It should_send_the_second_message_successfully = () =>
+            sendResult2.ShouldEqual(SendStatus.Sent);
 
         It should_receive_all_message_parts = () =>
             messages.Count.ShouldEqual(2);
@@ -96,6 +108,14 @@ namespace ZeroMQ.AcceptanceTests
     {
         protected static Frame message1;
         protected static Frame message2;
+        protected static SendStatus sendResult1;
+        protected static SendStatus sendResult2;
+
+        It should_send_the_first_message_successfully = () =>
+            sendResult1.ShouldEqual(SendStatus.Sent);
+
+        It should_send_the_second_message_successfully = () =>
+            sendResult2.ShouldEqual(SendStatus.Sent);
 
         It should_receive_the_first_message_successfully = () =>
             message1.ShouldNotBeNull();
@@ -118,6 +138,14 @@ namespace ZeroMQ.AcceptanceTests
     {
         protected static Frame message1;
         protected static Frame message2;
+        protected static SendStatus sendResult1;
+        protected static SendStatus sendResult2;
+
+        It should_send_the_first_message_successfully = () =>
+            sendResult1.ShouldEqual(SendStatus.Sent);
+
+        It should_send_the_second_message_successfully = () =>
+            sendResult2.ShouldEqual(SendStatus.Sent);
 
         It should_receive_the_first_message_successfully = () =>
             message1.ShouldNotBeNull();

@@ -29,6 +29,8 @@
         protected readonly ZmqSocket BackendSocket;
 
         private volatile bool _isRunning;
+
+        private bool _isInitialized;
         private bool _disposed;
 
         /// <summary>
@@ -55,6 +57,7 @@
             FrontendSocket = frontendSocket;
             BackendSocket = backendSocket;
             DoneEvent = new ManualResetEvent(false);
+            PollEvent = new ManualResetEvent(false);
         }
 
         ~Device()
@@ -75,6 +78,26 @@
         /// Gets a <see cref="ManualResetEvent"/> that can be used to block while the device is running.
         /// </summary>
         public ManualResetEvent DoneEvent { get; private set; }
+
+        /// <summary>
+        /// Gets a <see cref="ManualResetEvent"/> that signals each time the device polls.
+        /// </summary>
+        public ManualResetEvent PollEvent { get; private set; }
+
+        /// <summary>
+        /// Initializes the frontend and backend sockets. Called automatically when starting the device,
+        /// but will only execute once.
+        /// </summary>
+        public void Initialize()
+        {
+            if (_isInitialized)
+            {
+                return;
+            }
+
+            InitializeSockets();
+            _isInitialized = true;
+        }
 
         /// <summary>
         /// Start the device in the current thread.
@@ -171,24 +194,39 @@
         {
             EnsureNotDisposed();
 
-            InitializeSockets();
+            Initialize();
 
             FrontendSocket.ReceiveReady += (sender, args) => FrontendHandler(args);
             BackendSocket.ReceiveReady += (sender, args) => BackendHandler(args);
 
-            DoneEvent.Reset();
-            IsRunning = true;
-
             var poller = new Poller(new[] { FrontendSocket, BackendSocket });
             TimeSpan timeout = TimeSpan.FromMilliseconds(PollingIntervalMsec);
 
-            while (IsRunning)
+            DoneEvent.Reset();
+            PollEvent.Reset();
+            IsRunning = true;
+
+            try
             {
-                poller.Poll(timeout);
+                while (IsRunning)
+                {
+                    poller.Poll(timeout);
+
+                    PollEvent.Set();
+                }
+            }
+            catch (ZmqException)
+            {
+                // Swallow any exceptions thrown while stopping
+                if (IsRunning)
+                {
+                    throw;
+                }
             }
 
             IsRunning = false;
             DoneEvent.Set();
+            PollEvent.Reset();
         }
 
         /// <summary>

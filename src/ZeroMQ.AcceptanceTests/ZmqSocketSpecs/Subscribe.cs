@@ -13,6 +13,8 @@
     {
         protected static Frame message1;
         protected static Frame message2;
+        protected static SendStatus sendResult1;
+        protected static SendStatus sendResult2;
 
         Establish context = () =>
         {
@@ -32,8 +34,8 @@
 
             senderAction = pub =>
             {
-                pub.SendFrame(Messages.PubSubFirst);
-                pub.SendFrame(Messages.PubSubSecond);
+                sendResult1 = pub.SendFrame(Messages.PubSubFirst);
+                sendResult2 = pub.SendFrame(Messages.PubSubSecond);
             };
         };
 
@@ -47,6 +49,8 @@
     {
         protected static Frame message1;
         protected static Frame message2;
+        protected static SendStatus sendResult1;
+        protected static SendStatus sendResult2;
 
         Establish context = () =>
         {
@@ -66,8 +70,8 @@
 
             senderAction = pub =>
             {
-                pub.SendFrame(Messages.PubSubFirst);
-                pub.SendFrame(Messages.PubSubSecond);
+                sendResult1 = pub.SendFrame(Messages.PubSubFirst);
+                sendResult2 = pub.SendFrame(Messages.PubSubSecond);
             };
         };
 

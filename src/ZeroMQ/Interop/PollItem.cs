@@ -4,7 +4,7 @@
     using System.Runtime.InteropServices;
 
     [StructLayout(LayoutKind.Sequential)]
-    internal struct PollItem
+    internal struct PollItem : IEquatable<PollItem>
     {
         public IntPtr Socket;
         public IntPtr FileDescriptor;
@@ -22,6 +22,12 @@
             FileDescriptor = fileDescriptor;
             Events = (short)pollEvents;
             ReadyEvents = 0;
+        }
+
+        public bool Equals(PollItem other)
+        {
+            return Socket.ToInt64() == other.Socket.ToInt64() &&
+                   FileDescriptor.ToInt64() == other.FileDescriptor.ToInt64();
         }
 
         public override int GetHashCode()

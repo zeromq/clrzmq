@@ -736,9 +736,21 @@
             }
         }
 
-        internal virtual PollEvents GetPollEvents()
+        internal PollEvents GetPollEvents()
         {
-            return PollEvents.PollIn | PollEvents.PollOut;
+            PollEvents events = PollEvents.None;
+
+            if (ReceiveReady != null)
+            {
+                events |= PollEvents.PollIn;
+            }
+
+            if (SendReady != null)
+            {
+                events |= PollEvents.PollOut;
+            }
+
+            return events;
         }
 
         /// <summary>

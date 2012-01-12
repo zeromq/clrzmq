@@ -10,13 +10,15 @@
     class when_transferring_multipart_messages : using_threaded_req_rep
     {
         protected static List<Frame> messages;
+        protected static SendStatus sendResult1;
+        protected static SendStatus sendResult2;
 
         Establish context = () =>
         {
             senderAction = req =>
             {
-                req.SendFrame(Messages.MultiFirst);
-                req.SendFrame(Messages.MultiLast);
+                sendResult1 = req.SendFrame(Messages.MultiFirst);
+                sendResult2 = req.SendFrame(Messages.MultiLast);
             };
 
             receiverAction = rep =>

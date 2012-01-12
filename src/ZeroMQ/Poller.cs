@@ -165,7 +165,10 @@
 
         private void CreatePollItems()
         {
-            _pollItems = _pollableSockets.Keys.ToArray();
+            if (_pollItems == null || _pollItems.Length != _pollableSockets.Count)
+            {
+                _pollItems = _pollableSockets.Keys.ToArray();
+            }
         }
 
         private int Poll(int timeoutMilliseconds)

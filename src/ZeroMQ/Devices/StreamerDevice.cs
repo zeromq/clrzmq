@@ -11,19 +11,19 @@
     public class StreamerDevice : ThreadDevice
     {
         private readonly string _frontendBindAddr;
-        private readonly string _backendConnectAddr;
+        private readonly string _backendBindAddr;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="StreamerDevice"/> class.
         /// </summary>
         /// <param name="context">The <see cref="ZmqContext"/> to use when creating the sockets.</param>
         /// <param name="frontendBindAddr">The address used to bind the frontend socket.</param>
-        /// <param name="backendConnectAddr">The address the backend socket will connect to.</param>
-        public StreamerDevice(ZmqContext context, string frontendBindAddr, string backendConnectAddr)
+        /// <param name="backendBindAddr">The endpoint used to bind the backend socket.</param>
+        public StreamerDevice(ZmqContext context, string frontendBindAddr, string backendBindAddr)
             : base(context.CreateSocket(SocketType.PULL), context.CreateSocket(SocketType.PUSH))
         {
             _frontendBindAddr = frontendBindAddr;
-            _backendConnectAddr = backendConnectAddr;
+            _backendBindAddr = backendBindAddr;
         }
 
         /// <summary>
@@ -32,7 +32,7 @@
         protected override void InitializeSockets()
         {
             FrontendSocket.Bind(_frontendBindAddr);
-            BackendSocket.Connect(_backendConnectAddr);
+            BackendSocket.Bind(_backendBindAddr);
         }
 
         /// <summary>

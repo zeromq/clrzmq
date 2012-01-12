@@ -24,10 +24,5 @@
         {
             throw new NotSupportedException();
         }
-
-        internal override PollEvents GetPollEvents()
-        {
-            return PollEvents.PollIn;
-        }
     }
 }
