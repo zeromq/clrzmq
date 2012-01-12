@@ -5,10 +5,6 @@
 
     internal class SocketProxy : IDisposable
     {
-        // From zmq.h:
-        // typedef struct {unsigned char _ [32];} zmq_msg_t;
-        private const int ZmqMsgTSize = 32;
-
         // From options.hpp: unsigned char identity [256];
         private const int MaxBinaryOptionSize = 255;
 
@@ -23,7 +19,7 @@
             }
 
             SocketHandle = socketHandle;
-            _message = Marshal.AllocHGlobal(ZmqMsgTSize);
+            _message = Marshal.AllocHGlobal(LibZmq.ZmqMsgTSize);
         }
 
         ~SocketProxy()
@@ -133,7 +129,7 @@
             return bytesSent;
         }
 
-        public int Forward(IntPtr socketHandle, int receiveMoreOption, int sendMoreValue)
+        public int Forward(IntPtr destinationHandle, int receiveMoreOption, int sendMoreValue)
         {
             if (LibZmq.zmq_msg_init(_message) == -1)
             {
@@ -145,7 +141,7 @@
 
             do
             {
-                if (LibZmq.zmq_recvmsg(socketHandle, _message, 0) == -1)
+                if (LibZmq.zmq_recvmsg(SocketHandle, _message, 0) == -1)
                 {
                     return -1;
                 }
@@ -155,7 +151,7 @@
                     return -1;
                 }
 
-                if ((bytesSent = LibZmq.zmq_sendmsg(socketHandle, _message, receiveMore == 1 ? sendMoreValue : 0)) == -1)
+                if ((bytesSent = LibZmq.zmq_sendmsg(destinationHandle, _message, receiveMore == 1 ? sendMoreValue : 0)) == -1)
                 {
                     return -1;
                 }

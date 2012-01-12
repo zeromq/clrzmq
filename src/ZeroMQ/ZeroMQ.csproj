@@ -40,7 +40,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Devices\Device.cs" />
+    <Compile Include="Devices\ThreadDevice.cs" />
+    <Compile Include="Devices\ZmqDeviceException.cs" />
     <Compile Include="DuplexSocket.cs" />
+    <Compile Include="Devices\IDevice.cs" />
     <Compile Include="Interop\ErrorDetails.cs" />
     <Compile Include="Interop\PollerProxy.cs" />
     <Compile Include="Interop\PollEvents.cs" />

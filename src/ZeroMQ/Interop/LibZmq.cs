@@ -11,6 +11,10 @@
     {
         public const string LibraryName = "libzmq";
 
+        // From zmq.h:
+        // typedef struct {unsigned char _ [32];} zmq_msg_t;
+        public const int ZmqMsgTSize = 32;
+
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         public delegate void FreeMessageDataCallback(IntPtr data, IntPtr hint);
 

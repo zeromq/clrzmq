@@ -499,8 +499,9 @@
         /// Forwards a single-part or all parts of a multi-part message to a destination socket.
         /// </summary>
         /// <remarks>
-        /// This is probably most useful when implementing devices. For example, all traffic from
-        /// the front-end socket could be forwarded directly to the backend socket.
+        /// This method is useful for implementing devices as data is not marshalled into managed code; it
+        /// is forwarded directly in the unmanaged layer. As an example, this method could forward all traffic
+        /// from a device's front-end socket to its backend socket.
         /// </remarks>
         /// <param name="destination">A <see cref="ZmqSocket"/> that will receive the incoming message(s).</param>
         public void Forward(ZmqSocket destination)
