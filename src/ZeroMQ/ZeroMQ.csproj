@@ -52,6 +52,8 @@
     <Compile Include="Interop\PollerProxy.cs" />
     <Compile Include="Interop\PollEvents.cs" />
     <Compile Include="Interop\PollItem.cs" />
+    <Compile Include="Interop\ManifestResource.cs" />
+    <Compile Include="Interop\UnmanagedLibrary.cs" />
     <Compile Include="Poller.cs" />
     <Compile Include="SendReceiveExtensions.cs" />
     <Compile Include="SocketEventArgs.cs" />
