@@ -151,16 +151,14 @@
         /// <summary>
         /// Invoked when a message has been received by the frontend socket.
         /// </summary>
-        /// <param name="frontendSocket">The <see cref="ZmqSocket"/> that received the message: <see cref="FrontendSocket"/>.</param>
         /// <param name="args">A <see cref="SocketEventArgs"/> object containing the poll event args.</param>
-        protected abstract void FrontendHandler(ZmqSocket frontendSocket, SocketEventArgs args);
+        protected abstract void FrontendHandler(SocketEventArgs args);
 
         /// <summary>
         /// Invoked when a message has been received by the backend socket.
         /// </summary>
-        /// <param name="backendSocket">The <see cref="ZmqSocket"/> that received the message: <see cref="BackendSocket"/>.</param>
         /// <param name="args">A <see cref="SocketEventArgs"/> object containing the poll event args.</param>
-        protected abstract void BackendHandler(ZmqSocket backendSocket, SocketEventArgs args);
+        protected abstract void BackendHandler(SocketEventArgs args);
 
         /// <summary>
         /// Start the device in the current thread. Should be used by implementations of
@@ -175,8 +173,8 @@
 
             InitializeSockets();
 
-            FrontendSocket.ReceiveReady += (sender, args) => FrontendHandler((ZmqSocket)sender, args);
-            BackendSocket.ReceiveReady += (sender, args) => BackendHandler((ZmqSocket)sender, args);
+            FrontendSocket.ReceiveReady += (sender, args) => FrontendHandler(args);
+            BackendSocket.ReceiveReady += (sender, args) => BackendHandler(args);
 
             DoneEvent.Reset();
             IsRunning = true;

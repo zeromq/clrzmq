@@ -41,6 +41,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Devices\Device.cs" />
+    <Compile Include="Devices\ForwarderDevice.cs" />
+    <Compile Include="Devices\QueueDevice.cs" />
+    <Compile Include="Devices\StreamerDevice.cs" />
     <Compile Include="Devices\ThreadDevice.cs" />
     <Compile Include="Devices\ZmqDeviceException.cs" />
     <Compile Include="DuplexSocket.cs" />
