@@ -14,8 +14,8 @@
 
         Establish context = () =>
         {
-            senderAction = req => req.Send(Messages.SingleMessage);
-            receiverAction = rep => message = rep.Receive();
+            senderAction = req => req.SendFrame(Messages.SingleMessage);
+            receiverAction = rep => message = rep.ReceiveFrame();
         };
 
         Because of = StartThreads;
@@ -33,10 +33,10 @@
             senderAction = req =>
             {
                 Thread.Sleep(500);
-                req.Send(Messages.SingleMessage);
+                req.SendFrame(Messages.SingleMessage);
             };
 
-            receiverAction = rep => message = rep.Receive(TimeSpan.FromMilliseconds(2000));
+            receiverAction = rep => message = rep.ReceiveFrame(TimeSpan.FromMilliseconds(2000));
         };
 
         Because of = StartThreads;
@@ -51,7 +51,7 @@
 
         Establish context = () =>
         {
-            receiverAction = rep => message = rep.Receive(TimeSpan.FromMilliseconds(5));
+            receiverAction = rep => message = rep.ReceiveFrame(TimeSpan.FromMilliseconds(5));
         };
 
         Because of = StartThreads;
@@ -67,10 +67,10 @@
 
         Establish context = () =>
         {
-            senderAction = req => req.Send(Messages.SingleMessage);
+            senderAction = req => req.SendFrame(Messages.SingleMessage);
 
             buffer = new Frame(256);
-            receiverAction = rep => message = rep.Receive(buffer);
+            receiverAction = rep => message = rep.ReceiveFrame(buffer);
         };
 
         Because of = StartThreads;
@@ -89,10 +89,10 @@
 
         Establish context = () =>
         {
-            senderAction = req => req.Send(Messages.SingleMessage);
+            senderAction = req => req.SendFrame(Messages.SingleMessage);
 
             buffer = new Frame(1);
-            receiverAction = rep => message = rep.Receive(buffer);
+            receiverAction = rep => message = rep.ReceiveFrame(buffer);
         };
 
         Because of = StartThreads;
@@ -108,7 +108,7 @@
 
         Establish context = () =>
         {
-            senderAction = req => req.Send(Messages.SingleMessage);
+            senderAction = req => req.SendFrame(Messages.SingleMessage);
 
             message = new Frame(100);
             receiverAction = rep =>

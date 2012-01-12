@@ -33,7 +33,7 @@
             {
                 socket.Connect("tcp://localhost:8989");
 
-                socket.Send(new Frame(Encoding.UTF8.GetBytes("Hello")));
+                socket.SendFrame(new Frame(Encoding.UTF8.GetBytes("Hello")));
 
                 var buffer = new byte[100];
                 int size = socket.Receive(buffer);
@@ -52,10 +52,10 @@
             {
                 socket.Bind("tcp://*:8989");
 
-                Frame request = socket.Receive();
+                Frame request = socket.ReceiveFrame();
                 Console.WriteLine(Encoding.UTF8.GetString(request));
 
-                socket.Send(new Frame(Encoding.UTF8.GetBytes("World")));
+                socket.SendFrame(new Frame(Encoding.UTF8.GetBytes("World")));
             }
         }
     }

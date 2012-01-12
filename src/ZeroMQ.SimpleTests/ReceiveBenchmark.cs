@@ -53,11 +53,11 @@
 
                     for (int i = 0; i < RoundtripCount; i++)
                     {
-                        int bytesSent = socket.Send(msg);
+                        SendStatus sendStatus = socket.SendFrame(msg);
 
-                        Debug.Assert(bytesSent == messageSize, "Message was not indicated as sent.");
+                        Debug.Assert(sendStatus == SendStatus.Sent, "Message was not indicated as sent.");
 
-                        reply = socket.Receive(reply);
+                        reply = socket.ReceiveFrame(reply);
 
                         Debug.Assert(reply.MessageSize == messageSize, "Pong message did not have the expected size.");
                     }
@@ -84,9 +84,9 @@
 
                     for (int i = 0; i < RoundtripCount; i++)
                     {
-                        int bytesSent = socket.Send(msg);
+                        SendStatus sendStatus = socket.SendFrame(msg);
 
-                        Debug.Assert(bytesSent == messageSize, "Message was not indicated as sent.");
+                        Debug.Assert(sendStatus == SendStatus.Sent, "Message was not indicated as sent.");
 
                         int bytesReceived = socket.Receive(reply);
 
@@ -120,12 +120,12 @@
                     {
                         for (int i = 0; i < RoundtripCount; i++)
                         {
-                            Frame message = socket.Receive();
+                            Frame message = socket.ReceiveFrame();
 
                             Debug.Assert(message.ReceiveStatus == ReceiveStatus.Received, "Ping message result was non-successful.");
                             Debug.Assert(message.MessageSize == messageSize, "Ping message length did not match expected value.");
 
-                            socket.Send(message);
+                            socket.SendFrame(message);
                         }
                     }
                 }

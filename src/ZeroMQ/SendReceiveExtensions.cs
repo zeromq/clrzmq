@@ -18,11 +18,11 @@
         /// <exception cref="ZmqSocketException">An error occurred receiving data from a remote endpoint.</exception>
         /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
         /// <exception cref="NotSupportedException">The current socket type does not support Receive operations.</exception>
-        public static Frame Receive(this ZmqSocket socket)
+        public static Frame ReceiveFrame(this ZmqSocket socket)
         {
             VerifySocket(socket);
 
-            return socket.Receive((Frame)null);
+            return socket.ReceiveFrame(null);
         }
 
         /// <summary>
@@ -37,11 +37,72 @@
         /// <exception cref="ZmqSocketException">An error occurred receiving data from a remote endpoint.</exception>
         /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
         /// <exception cref="NotSupportedException">The current socket type does not support Receive operations.</exception>
-        public static Frame Receive(this ZmqSocket socket, TimeSpan timeout)
+        public static Frame ReceiveFrame(this ZmqSocket socket, TimeSpan timeout)
         {
             VerifySocket(socket);
 
-            return socket.Receive((Frame)null, timeout);
+            return socket.ReceiveFrame(null, timeout);
+        }
+
+        /// <summary>
+        /// Receive a single frame from a remote socket in blocking mode.
+        /// </summary>
+        /// <remarks>
+        /// This overload will receive all available data in the message-part. If the buffer size of <paramref name="frame"/>
+        /// is insufficient, a new buffer will be allocated.
+        /// </remarks>
+        /// <param name="socket">A <see cref="ZmqSocket"/> object.</param>
+        /// <param name="frame">A <see cref="Frame"/> that will store the received data.</param>
+        /// <returns>A <see cref="Frame"/> containing the data received from the remote endpoint.</returns>
+        /// <exception cref="ZmqSocketException">An error occurred receiving data from a remote endpoint.</exception>
+        /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
+        /// <exception cref="NotSupportedException">The current socket type does not support Receive operations.</exception>
+        public static Frame ReceiveFrame(this ZmqSocket socket, Frame frame)
+        {
+            VerifySocket(socket);
+
+            if (frame == null)
+            {
+                frame = new Frame(0);
+            }
+
+            int size;
+
+            frame.Buffer = socket.Receive(frame.Buffer, out size);
+            SetFrameProperties(frame, socket, size);
+
+            return frame;
+        }
+
+        /// <summary>
+        /// Receive a single frame from a remote socket in non-blocking mode with a specified timeout.
+        /// </summary>
+        /// <remarks>
+        /// This overload will receive all available data in the message-part. If the buffer size of <paramref name="frame"/>
+        /// is insufficient, a new buffer will be allocated.
+        /// </remarks>
+        /// <param name="socket">A <see cref="ZmqSocket"/> object.</param>
+        /// <param name="frame">A <see cref="Frame"/> that will store the received data.</param>
+        /// <param name="timeout">A <see cref="TimeSpan"/> specifying the receive timeout.</param>
+        /// <returns>A <see cref="Frame"/> containing the data received from the remote endpoint.</returns>
+        /// <exception cref="ZmqSocketException">An error occurred receiving data from a remote endpoint.</exception>
+        /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
+        /// <exception cref="NotSupportedException">The current socket type does not support Receive operations.</exception>
+        public static Frame ReceiveFrame(this ZmqSocket socket, Frame frame, TimeSpan timeout)
+        {
+            VerifySocket(socket);
+
+            if (frame == null)
+            {
+                frame = new Frame(0);
+            }
+
+            int size;
+
+            frame.Buffer = socket.Receive(frame.Buffer, timeout, out size);
+            SetFrameProperties(frame, socket, size);
+
+            return frame;
         }
 
         /// <summary>
@@ -53,17 +114,19 @@
         /// </remarks>
         /// <param name="socket">A <see cref="ZmqSocket"/> object.</param>
         /// <param name="frame">A <see cref="Frame"/> that contains the message to be sent.</param>
-        /// <returns>The number of bytes sent by the socket.</returns>
+        /// <returns>A <see cref="SendStatus"/> describing the outcome of the send operation.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="frame"/> is null.</exception>
         /// <exception cref="ZmqSocketException">An error occurred sending data to a remote endpoint.</exception>
         /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
         /// <exception cref="NotSupportedException">The current socket type does not support Send operations.</exception>
-        public static int Send(this ZmqSocket socket, Frame frame)
+        public static SendStatus SendFrame(this ZmqSocket socket, Frame frame)
         {
             VerifySocket(socket);
             VerifyFrame(frame);
 
-            return socket.Send(frame.Buffer, frame.MessageSize, frame.HasMore ? SocketFlags.SendMore : SocketFlags.None);
+            socket.Send(frame.Buffer, frame.MessageSize, frame.HasMore ? SocketFlags.SendMore : SocketFlags.None);
+
+            return socket.SendStatus;
         }
 
         /// <summary>
@@ -76,17 +139,30 @@
         /// <param name="socket">A <see cref="ZmqSocket"/> object.</param>
         /// <param name="frame">A <see cref="Frame"/> that contains the message to be sent.</param>
         /// <param name="timeout">A <see cref="TimeSpan"/> specifying the send timeout.</param>
-        /// <returns>The number of bytes sent by the socket.</returns>
+        /// <returns>A <see cref="SendStatus"/> describing the outcome of the send operation.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="frame"/> is null.</exception>
         /// <exception cref="ZmqSocketException">An error occurred sending data to a remote endpoint.</exception>
         /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
         /// <exception cref="NotSupportedException">The current socket type does not support Send operations.</exception>
-        public static int Send(this ZmqSocket socket, Frame frame, TimeSpan timeout)
+        public static SendStatus SendFrame(this ZmqSocket socket, Frame frame, TimeSpan timeout)
         {
             VerifySocket(socket);
             VerifyFrame(frame);
 
-            return socket.Send(frame.Buffer, frame.MessageSize, frame.HasMore ? SocketFlags.SendMore : SocketFlags.None, timeout);
+            socket.Send(frame.Buffer, frame.MessageSize, frame.HasMore ? SocketFlags.SendMore : SocketFlags.None, timeout);
+
+            return socket.SendStatus;
+        }
+
+        private static void SetFrameProperties(Frame frame, ZmqSocket socket, int size)
+        {
+            if (size >= 0)
+            {
+                frame.MessageSize = size;
+            }
+
+            frame.HasMore = socket.ReceiveMore;
+            frame.ReceiveStatus = socket.ReceiveStatus;
         }
 
         private static void VerifySocket(ZmqSocket socket)

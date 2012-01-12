@@ -24,16 +24,16 @@
             {
                 signal.Set();
 
-                message1 = sub.Receive();
-                message2 = sub.Receive(TimeSpan.FromMilliseconds(500));
+                message1 = sub.ReceiveFrame();
+                message2 = sub.ReceiveFrame(TimeSpan.FromMilliseconds(500));
             };
 
             senderInit = pub => signal.WaitOne(1000);
 
             senderAction = pub =>
             {
-                pub.Send(Messages.PubSubFirst);
-                pub.Send(Messages.PubSubSecond);
+                pub.SendFrame(Messages.PubSubFirst);
+                pub.SendFrame(Messages.PubSubSecond);
             };
         };
 
@@ -58,16 +58,16 @@
             {
                 signal.Set();
 
-                message1 = sub.Receive();
-                message2 = sub.Receive(TimeSpan.FromMilliseconds(500));
+                message1 = sub.ReceiveFrame();
+                message2 = sub.ReceiveFrame(TimeSpan.FromMilliseconds(500));
             };
 
             senderInit = pub => signal.WaitOne(1000);
 
             senderAction = pub =>
             {
-                pub.Send(Messages.PubSubFirst);
-                pub.Send(Messages.PubSubSecond);
+                pub.SendFrame(Messages.PubSubFirst);
+                pub.SendFrame(Messages.PubSubSecond);
             };
         };
 

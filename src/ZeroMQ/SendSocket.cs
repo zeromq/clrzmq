@@ -25,7 +25,7 @@
             throw new NotSupportedException();
         }
 
-        internal override Frame Receive(Frame frame, SocketFlags flags)
+        internal override byte[] Receive(byte[] frame, SocketFlags flags, out int size)
         {
             throw new NotSupportedException();
         }

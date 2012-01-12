@@ -15,13 +15,13 @@
         {
             senderAction = req =>
             {
-                req.Send(Messages.MultiFirst);
-                req.Send(Messages.MultiLast);
+                req.SendFrame(Messages.MultiFirst);
+                req.SendFrame(Messages.MultiLast);
             };
 
             receiverAction = rep =>
             {
-                messages = new List<Frame> { rep.Receive(), rep.Receive() };
+                messages = new List<Frame> { rep.ReceiveFrame(), rep.ReceiveFrame() };
             };
         };
 

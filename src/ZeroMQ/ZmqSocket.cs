@@ -329,9 +329,9 @@
         /// </summary>
         /// <remarks>
         /// Warning: This overload will only receive as much data as can fit in the supplied <paramref name="buffer"/>.
-        /// It is intended to be used when the maximum messaging performance is required, as it does not perform
-        /// any unnecessary memory allocation, copying or marshalling.
-        /// If the maximum message size is not known in advance, use the <see cref="Receive(ZeroMQ.Frame)"/> overload.
+        /// It is intended to be used when the maximum messaging performance is required; it will not allocate a new
+        /// buffer (or copy received data) if the received message exceeds the current buffer size.
+        /// If the maximum message size is not known in advance, use the <see cref="Receive(byte[],out int)"/> overload.
         /// </remarks>
         /// <param name="buffer">A <see cref="byte"/> array that will store the received data.</param>
         /// <returns>The number of bytes contained in the resulting message.</returns>
@@ -351,7 +351,7 @@
         /// Warning: This overload will only receive as much data as can fit in the supplied <paramref name="buffer"/>.
         /// It is intended to be used when the maximum messaging performance is required, as it does not perform
         /// any unnecessary memory allocation, copying or marshalling.
-        /// If the maximum message size is not known in advance, use the <see cref="Receive(ZeroMQ.Frame,TimeSpan)"/> overload.
+        /// If the maximum message size is not known in advance, use the <see cref="Receive(byte[],System.TimeSpan,out int)"/> overload.
         /// </remarks>
         /// <param name="buffer">A <see cref="byte"/> array that will store the received data.</param>
         /// <param name="timeout">A <see cref="TimeSpan"/> specifying the receive timeout.</param>
@@ -371,40 +371,56 @@
         }
 
         /// <summary>
-        /// Receive a single frame from a remote socket in blocking mode.
+        /// Receive a single message-part from a remote socket in blocking mode.
         /// </summary>
         /// <remarks>
-        /// This overload will receive all available data in the message-part. If the buffer size of <paramref name="frame"/>
+        /// This overload will receive all available data in the message-part. If the size of <paramref name="buffer"/>
         /// is insufficient, a new buffer will be allocated.
         /// </remarks>
-        /// <param name="frame">A <see cref="Frame"/> that will store the received data.</param>
-        /// <returns>A <see cref="Frame"/> containing the data received from the remote endpoint.</returns>
+        /// <param name="buffer">A <see cref="byte"/> array that may store the received data.</param>
+        /// <param name="size">An <see cref="int"/> that will contain the number of bytes in the received data.</param>
+        /// <returns>
+        /// A <see cref="byte"/> array containing the data received from the remote endpoint, which may or may
+        /// not be the supplied <paramref name="buffer"/>.
+        /// </returns>
         /// <exception cref="ZmqSocketException">An error occurred receiving data from a remote endpoint.</exception>
         /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
         /// <exception cref="NotSupportedException">The current socket type does not support Receive operations.</exception>
-        public Frame Receive(Frame frame)
+        public byte[] Receive(byte[] buffer, out int size)
         {
-            return Receive(frame, SocketFlags.None);
+            return Receive(buffer, SocketFlags.None, out size);
         }
 
         /// <summary>
-        /// Receive a single frame from a remote socket in non-blocking mode with a specified timeout.
+        /// Receive a single message-part from a remote socket in non-blocking mode with a specified timeout.
         /// </summary>
         /// <remarks>
-        /// This overload will receive all available data in the message-part. If the buffer size of <paramref name="frame"/>
+        /// This overload will receive all available data in the message-part. If the size of <paramref name="buffer"/>
         /// is insufficient, a new buffer will be allocated.
         /// </remarks>
-        /// <param name="frame">A <see cref="Frame"/> that will store the received data.</param>
+        /// <param name="buffer">A <see cref="Frame"/> that will store the received data.</param>
         /// <param name="timeout">A <see cref="TimeSpan"/> specifying the receive timeout.</param>
-        /// <returns>A <see cref="Frame"/> containing the data received from the remote endpoint.</returns>
+        /// <param name="size">An <see cref="int"/> that will contain the number of bytes in the received data.</param>
+        /// <returns>
+        /// A <see cref="byte"/> array containing the data received from the remote endpoint, which may or may
+        /// not be the supplied <paramref name="buffer"/>.
+        /// </returns>
         /// <exception cref="ZmqSocketException">An error occurred receiving data from a remote endpoint.</exception>
         /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
         /// <exception cref="NotSupportedException">The current socket type does not support Receive operations.</exception>
-        public Frame Receive(Frame frame, TimeSpan timeout)
+        public byte[] Receive(byte[] buffer, TimeSpan timeout, out int size)
         {
-            return timeout == TimeSpan.MaxValue
-                       ? Receive(frame)
-                       : ExecuteWithTimeout(() => Receive(frame, SocketFlags.DontWait), timeout);
+            if (timeout == TimeSpan.MaxValue)
+            {
+                return Receive(buffer, out size);
+            }
+
+            int receivedBytes = -1;
+
+            byte[] message = ExecuteWithTimeout(() => Receive(buffer, SocketFlags.DontWait, out receivedBytes), timeout);
+            size = receivedBytes;
+
+            return message;
         }
 
         /// <summary>
@@ -573,38 +589,33 @@
             throw new ZmqSocketException(ErrorProxy.GetLastError());
         }
 
-        internal virtual Frame Receive(Frame frame, SocketFlags flags)
+        internal virtual byte[] Receive(byte[] buffer, SocketFlags flags, out int size)
         {
             EnsureNotDisposed();
 
-            if (frame == null)
+            if (buffer == null)
             {
-                frame = new Frame(0);
+                buffer = new byte[0];
             }
 
-            int receivedBytes;
+            buffer = _socketProxy.Receive(buffer, (int)flags, out size);
 
-            frame.Buffer = _socketProxy.Receive(frame.Buffer, (int)flags, out receivedBytes);
-
-            if (receivedBytes >= 0)
+            if (size >= 0)
             {
-                frame.ReceiveStatus = ReceiveStatus = ReceiveStatus.Received;
-                frame.MessageSize = receivedBytes;
-                frame.HasMore = ReceiveMore;
-
-                return frame;
+                ReceiveStatus = ReceiveStatus.Received;
+                return buffer;
             }
 
             if (ErrorProxy.ShouldTryAgain)
             {
-                frame.ReceiveStatus = ReceiveStatus = ReceiveStatus.TryAgain;
-                return frame;
+                ReceiveStatus = ReceiveStatus.TryAgain;
+                return buffer;
             }
 
             if (ErrorProxy.ContextWasTerminated)
             {
-                frame.ReceiveStatus = ReceiveStatus = ReceiveStatus.Interrupted;
-                return frame;
+                ReceiveStatus = ReceiveStatus.Interrupted;
+                return buffer;
             }
 
             throw new ZmqSocketException(ErrorProxy.GetLastError());
