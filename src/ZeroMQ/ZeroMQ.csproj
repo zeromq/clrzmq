@@ -79,6 +79,8 @@
     <Compile Include="ZmqException.cs" />
     <Compile Include="ZmqSocket.cs" />
     <Compile Include="ZmqSocketException.cs" />
+    <Compile Include="ZmqVersion.cs" />
+    <Compile Include="ZmqVersionException.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
