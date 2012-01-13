@@ -136,7 +136,7 @@
             _frames.Add(new Frame(frame));
         }
 
-        internal void NormalizeFrames()
+        private void NormalizeFrames()
         {
             if (_frames.Count == 0)
             {

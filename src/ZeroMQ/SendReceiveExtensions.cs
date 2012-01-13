@@ -20,9 +20,7 @@
         /// <exception cref="NotSupportedException">The current socket type does not support Receive operations.</exception>
         public static Frame ReceiveFrame(this ZmqSocket socket)
         {
-            VerifySocket(socket);
-
-            return socket.ReceiveFrame(null);
+            return ReceiveFrame(socket, null);
         }
 
         /// <summary>
@@ -39,9 +37,7 @@
         /// <exception cref="NotSupportedException">The current socket type does not support Receive operations.</exception>
         public static Frame ReceiveFrame(this ZmqSocket socket, TimeSpan timeout)
         {
-            VerifySocket(socket);
-
-            return socket.ReceiveFrame(null, timeout);
+            return ReceiveFrame(socket, null, timeout);
         }
 
         /// <summary>
@@ -121,12 +117,7 @@
         /// <exception cref="NotSupportedException">The current socket type does not support Send operations.</exception>
         public static SendStatus SendFrame(this ZmqSocket socket, Frame frame)
         {
-            VerifySocket(socket);
-            VerifyFrame(frame);
-
-            socket.Send(frame.Buffer, frame.MessageSize, frame.HasMore ? SocketFlags.SendMore : SocketFlags.None);
-
-            return socket.SendStatus;
+            return SendFrame(socket, frame, TimeSpan.MaxValue);
         }
 
         /// <summary>
@@ -157,9 +148,6 @@
         /// <summary>
         /// Receive all parts of a multi-part message from a remote socket in blocking mode.
         /// </summary>
-        /// <remarks>
-        /// This overload will receive all available data in all available message-parts.
-        /// </remarks>
         /// <param name="socket">A <see cref="ZmqSocket"/> object.</param>
         /// <returns>A <see cref="ZmqMessage"/> containing a collection of <see cref="Frame"/>s received from the remote endpoint.</returns>
         /// <exception cref="ZmqSocketException">An error occurred receiving data from a remote endpoint.</exception>
@@ -167,16 +155,13 @@
         /// <exception cref="NotSupportedException">The current socket type does not support Receive operations.</exception>
         public static ZmqMessage ReceiveMessage(this ZmqSocket socket)
         {
-            return socket.ReceiveMessage(new ZmqMessage());
+            return ReceiveMessage(socket, new ZmqMessage());
         }
 
         /// <summary>
         /// Receive all parts of a multi-part message from a remote socket in blocking mode
         /// and append them to a given message.
         /// </summary>
-        /// <remarks>
-        /// This overload will receive all available data in all available message-parts.
-        /// </remarks>
         /// <param name="socket">A <see cref="ZmqSocket"/> object.</param>
         /// <param name="message">The <see cref="ZmqMessage"/> to which message-parts will be appended.</param>
         /// <returns>The supplied <see cref="ZmqMessage"/> with newly received <see cref="Frame"/> objects appended.</returns>
@@ -186,6 +171,46 @@
         /// <exception cref="NotSupportedException">The current socket type does not support Receive operations.</exception>
         public static ZmqMessage ReceiveMessage(this ZmqSocket socket, ZmqMessage message)
         {
+            return ReceiveMessage(socket, message, TimeSpan.MaxValue);
+        }
+
+        /// <summary>
+        /// Receive all parts of a multi-part message from a remote socket in non-blocking mode.
+        /// </summary>
+        /// <remarks>
+        /// The <paramref name="frameTimeout"/> will be used for each underlying Receive operation. If the timeout
+        /// elapses before the last message is received, an incomplete message will be returned. Use the
+        /// <see cref="ReceiveMessage(ZeroMQ.ZmqSocket,ZeroMQ.ZmqMessage,System.TimeSpan)"/> overload to continue
+        /// appending message-parts if the returned <see cref="ZmqMessage"/> has its <see cref="ZmqMessage.IsComplete"/>
+        /// property set to false.
+        /// </remarks>
+        /// <param name="socket">A <see cref="ZmqSocket"/> object.</param>
+        /// <param name="frameTimeout">A <see cref="TimeSpan"/> specifying the receive timeout for each frame.</param>
+        /// <returns>A <see cref="ZmqMessage"/> containing newly received <see cref="Frame"/> objects.</returns>
+        /// <exception cref="ZmqSocketException">An error occurred receiving data from a remote endpoint.</exception>
+        /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
+        /// <exception cref="NotSupportedException">The current socket type does not support Receive operations.</exception>
+        public static ZmqMessage ReceiveMessage(this ZmqSocket socket, TimeSpan frameTimeout)
+        {
+            return ReceiveMessage(socket, new ZmqMessage(), frameTimeout);
+        }
+
+        /// <summary>
+        /// Receive all parts of a multi-part message from a remote socket in non-blocking mode.
+        /// </summary>
+        /// <remarks>
+        /// The <paramref name="frameTimeout"/> will be used for each underlying Receive operation. If the timeout
+        /// elapses before the last message is received, an incomplete message will be returned.
+        /// </remarks>
+        /// <param name="socket">A <see cref="ZmqSocket"/> object.</param>
+        /// <param name="message">The <see cref="ZmqMessage"/> to which message-parts will be appended.</param>
+        /// <param name="frameTimeout">A <see cref="TimeSpan"/> specifying the receive timeout for each frame.</param>
+        /// <returns>A <see cref="ZmqMessage"/> containing newly received <see cref="Frame"/> objects.</returns>
+        /// <exception cref="ZmqSocketException">An error occurred receiving data from a remote endpoint.</exception>
+        /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
+        /// <exception cref="NotSupportedException">The current socket type does not support Receive operations.</exception>
+        public static ZmqMessage ReceiveMessage(this ZmqSocket socket, ZmqMessage message, TimeSpan frameTimeout)
+        {
             VerifySocket(socket);
             VerifyMessage(message);
 
@@ -193,13 +218,14 @@
 
             do
             {
-                frame = socket.ReceiveFrame();
+                frame = socket.ReceiveFrame(frameTimeout);
 
-                message.AppendFrameRaw(frame);
+                if (frame.ReceiveStatus == ReceiveStatus.Received)
+                {
+                    message.AppendFrameRaw(frame);
+                }
             }
-            while (frame.HasMore);
-
-            message.NormalizeFrames();
+            while (frame.ReceiveStatus == ReceiveStatus.Received && frame.HasMore);
 
             return message;
         }
@@ -211,6 +237,7 @@
         /// <param name="message">A <see cref="ZmqMessage"/> that contains the message parts to be sent.</param>
         /// <returns>A <see cref="SendStatus"/> describing the outcome of the send operation.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="message"/> is null.</exception>
+        /// <exception cref="ArgumentException"><paramref name="message"/> is incomplete.</exception>
         /// <exception cref="ZmqSocketException">An error occurred sending data to a remote endpoint.</exception>
         /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
         /// <exception cref="NotSupportedException">The current socket type does not support Send operations.</exception>
@@ -222,6 +249,11 @@
             if (message.IsEmpty)
             {
                 return SendStatus.Sent;
+            }
+
+            if (!message.IsComplete)
+            {
+                throw new ArgumentException("Unable to send an incomplete message. Ensure HasMore on the last Frame is set to 'false'.", "message");
             }
 
             foreach (Frame frame in message)
