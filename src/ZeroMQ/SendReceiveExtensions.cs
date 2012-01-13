@@ -167,18 +167,39 @@
         /// <exception cref="NotSupportedException">The current socket type does not support Receive operations.</exception>
         public static ZmqMessage ReceiveMessage(this ZmqSocket socket)
         {
+            return socket.ReceiveMessage(new ZmqMessage());
+        }
+
+        /// <summary>
+        /// Receive all parts of a multi-part message from a remote socket in blocking mode
+        /// and append them to a given message.
+        /// </summary>
+        /// <remarks>
+        /// This overload will receive all available data in all available message-parts.
+        /// </remarks>
+        /// <param name="socket">A <see cref="ZmqSocket"/> object.</param>
+        /// <param name="message">The <see cref="ZmqMessage"/> to which message-parts will be appended.</param>
+        /// <returns>The supplied <see cref="ZmqMessage"/> with newly received <see cref="Frame"/> objects appended.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="message"/> is null.</exception>
+        /// <exception cref="ZmqSocketException">An error occurred receiving data from a remote endpoint.</exception>
+        /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
+        /// <exception cref="NotSupportedException">The current socket type does not support Receive operations.</exception>
+        public static ZmqMessage ReceiveMessage(this ZmqSocket socket, ZmqMessage message)
+        {
             VerifySocket(socket);
+            VerifyMessage(message);
 
             Frame frame;
-            var message = new ZmqMessage();
 
             do
             {
                 frame = socket.ReceiveFrame();
 
-                message.AppendFrame(frame);
+                message.AppendFrameRaw(frame);
             }
             while (frame.HasMore);
+
+            message.NormalizeFrames();
 
             return message;
         }
@@ -198,7 +219,7 @@
             VerifySocket(socket);
             VerifyMessage(message);
 
-            if (message.FrameCount == 0)
+            if (message.IsEmpty)
             {
                 return SendStatus.Sent;
             }

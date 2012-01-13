@@ -15,8 +15,7 @@
         {
             senderAction = req =>
             {
-                sendResult1 = req.SendFrame(Messages.MultiFirst);
-                sendResult2 = req.SendFrame(Messages.MultiLast);
+                sendResult1 = sendResult2 = req.SendMessage(new ZmqMessage(new[] { Messages.MultiFirst, Messages.MultiLast }));
             };
 
             receiverAction = rep =>
@@ -28,5 +27,17 @@
         Because of = StartThreads;
 
         Behaves_like<CompleteMessageReceived> successfully_received_single_message;
+
+        It should_be_a_complete_message = () =>
+            message.IsComplete.ShouldBeTrue();
+
+        It should_not_be_an_empty_message = () =>
+            message.IsEmpty.ShouldBeFalse();
+
+        It should_contain_the_correct_number_of_frames = () =>
+            message.FrameCount.ShouldEqual(2);
+
+        It should_contain_the_correct_number_of_bytes = () =>
+            message.TotalSize.ShouldEqual(Messages.MultiFirst.MessageSize + Messages.MultiLast.MessageSize);
     }
 }
