@@ -6,7 +6,7 @@
     using ZeroMQ.Interop;
 
     /// <summary>
-    /// The exception that is thrown when a ZeroMQ socket error occurs.
+    /// The exception that is thrown when a ZeroMQ device error occurs.
     /// </summary>
     [Serializable]
     public class ZmqDeviceException : ZmqException
