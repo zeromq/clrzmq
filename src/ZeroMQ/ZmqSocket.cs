@@ -490,7 +490,7 @@
         /// <exception cref="NotSupportedException">The current socket type does not support Send operations.</exception>
         public int Send(byte[] buffer, int size, SocketFlags flags, TimeSpan timeout)
         {
-            return timeout == TimeSpan.Zero
+            return timeout == TimeSpan.MaxValue
                        ? Send(buffer, size, flags & ~SocketFlags.DontWait)
                        : ExecuteWithTimeout(() => Send(buffer, size, flags | SocketFlags.DontWait), timeout);
         }
