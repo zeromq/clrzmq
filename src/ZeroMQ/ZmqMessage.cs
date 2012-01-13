@@ -3,6 +3,7 @@
     using System;
     using System.Collections;
     using System.Collections.Generic;
+    using System.Linq;
 
     /// <summary>
     /// A single or multi-part message sent or received via a <see cref="ZmqSocket"/>.
@@ -39,11 +40,36 @@
         }
 
         /// <summary>
+        /// Gets a value indicating whether the current message is complete
+        /// (i.e. no more message parts follow the last part of this message).
+        /// </summary>
+        public bool IsComplete
+        {
+            get { return _frames.Count > 0 && !_frames.Last().HasMore; }
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether the current message is empty.
+        /// </summary>
+        public bool IsEmpty
+        {
+            get { return _frames.Count == 0; }
+        }
+
+        /// <summary>
         /// Gets the number of <see cref="Frame"/> objects contained by this message.
         /// </summary>
         public int FrameCount
         {
             get { return _frames.Count; }
+        }
+
+        /// <summary>
+        /// Gets the total number of bytes in this message.
+        /// </summary>
+        public int TotalSize
+        {
+            get { return _frames.Sum(f => f.MessageSize); }
         }
 
         /// <summary>
@@ -69,12 +95,7 @@
         /// <exception cref="ArgumentNullException"><paramref name="frame"/> is null.</exception>
         public void AppendFrame(Frame frame)
         {
-            if (frame == null)
-            {
-                throw new ArgumentNullException("frame");
-            }
-
-            _frames.Add(new Frame(frame));
+            AppendFrameRaw(frame);
 
             NormalizeFrames();
         }
@@ -105,7 +126,17 @@
             return GetEnumerator();
         }
 
-        private void NormalizeFrames()
+        internal void AppendFrameRaw(Frame frame)
+        {
+            if (frame == null)
+            {
+                throw new ArgumentNullException("frame");
+            }
+
+            _frames.Add(new Frame(frame));
+        }
+
+        internal void NormalizeFrames()
         {
             if (_frames.Count == 0)
             {
