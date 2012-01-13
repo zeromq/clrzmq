@@ -1,7 +1,6 @@
 ﻿namespace ZeroMQ.AcceptanceTests.DeviceSpecs
 {
     using System;
-    using System.Collections.Generic;
 
     using Machine.Specifications;
 
@@ -59,7 +58,7 @@
     [Subject("Streamer")]
     class when_using_streamer_device_to_send_a_multipart_message_in_blocking_mode : using_streamer_device
     {
-        protected static List<Frame> messages;
+        protected static ZmqMessage message;
         protected static SendStatus sendResult1;
         protected static SendStatus sendResult2;
 
@@ -73,19 +72,19 @@
 
             receiverAction = rep =>
             {
-                messages = new List<Frame> { rep.ReceiveFrame(), rep.ReceiveFrame() };
+                message = rep.ReceiveMessage();
             };
         };
 
         Because of = StartThreads;
 
-        Behaves_like<MultipleMessagesReceived> successfully_sent_multi_part_message;
+        Behaves_like<CompleteMessageReceived> successfully_sent_multi_part_message;
     }
 
     [Subject("Streamer")]
     class when_using_streamer_device_to_send_a_multipart_message_with_an_ample_timeout : using_streamer_device
     {
-        protected static List<Frame> messages;
+        protected static ZmqMessage message;
         protected static SendStatus sendResult1;
         protected static SendStatus sendResult2;
 
@@ -99,17 +98,17 @@
 
             receiverAction = rep =>
             {
-                messages = new List<Frame>
+                message = new ZmqMessage(new[]
                 {
                     rep.ReceiveFrame(TimeSpan.FromMilliseconds(2000)),
                     rep.ReceiveFrame(TimeSpan.FromMilliseconds(2000))
-                };
+                });
             };
         };
 
         Because of = StartThreads;
 
-        Behaves_like<MultipleMessagesReceived> sends_multi_part_message_successfully;
+        Behaves_like<CompleteMessageReceived> sends_multi_part_message_successfully;
     }
 
     abstract class using_streamer_device : using_threaded_device<StreamerDevice>

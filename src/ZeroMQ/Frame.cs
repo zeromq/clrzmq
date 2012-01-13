@@ -48,6 +48,14 @@
             MessageSize = length;
         }
 
+        internal Frame(Frame frame)
+        {
+            Buffer = frame.Buffer;
+            HasMore = frame.HasMore;
+            MessageSize = frame.MessageSize;
+            ReceiveStatus = frame.ReceiveStatus;
+        }
+
         /// <summary>
         /// Gets the underlying frame data buffer.
         /// </summary>

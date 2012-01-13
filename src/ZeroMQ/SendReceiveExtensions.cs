@@ -154,6 +154,63 @@
             return socket.SendStatus;
         }
 
+        /// <summary>
+        /// Receive all parts of a multi-part message from a remote socket in blocking mode.
+        /// </summary>
+        /// <remarks>
+        /// This overload will receive all available data in all available message-parts.
+        /// </remarks>
+        /// <param name="socket">A <see cref="ZmqSocket"/> object.</param>
+        /// <returns>A <see cref="ZmqMessage"/> containing a collection of <see cref="Frame"/>s received from the remote endpoint.</returns>
+        /// <exception cref="ZmqSocketException">An error occurred receiving data from a remote endpoint.</exception>
+        /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
+        /// <exception cref="NotSupportedException">The current socket type does not support Receive operations.</exception>
+        public static ZmqMessage ReceiveMessage(this ZmqSocket socket)
+        {
+            VerifySocket(socket);
+
+            Frame frame;
+            var message = new ZmqMessage();
+
+            do
+            {
+                frame = socket.ReceiveFrame();
+
+                message.AppendFrame(frame);
+            }
+            while (frame.HasMore);
+
+            return message;
+        }
+
+        /// <summary>
+        /// Queue a multi-part message to be sent by the socket in blocking mode.
+        /// </summary>
+        /// <param name="socket">A <see cref="ZmqSocket"/> object.</param>
+        /// <param name="message">A <see cref="ZmqMessage"/> that contains the message parts to be sent.</param>
+        /// <returns>A <see cref="SendStatus"/> describing the outcome of the send operation.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="message"/> is null.</exception>
+        /// <exception cref="ZmqSocketException">An error occurred sending data to a remote endpoint.</exception>
+        /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
+        /// <exception cref="NotSupportedException">The current socket type does not support Send operations.</exception>
+        public static SendStatus SendMessage(this ZmqSocket socket, ZmqMessage message)
+        {
+            VerifySocket(socket);
+            VerifyMessage(message);
+
+            if (message.FrameCount == 0)
+            {
+                return SendStatus.Sent;
+            }
+
+            foreach (Frame frame in message)
+            {
+                socket.SendFrame(frame);
+            }
+
+            return socket.SendStatus;
+        }
+
         private static void SetFrameProperties(Frame frame, ZmqSocket socket, int size)
         {
             if (size >= 0)
@@ -170,6 +227,14 @@
             if (socket == null)
             {
                 throw new ArgumentNullException("socket");
+            }
+        }
+
+        private static void VerifyMessage(ZmqMessage message)
+        {
+            if (message == null)
+            {
+                throw new ArgumentNullException("message");
             }
         }
 

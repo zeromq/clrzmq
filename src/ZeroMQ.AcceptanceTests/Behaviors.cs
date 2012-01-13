@@ -1,8 +1,5 @@
-﻿#pragma warning disable 649
-
-namespace ZeroMQ.AcceptanceTests
+﻿namespace ZeroMQ.AcceptanceTests
 {
-    using System.Collections.Generic;
     using System.Linq;
     using System.Text;
 
@@ -75,9 +72,9 @@ namespace ZeroMQ.AcceptanceTests
     }
 
     [Behaviors]
-    class MultipleMessagesReceived
+    class CompleteMessageReceived
     {
-        protected static List<Frame> messages;
+        protected static ZmqMessage message;
         protected static SendStatus sendResult1;
         protected static SendStatus sendResult2;
 
@@ -88,19 +85,19 @@ namespace ZeroMQ.AcceptanceTests
             sendResult2.ShouldEqual(SendStatus.Sent);
 
         It should_receive_all_message_parts = () =>
-            messages.Count.ShouldEqual(2);
+            message.FrameCount.ShouldEqual(2);
 
         It should_contain_the_correct_first_message_data = () =>
-            messages.First().ShouldEqual(Messages.MultiFirst);
+            message.First().ShouldEqual(Messages.MultiFirst);
 
         It should_have_more_parts_after_the_first_message = () =>
-            messages.First().HasMore.ShouldBeTrue();
+            message.First().HasMore.ShouldBeTrue();
 
         It should_contain_the_correct_second_message_data = () =>
-            messages.Last().ShouldEqual(Messages.MultiLast);
+            message.Last().ShouldEqual(Messages.MultiLast);
 
         It should_not_have_more_parts_after_the_second_message = () =>
-            messages.Last().HasMore.ShouldBeFalse();
+            message.Last().HasMore.ShouldBeFalse();
     }
 
     [Behaviors]
@@ -166,5 +163,3 @@ namespace ZeroMQ.AcceptanceTests
             message2.HasMore.ShouldBeFalse();
     }
 }
-
-#pragma warning restore 649

@@ -1,15 +1,13 @@
 ﻿namespace ZeroMQ.AcceptanceTests.ZmqSocketSpecs
 {
-    using System.Collections.Generic;
-
     using Machine.Specifications;
 
     using ZeroMQ.AcceptanceTests;
 
-    [Subject("SendMore/ReceiveAll")]
+    [Subject("SendMessage/ReceiveMessage")]
     class when_transferring_multipart_messages : using_threaded_req_rep
     {
-        protected static List<Frame> messages;
+        protected static ZmqMessage message;
         protected static SendStatus sendResult1;
         protected static SendStatus sendResult2;
 
@@ -23,12 +21,12 @@
 
             receiverAction = rep =>
             {
-                messages = new List<Frame> { rep.ReceiveFrame(), rep.ReceiveFrame() };
+                message = rep.ReceiveMessage();
             };
         };
 
         Because of = StartThreads;
 
-        Behaves_like<MultipleMessagesReceived> successfully_received_single_message;
+        Behaves_like<CompleteMessageReceived> successfully_received_single_message;
     }
 }
