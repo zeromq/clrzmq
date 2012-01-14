@@ -25,9 +25,7 @@
                 throw new ArgumentNullException("buffer");
             }
 
-            Buffer = new byte[buffer.Length];
-            buffer.CopyTo(Buffer, 0);
-
+            Buffer = buffer;
             MessageSize = Buffer.Length;
         }
 
@@ -49,8 +47,13 @@
         }
 
         internal Frame(Frame frame)
+            : this(frame, frame.Buffer)
         {
-            Buffer = frame.Buffer;
+        }
+
+        internal Frame(Frame frame, byte[] buffer)
+        {
+            Buffer = buffer;
             HasMore = frame.HasMore;
             MessageSize = frame.MessageSize;
             ReceiveStatus = frame.ReceiveStatus;
@@ -108,6 +111,46 @@
         public static implicit operator byte[](Frame frame)
         {
             return frame.Buffer;
+        }
+
+        /// <summary>
+        /// Create a copy of the supplied buffer and store it in a <see cref="Frame"/>.
+        /// </summary>
+        /// <param name="buffer">The <see cref="byte"/> array to copy.</param>
+        /// <returns>A <see cref="Frame"/> containing a copy of <paramref name="buffer"/>.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="buffer"/> is null.</exception>
+        public static Frame Copy(byte[] buffer)
+        {
+            if (buffer == null)
+            {
+                throw new ArgumentNullException("buffer");
+            }
+
+            var copy = new Frame(buffer.Length);
+
+            System.Buffer.BlockCopy(buffer, 0, copy.Buffer, 0, buffer.Length);
+
+            return copy;
+        }
+
+        /// <summary>
+        /// Create a copy of the supplied <see cref="Frame"/>.
+        /// </summary>
+        /// <param name="frame">The <see cref="Frame"/> to copy.</param>
+        /// <returns>A <see cref="Frame"/> containing a copy of <paramref name="frame"/>.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="frame"/> is null.</exception>
+        public static Frame Copy(Frame frame)
+        {
+            if (frame == null)
+            {
+                throw new ArgumentNullException("frame");
+            }
+
+            var copy = new Frame(frame, new byte[frame.BufferSize]);
+
+            System.Buffer.BlockCopy(frame.Buffer, 0, copy.Buffer, 0, frame.BufferSize);
+
+            return copy;
         }
 
         /// <summary>
