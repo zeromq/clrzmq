@@ -424,7 +424,7 @@
         }
 
         /// <summary>
-        /// Queue a single-part (or final multi-part) message buffer to be sent by the socket in blocking mode.
+        /// Queue a message buffer to be sent by the socket in blocking mode.
         /// </summary>
         /// <param name="buffer">A <see cref="byte"/> array that contains the message to be sent.</param>
         /// <param name="size">The size of the message to send.</param>
@@ -473,8 +473,7 @@
         }
 
         /// <summary>
-        /// Queue a single-part (or final multi-part) message buffer to be sent by the socket in
-        /// non-blocking mode with a specified timeout.
+        /// Queue a message buffer to be sent by the socket in non-blocking mode with a specified timeout.
         /// </summary>
         /// <param name="buffer">A <see cref="byte"/> array that contains the message to be sent.</param>
         /// <param name="size">The size of the message to send.</param>

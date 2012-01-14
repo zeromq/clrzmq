@@ -8,6 +8,93 @@
     public static class SendReceiveExtensions
     {
         /// <summary>
+        /// Queue a single-part (or final multi-part) message buffer to be sent by the socket in blocking mode.
+        /// </summary>
+        /// <remarks>
+        /// This method assumes that the message fills the entire buffer.
+        /// </remarks>
+        /// <param name="socket">A <see cref="ZmqSocket"/> object.</param>
+        /// <param name="buffer">A <see cref="byte"/> array that contains the message to be sent.</param>
+        /// <returns>The number of bytes sent by the socket.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="buffer"/> is null.</exception>
+        /// <exception cref="ZmqSocketException">An error occurred sending data to a remote endpoint.</exception>
+        /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
+        /// <exception cref="NotSupportedException">The current socket type does not support Send operations.</exception>
+        public static int Send(this ZmqSocket socket, byte[] buffer)
+        {
+            VerifySocket(socket);
+
+            return socket.Send(buffer, buffer.Length, SocketFlags.None);
+        }
+
+        /// <summary>
+        /// Queue a single-part (or final multi-part) message buffer to be sent by the socket in
+        /// non-blocking mode with a specified timeout.
+        /// </summary>
+        /// <remarks>
+        /// This method assumes that the message fills the entire buffer.
+        /// </remarks>
+        /// <param name="socket">A <see cref="ZmqSocket"/> object.</param>
+        /// <param name="buffer">A <see cref="byte"/> array that contains the message to be sent.</param>
+        /// <param name="timeout">A <see cref="TimeSpan"/> specifying the send timeout.</param>
+        /// <returns>The number of bytes sent by the socket.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="buffer"/> is null.</exception>
+        /// <exception cref="ZmqSocketException">An error occurred sending data to a remote endpoint.</exception>
+        /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
+        /// <exception cref="NotSupportedException">The current socket type does not support Send operations.</exception>
+        public static int Send(this ZmqSocket socket, byte[] buffer, TimeSpan timeout)
+        {
+            VerifySocket(socket);
+
+            return socket.Send(buffer, buffer.Length, SocketFlags.None, timeout);
+        }
+
+        /// <summary>
+        /// Queue a non-final message-part buffer to be sent by the socket in blocking mode.
+        /// </summary>
+        /// <remarks>
+        /// This method assumes that the message fills the entire buffer. The final message-part in
+        /// this series must be sent with <see cref="Send(ZeroMQ.ZmqSocket,byte[])"/> or another overload
+        /// that does not specify <see cref="SocketFlags.SendMore"/>.
+        /// </remarks>
+        /// <param name="socket">A <see cref="ZmqSocket"/> object.</param>
+        /// <param name="buffer">A <see cref="byte"/> array that contains the message to be sent.</param>
+        /// <returns>The number of bytes sent by the socket.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="buffer"/> is null.</exception>
+        /// <exception cref="ZmqSocketException">An error occurred sending data to a remote endpoint.</exception>
+        /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
+        /// <exception cref="NotSupportedException">The current socket type does not support Send operations.</exception>
+        public static int SendMore(this ZmqSocket socket, byte[] buffer)
+        {
+            VerifySocket(socket);
+
+            return socket.Send(buffer, buffer.Length, SocketFlags.SendMore);
+        }
+
+        /// <summary>
+        /// Queue a non-final message-part buffer to be sent by the socket in non-blocking mode with a specified timeout.
+        /// </summary>
+        /// <remarks>
+        /// This method assumes that the message fills the entire buffer. The final message-part in
+        /// this series must be sent with <see cref="Send(ZeroMQ.ZmqSocket,byte[],TimeSpan)"/> or another overload
+        /// that does not specify <see cref="SocketFlags.SendMore"/>.
+        /// </remarks>
+        /// <param name="socket">A <see cref="ZmqSocket"/> object.</param>
+        /// <param name="buffer">A <see cref="byte"/> array that contains the message to be sent.</param>
+        /// <param name="timeout">A <see cref="TimeSpan"/> specifying the send timeout.</param>
+        /// <returns>The number of bytes sent by the socket.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="buffer"/> is null.</exception>
+        /// <exception cref="ZmqSocketException">An error occurred sending data to a remote endpoint.</exception>
+        /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
+        /// <exception cref="NotSupportedException">The current socket type does not support Send operations.</exception>
+        public static int SendMore(this ZmqSocket socket, byte[] buffer, TimeSpan timeout)
+        {
+            VerifySocket(socket);
+
+            return socket.Send(buffer, buffer.Length, SocketFlags.SendMore, timeout);
+        }
+
+        /// <summary>
         /// Receive a single frame from a remote socket in blocking mode.
         /// </summary>
         /// <remarks>
