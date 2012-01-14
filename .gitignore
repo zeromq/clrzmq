@@ -3,6 +3,7 @@ bin/
 obj/
 build/
 publish/
+perf/
 
 # Native libraries
 lib/**/libzmq.dll
