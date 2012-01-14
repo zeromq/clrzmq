@@ -222,7 +222,7 @@
 
                 if (frame.ReceiveStatus == ReceiveStatus.Received)
                 {
-                    message.AppendFrameRaw(frame);
+                    message.AppendShallowCopy(frame);
                 }
             }
             while (frame.ReceiveStatus == ReceiveStatus.Received && frame.HasMore);

@@ -40,6 +40,24 @@
         }
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="ZmqMessage"/> class.
+        /// Creates a message that contains the given <see cref="byte"/> arrays converted to <see cref="Frame"/>s.
+        /// </summary>
+        /// <param name="buffers">A collection of <see cref="byte"/> arrays to be stored by this <see cref="ZmqMessage"/>.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="buffers"/> is null.</exception>
+        public ZmqMessage(IEnumerable<byte[]> buffers)
+        {
+            if (buffers == null)
+            {
+                throw new ArgumentNullException("buffers");
+            }
+
+            _frames = buffers.Select(buf => new Frame(buf)).ToList();
+
+            NormalizeFrames();
+        }
+
+        /// <summary>
         /// Gets a value indicating whether the current message is complete
         /// (i.e. no more message parts follow the last part of this message).
         /// </summary>
@@ -93,9 +111,25 @@
         /// </remarks>
         /// <param name="frame">A <see cref="Frame"/> object to append to this <see cref="ZmqMessage"/>.</param>
         /// <exception cref="ArgumentNullException"><paramref name="frame"/> is null.</exception>
-        public void AppendFrame(Frame frame)
+        public void Append(Frame frame)
         {
-            AppendFrameRaw(frame);
+            AppendShallowCopy(frame);
+
+            NormalizeFrames();
+        }
+
+        /// <summary>
+        /// Adds the given <see cref="byte"/> array to the end of the current <see cref="ZmqMessage"/>
+        /// as a <see cref="Frame"/>.
+        /// </summary>
+        /// <remarks>
+        /// Updates the <see cref="Frame.HasMore"/> property of the preceding frames accordingly.
+        /// </remarks>
+        /// <param name="buffer">A <see cref="byte"/> array to append to this <see cref="ZmqMessage"/>.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="buffer"/> is null.</exception>
+        public void Append(byte[] buffer)
+        {
+            _frames.Add(new Frame(buffer));
 
             NormalizeFrames();
         }
@@ -108,7 +142,9 @@
         /// </remarks>
         public void AppendEmptyFrame()
         {
-            AppendFrame(new Frame(0));
+            _frames.Add(new Frame(0));
+
+            NormalizeFrames();
         }
 
         /// <summary>
@@ -126,7 +162,7 @@
             return GetEnumerator();
         }
 
-        internal void AppendFrameRaw(Frame frame)
+        internal void AppendShallowCopy(Frame frame)
         {
             if (frame == null)
             {
