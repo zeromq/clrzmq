@@ -10,8 +10,15 @@
     /// </remarks>
     public class StreamerDevice : ThreadDevice
     {
-        private readonly string _frontendBindAddr;
-        private readonly string _backendBindAddr;
+        /// <summary>
+        /// The frontend <see cref="SocketType"/> for a streamer device.
+        /// </summary>
+        public const SocketType FrontendType = SocketType.PULL;
+
+        /// <summary>
+        /// The backend <see cref="SocketType"/> for a streamer device.
+        /// </summary>
+        public const SocketType BackendType = SocketType.PUSH;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="StreamerDevice"/> class.
@@ -20,19 +27,19 @@
         /// <param name="frontendBindAddr">The address used to bind the frontend socket.</param>
         /// <param name="backendBindAddr">The endpoint used to bind the backend socket.</param>
         public StreamerDevice(ZmqContext context, string frontendBindAddr, string backendBindAddr)
-            : base(context.CreateSocket(SocketType.PULL), context.CreateSocket(SocketType.PUSH))
+            : this(context)
         {
-            _frontendBindAddr = frontendBindAddr;
-            _backendBindAddr = backendBindAddr;
+            FrontendSetup.Bind(frontendBindAddr);
+            BackendSetup.Bind(backendBindAddr);
         }
 
         /// <summary>
-        /// Binds the frontend socket and connects the backend socket to the specified addresses.
+        /// Initializes a new instance of the <see cref="StreamerDevice"/> class.
         /// </summary>
-        protected override void InitializeSockets()
+        /// <param name="context">The <see cref="ZmqContext"/> to use when creating the sockets.</param>
+        public StreamerDevice(ZmqContext context)
+            : base(context.CreateSocket(FrontendType), context.CreateSocket(BackendType))
         {
-            FrontendSocket.Bind(_frontendBindAddr);
-            BackendSocket.Bind(_backendBindAddr);
         }
 
         /// <summary>

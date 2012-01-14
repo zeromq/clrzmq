@@ -10,8 +10,15 @@
     /// </remarks>
     public class ForwarderDevice : ThreadDevice
     {
-        private readonly string _frontendBindAddr;
-        private readonly string _backendBindAddr;
+        /// <summary>
+        /// The frontend <see cref="SocketType"/> for a forwarder device.
+        /// </summary>
+        public const SocketType FrontendType = SocketType.SUB;
+
+        /// <summary>
+        /// The backend <see cref="SocketType"/> for a forwarder device.
+        /// </summary>
+        public const SocketType BackendType = SocketType.PUB;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ForwarderDevice"/> class.
@@ -20,36 +27,19 @@
         /// <param name="frontendBindAddr">The address used to bind the frontend socket.</param>
         /// <param name="backendBindAddr">The endpoint used to bind the backend socket.</param>
         public ForwarderDevice(ZmqContext context, string frontendBindAddr, string backendBindAddr)
-            : base(context.CreateSocket(SocketType.SUB), context.CreateSocket(SocketType.PUB))
+            : this(context)
         {
-            _frontendBindAddr = frontendBindAddr;
-            _backendBindAddr = backendBindAddr;
+            FrontendSetup.Bind(frontendBindAddr);
+            BackendSetup.Bind(backendBindAddr);
         }
 
         /// <summary>
-        /// Subscribe to all messages on the frontend socket.
+        /// Initializes a new instance of the <see cref="ForwarderDevice"/> class.
         /// </summary>
-        public void SubscribeAll()
+        /// <param name="context">The <see cref="ZmqContext"/> to use when creating the sockets.</param>
+        public ForwarderDevice(ZmqContext context)
+            : base(context.CreateSocket(FrontendType), context.CreateSocket(BackendType))
         {
-            FrontendSocket.SubscribeAll();
-        }
-
-        /// <summary>
-        /// Subscribe to messages that begin with a specified prefix on the frontend socket.
-        /// </summary>
-        /// <param name="prefix">Prefix for subscribed messages.</param>
-        public void Subscribe(byte[] prefix)
-        {
-            FrontendSocket.Subscribe(prefix);
-        }
-
-        /// <summary>
-        /// Binds the frontend socket and connects the backend socket to the specified addresses.
-        /// </summary>
-        protected override void InitializeSockets()
-        {
-            FrontendSocket.Bind(_frontendBindAddr);
-            BackendSocket.Bind(_backendBindAddr);
         }
 
         /// <summary>

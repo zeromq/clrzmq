@@ -12,8 +12,15 @@
     /// </remarks>
     public class QueueDevice : ThreadDevice
     {
-        private readonly string _frontendBindAddr;
-        private readonly string _backendBindAddr;
+        /// <summary>
+        /// The frontend <see cref="SocketType"/> for a queue device.
+        /// </summary>
+        public const SocketType FrontendType = SocketType.XREP;
+
+        /// <summary>
+        /// The backend <see cref="SocketType"/> for a queue device.
+        /// </summary>
+        public const SocketType BackendType = SocketType.XREQ;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="QueueDevice"/> class.
@@ -22,19 +29,19 @@
         /// <param name="frontendBindAddr">The endpoint used to bind the frontend socket.</param>
         /// <param name="backendBindAddr">The endpoint used to bind the backend socket.</param>
         public QueueDevice(ZmqContext context, string frontendBindAddr, string backendBindAddr)
-            : base(context.CreateSocket(SocketType.XREP), context.CreateSocket(SocketType.XREQ))
+            : this(context)
         {
-            _frontendBindAddr = frontendBindAddr;
-            _backendBindAddr = backendBindAddr;
+            FrontendSetup.Bind(frontendBindAddr);
+            BackendSetup.Bind(backendBindAddr);
         }
 
         /// <summary>
-        /// Binds the frontend socket and connects the backend socket to the specified addresses.
+        /// Initializes a new instance of the <see cref="QueueDevice"/> class.
         /// </summary>
-        protected override void InitializeSockets()
+        /// <param name="context">The <see cref="ZmqContext"/> to use when creating the sockets.</param>
+        public QueueDevice(ZmqContext context)
+            : base(context.CreateSocket(FrontendType), context.CreateSocket(BackendType))
         {
-            FrontendSocket.Bind(_frontendBindAddr);
-            BackendSocket.Bind(_backendBindAddr);
         }
 
         /// <summary>

@@ -16,7 +16,7 @@
 
         Establish context = () =>
         {
-            deviceInit = dev => dev.SubscribeAll();
+            deviceInit = dev => dev.FrontendSetup.SubscribeAll();
             receiverInit = sub => sub.SubscribeAll();
 
             receiverAction = sub =>
@@ -47,7 +47,7 @@
 
         Establish context = () =>
         {
-            deviceInit = dev => dev.SubscribeAll();
+            deviceInit = dev => dev.FrontendSetup.SubscribeAll();
             receiverInit = sub => sub.Subscribe(Messages.PubSubPrefix);
 
             receiverAction = sub =>
@@ -78,7 +78,7 @@
 
         Establish context = () =>
         {
-            deviceInit = dev => dev.Subscribe(Messages.PubSubPrefix);
+            deviceInit = dev => dev.FrontendSetup.Subscribe(Messages.PubSubPrefix);
             receiverInit = sub => sub.SubscribeAll();
 
             receiverAction = sub =>

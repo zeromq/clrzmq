@@ -30,7 +30,6 @@
 
         private volatile bool _isRunning;
 
-        private bool _isInitialized;
         private bool _disposed;
 
         /// <summary>
@@ -56,6 +55,8 @@
 
             FrontendSocket = frontendSocket;
             BackendSocket = backendSocket;
+            FrontendSetup = new DeviceSocketSetup(FrontendSocket);
+            BackendSetup = new DeviceSocketSetup(BackendSocket);
             DoneEvent = new ManualResetEvent(false);
             ReadyEvent = new ManualResetEvent(false);
         }
@@ -75,6 +76,16 @@
         }
 
         /// <summary>
+        /// Gets a <see cref="DeviceSocketSetup"/> for configuring the frontend socket.
+        /// </summary>
+        public DeviceSocketSetup BackendSetup { get; private set; }
+
+        /// <summary>
+        /// Gets a <see cref="DeviceSocketSetup"/> for configuring the backend socket.
+        /// </summary>
+        public DeviceSocketSetup FrontendSetup { get; private set; }
+
+        /// <summary>
         /// Gets a <see cref="ManualResetEvent"/> that can be used to block while the device is running.
         /// </summary>
         public ManualResetEvent DoneEvent { get; private set; }
@@ -85,18 +96,13 @@
         protected ManualResetEvent ReadyEvent { get; private set; }
 
         /// <summary>
-        /// Initializes the frontend and backend sockets. Called automatically when starting the device,
-        /// but will only execute once.
+        /// Initializes the frontend and backend sockets. Called automatically when starting the device.
+        /// If called multiple times, will only execute once.
         /// </summary>
         public void Initialize()
         {
-            if (_isInitialized)
-            {
-                return;
-            }
-
-            InitializeSockets();
-            _isInitialized = true;
+            FrontendSetup.Configure();
+            BackendSetup.Configure();
         }
 
         /// <summary>
@@ -164,14 +170,6 @@
         }
 
         /// <summary>
-        /// Initializes sockets before the device starts.
-        /// </summary>
-        /// <remarks>
-        /// Use this method to Bind, Connect and set socket subscriptions as necessary.
-        /// </remarks>
-        protected abstract void InitializeSockets();
-
-        /// <summary>
         /// Invoked when a message has been received by the frontend socket.
         /// </summary>
         /// <param name="args">A <see cref="SocketEventArgs"/> object containing the poll event args.</param>
@@ -188,7 +186,7 @@
         /// the <see cref="Start"/> method.
         /// </summary>
         /// <remarks>
-        /// Initializes the sockets prior to starting the device with <see cref="InitializeSockets"/>.
+        /// Initializes the sockets prior to starting the device with <see cref="Initialize"/>.
         /// </remarks>
         protected void Run()
         {
@@ -212,6 +210,7 @@
                 {
                     poller.Poll(timeout);
 
+                    // XXX: Is there a better way to notify when the device is actually running?
                     ReadyEvent.Set();
                 }
             }
