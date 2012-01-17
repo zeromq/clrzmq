@@ -156,7 +156,7 @@
         /// <remarks>If using 0MQ 2.x, will use the (deprecated) HWM socket option instead.</remarks>
         public int ReceiveHighWatermark
         {
-            get { return ZmqVersion.Current.IsAtLeast(3) ? GetSocketOptionInt32(SocketOption.RCVHWM) : GetSocketOptionInt32(SocketOption.HWM); }
+            get { return GetSocketOptionInt32(ZmqVersion.Current.IsAtLeast(3) ? SocketOption.RCVHWM : SocketOption.HWM); }
             set { SetSocketOption(ZmqVersion.Current.IsAtLeast(3) ? SocketOption.RCVHWM : SocketOption.HWM, value); }
         }
 
@@ -222,7 +222,7 @@
         /// <remarks>If using 0MQ 2.x, will use the (deprecated) HWM socket option instead.</remarks>
         public int SendHighWatermark
         {
-            get { return ZmqVersion.Current.IsAtLeast(3) ? GetSocketOptionInt32(SocketOption.SNDHWM) : GetSocketOptionInt32(SocketOption.HWM); }
+            get { return GetSocketOptionInt32(ZmqVersion.Current.IsAtLeast(3) ? SocketOption.SNDHWM : SocketOption.HWM); }
             set { SetSocketOption(ZmqVersion.Current.IsAtLeast(3) ? SocketOption.SNDHWM : SocketOption.HWM, value); }
         }
 
