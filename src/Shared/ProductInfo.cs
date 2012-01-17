@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 // associated with an assembly.
 [assembly: AssemblyCompany("iMatix Corporation")]
 [assembly: AssemblyProduct("clrzmq")]
-[assembly: AssemblyCopyright("Copyright © 2011 iMatix Corporation and Contributors")]
+[assembly: AssemblyCopyright("Copyright © 2012 iMatix Corporation and Contributors")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 [assembly: NeutralResourcesLanguage("en")]
