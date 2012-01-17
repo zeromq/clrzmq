@@ -105,9 +105,7 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>xcopy /y /c $(SolutionDir)..\lib\$(PlatformName)\libzmq.dll $(TargetDir)
-rem echo F|xcopy /y /c $(SolutionDir)..\lib\$(PlatformName)\ZeroMQ.Interop.CppCli.dll $(TargetDir)\ZeroMQ.Interop.dll
-echo F|xcopy /y /c $(SolutionDir)ZeroMQ.Interop.PInvoke\bin\$(ConfigurationName)\ZeroMQ.Interop.PInvoke.dll $(TargetDir)\ZeroMQ.Interop.dll</PostBuildEvent>
+    <PostBuildEvent>xcopy /y /c $(SolutionDir)..\lib\$(PlatformName)\libzmq.dll $(TargetDir)</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
