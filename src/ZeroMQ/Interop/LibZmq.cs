@@ -24,6 +24,8 @@
         public static int MinorVersion;
         public static int PatchVersion;
 
+        public static long PollTimeoutRatio;
+
         static LibZmq()
         {
             NativeLib = new UnmanagedLibrary(LibraryName);
@@ -64,11 +66,15 @@
                 zmq_sendmsg = NativeLib.GetUnmanagedFunction<ZmqSendMsgProc>("zmq_sendmsg");
                 zmq_msg_init_data = NativeLib.GetUnmanagedFunction<ZmqMsgInitDataProc>("zmq_msg_init_data");
                 zmq_msg_move = NativeLib.GetUnmanagedFunction<ZmqMsgMoveProc>("zmq_msg_move");
+
+                PollTimeoutRatio = 1;
             }
             else if (MajorVersion == 2)
             {
                 zmq_recvmsg = NativeLib.GetUnmanagedFunction<ZmqRecvMsgProc>("zmq_recv");
                 zmq_sendmsg = NativeLib.GetUnmanagedFunction<ZmqSendMsgProc>("zmq_send");
+
+                PollTimeoutRatio = 1000;
             }
         }
 

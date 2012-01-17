@@ -1,7 +1,17 @@
 ﻿namespace ZeroMQ
 {
+    using System;
+
     internal enum SocketOption
     {
+        // v2 socket options (deprecated)
+        [Obsolete("Not supported in 3.x. Use SNDHWM and RCVHWM instead.")]
+        HWM = 1,
+
+        [Obsolete("Not supported in 3.x. Do not use.")]
+        SWAP = 3,
+
+        // v3 socket options
         AFFINITY = 4,
         IDENTITY = 5,
         SUBSCRIBE = 6,

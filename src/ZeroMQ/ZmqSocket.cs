@@ -153,10 +153,11 @@
         /// </summary>
         /// <exception cref="ZmqSocketException">An error occurred when getting or setting the socket option.</exception>
         /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
+        /// <remarks>If using 0MQ 2.x, will use the (deprecated) HWM socket option instead.</remarks>
         public int ReceiveHighWatermark
         {
-            get { return GetSocketOptionInt32(SocketOption.RCVHWM); }
-            set { SetSocketOption(SocketOption.RCVHWM, value); }
+            get { return ZmqVersion.Current.IsAtLeast(3) ? GetSocketOptionInt32(SocketOption.RCVHWM) : GetSocketOptionInt32(SocketOption.HWM); }
+            set { SetSocketOption(ZmqVersion.Current.IsAtLeast(3) ? SocketOption.RCVHWM : SocketOption.HWM, value); }
         }
 
         /// <summary>
@@ -218,10 +219,11 @@
         /// </summary>
         /// <exception cref="ZmqSocketException">An error occurred when getting or setting the socket option.</exception>
         /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
+        /// <remarks>If using 0MQ 2.x, will use the (deprecated) HWM socket option instead.</remarks>
         public int SendHighWatermark
         {
-            get { return GetSocketOptionInt32(SocketOption.SNDHWM); }
-            set { SetSocketOption(SocketOption.SNDHWM, value); }
+            get { return ZmqVersion.Current.IsAtLeast(3) ? GetSocketOptionInt32(SocketOption.SNDHWM) : GetSocketOptionInt32(SocketOption.HWM); }
+            set { SetSocketOption(ZmqVersion.Current.IsAtLeast(3) ? SocketOption.SNDHWM : SocketOption.HWM, value); }
         }
 
         /// <summary>
@@ -238,12 +240,28 @@
         /// <summary>
         /// Gets or sets the supported socket protocol(s) when using TCP transports. (Default = <see cref="ProtocolType.Ipv4Only"/>).
         /// </summary>
+        /// <exception cref="ZmqVersionException">This socket option was used in ZeroMQ 2.1 or lower.</exception>
         /// <exception cref="ZmqSocketException">An error occurred when getting or setting the socket option.</exception>
         /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
+        /// <remarks>Not supported in 0MQ version 2.</remarks>
         public ProtocolType SupportedProtocol
         {
-            get { return (ProtocolType)GetSocketOptionInt32(SocketOption.IPV4_ONLY); }
-            set { SetSocketOption(SocketOption.IPV4_ONLY, (int)value); }
+            get { return ZmqVersion.OnlyIfAtLeast(3, () => (ProtocolType)GetSocketOptionInt32(SocketOption.IPV4_ONLY)); }
+            set { ZmqVersion.OnlyIfAtLeast(3, () => SetSocketOption(SocketOption.IPV4_ONLY, (int)value)); }
+        }
+
+        /// <summary>
+        /// Gets or sets the disk offload (swap) size for the specified socket. (Default = 0).
+        /// </summary>
+        /// <exception cref="ZmqVersionException">This socket option was used in ZeroMQ 3 or above.</exception>
+        /// <exception cref="ZmqSocketException">An error occurred when getting or setting the socket option.</exception>
+        /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
+        /// <remarks>Not supported in 0MQ version 3.</remarks>
+        [Obsolete("Not supported in 3.x. Will be removed when 0MQ 3.1 is stable.")]
+        public long Swap
+        {
+            get { return ZmqVersion.OnlyIfAtMost(2, () => GetSocketOptionInt64(SocketOption.SWAP)); }
+            set { ZmqVersion.OnlyIfAtMost(2, () => SetSocketOption(SocketOption.SWAP, value)); }
         }
 
         /// <summary>
