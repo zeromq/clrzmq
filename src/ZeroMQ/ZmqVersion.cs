@@ -1,7 +1,6 @@
 ﻿namespace ZeroMQ
 {
     using System;
-    using System.Runtime.InteropServices;
 
     using ZeroMQ.Interop;
 
@@ -10,8 +9,6 @@
     /// </summary>
     public class ZmqVersion
     {
-        private static readonly int SizeofInt32 = Marshal.SizeOf(typeof(int));
-
         private static readonly Lazy<ZmqVersion> CurrentVersion;
 
         static ZmqVersion()
@@ -85,19 +82,7 @@
 
         private static ZmqVersion GetCurrentVersion()
         {
-            IntPtr majorPointer = Marshal.AllocHGlobal(SizeofInt32);
-            IntPtr minorPointer = Marshal.AllocHGlobal(SizeofInt32);
-            IntPtr patchPointer = Marshal.AllocHGlobal(SizeofInt32);
-
-            LibZmq.zmq_version(majorPointer, minorPointer, patchPointer);
-
-            var version = new ZmqVersion(Marshal.ReadInt32(majorPointer), Marshal.ReadInt32(minorPointer), Marshal.ReadInt32(patchPointer));
-
-            Marshal.FreeHGlobal(majorPointer);
-            Marshal.FreeHGlobal(minorPointer);
-            Marshal.FreeHGlobal(patchPointer);
-
-            return version;
+            return new ZmqVersion(LibZmq.MajorVersion, LibZmq.MinorVersion, LibZmq.PatchVersion);
         }
     }
 }

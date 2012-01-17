@@ -20,38 +20,75 @@
 
         private static readonly UnmanagedLibrary NativeLib;
 
+        public static int MajorVersion;
+        public static int MinorVersion;
+        public static int PatchVersion;
+
         static LibZmq()
         {
             NativeLib = new UnmanagedLibrary(LibraryName);
 
-            AssignDelegates();
+            AssignCommonDelegates();
+            GetCurrentVersion();
+            AssignVersionSpecificDelegates();
         }
 
-        private static void AssignDelegates()
+        private static void AssignCommonDelegates()
         {
             zmq_init = NativeLib.GetUnmanagedFunction<ZmqInitProc>("zmq_init");
             zmq_term = NativeLib.GetUnmanagedFunction<ZmqTermProc>("zmq_term");
             zmq_close = NativeLib.GetUnmanagedFunction<ZmqCloseProc>("zmq_close");
             zmq_setsockopt = NativeLib.GetUnmanagedFunction<ZmqSetSockOptProc>("zmq_setsockopt");
             zmq_getsockopt = NativeLib.GetUnmanagedFunction<ZmqGetSockOptProc>("zmq_getsockopt");
-            zmq_getmsgopt = NativeLib.GetUnmanagedFunction<ZmqGetMsgOptProc>("zmq_getmsgopt");
             zmq_bind = NativeLib.GetUnmanagedFunction<ZmqBindProc>("zmq_bind");
             zmq_connect = NativeLib.GetUnmanagedFunction<ZmqConnectProc>("zmq_connect");
-            zmq_recvmsg = NativeLib.GetUnmanagedFunction<ZmqRecvMsgProc>("zmq_recvmsg");
-            zmq_sendmsg = NativeLib.GetUnmanagedFunction<ZmqSendMsgProc>("zmq_sendmsg");
             zmq_socket = NativeLib.GetUnmanagedFunction<ZmqSocketProc>("zmq_socket");
             zmq_msg_close = NativeLib.GetUnmanagedFunction<ZmqMsgCloseProc>("zmq_msg_close");
             zmq_msg_copy = NativeLib.GetUnmanagedFunction<ZmqMsgCopyProc>("zmq_msg_copy");
             zmq_msg_data = NativeLib.GetUnmanagedFunction<ZmqMsgDataProc>("zmq_msg_data");
             zmq_msg_init = NativeLib.GetUnmanagedFunction<ZmqMsgInitProc>("zmq_msg_init");
             zmq_msg_init_size = NativeLib.GetUnmanagedFunction<ZmqMsgInitSizeProc>("zmq_msg_init_size");
-            zmq_msg_init_data = NativeLib.GetUnmanagedFunction<ZmqMsgInitDataProc>("zmq_msg_init_data");
-            zmq_msg_move = NativeLib.GetUnmanagedFunction<ZmqMsgMoveProc>("zmq_msg_move");
             zmq_msg_size = NativeLib.GetUnmanagedFunction<ZmqMsgSizeProc>("zmq_msg_size");
             zmq_errno = NativeLib.GetUnmanagedFunction<ZmqErrnoProc>("zmq_errno");
             zmq_strerror = NativeLib.GetUnmanagedFunction<ZmqStrErrorProc>("zmq_strerror");
             zmq_version = NativeLib.GetUnmanagedFunction<ZmqVersionProc>("zmq_version");
             zmq_poll = NativeLib.GetUnmanagedFunction<ZmqPollProc>("zmq_poll");
+        }
+
+        private static void AssignVersionSpecificDelegates()
+        {
+            if (MajorVersion >= 3)
+            {
+                zmq_getmsgopt = NativeLib.GetUnmanagedFunction<ZmqGetMsgOptProc>("zmq_getmsgopt");
+                zmq_recvmsg = NativeLib.GetUnmanagedFunction<ZmqRecvMsgProc>("zmq_recvmsg");
+                zmq_sendmsg = NativeLib.GetUnmanagedFunction<ZmqSendMsgProc>("zmq_sendmsg");
+                zmq_msg_init_data = NativeLib.GetUnmanagedFunction<ZmqMsgInitDataProc>("zmq_msg_init_data");
+                zmq_msg_move = NativeLib.GetUnmanagedFunction<ZmqMsgMoveProc>("zmq_msg_move");
+            }
+            else if (MajorVersion == 2)
+            {
+                zmq_recvmsg = NativeLib.GetUnmanagedFunction<ZmqRecvMsgProc>("zmq_recv");
+                zmq_sendmsg = NativeLib.GetUnmanagedFunction<ZmqSendMsgProc>("zmq_send");
+            }
+        }
+
+        private static void GetCurrentVersion()
+        {
+            int sizeofInt32 = Marshal.SizeOf(typeof(int));
+
+            IntPtr majorPointer = Marshal.AllocHGlobal(sizeofInt32);
+            IntPtr minorPointer = Marshal.AllocHGlobal(sizeofInt32);
+            IntPtr patchPointer = Marshal.AllocHGlobal(sizeofInt32);
+
+            zmq_version(majorPointer, minorPointer, patchPointer);
+
+            MajorVersion = Marshal.ReadInt32(majorPointer);
+            MinorVersion = Marshal.ReadInt32(minorPointer);
+            PatchVersion = Marshal.ReadInt32(patchPointer);
+
+            Marshal.FreeHGlobal(majorPointer);
+            Marshal.FreeHGlobal(minorPointer);
+            Marshal.FreeHGlobal(patchPointer);
         }
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
