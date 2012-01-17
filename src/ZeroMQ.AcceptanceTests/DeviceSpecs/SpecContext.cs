@@ -56,6 +56,8 @@
                 device.Initialize();
 
                 device.Start();
+                Thread.Sleep(50);
+
                 deviceReady.Set();
             });
 

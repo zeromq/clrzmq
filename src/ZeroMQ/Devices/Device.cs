@@ -58,7 +58,6 @@
             FrontendSetup = new DeviceSocketSetup(FrontendSocket);
             BackendSetup = new DeviceSocketSetup(BackendSocket);
             DoneEvent = new ManualResetEvent(false);
-            ReadyEvent = new ManualResetEvent(false);
         }
 
         ~Device()
@@ -89,11 +88,6 @@
         /// Gets a <see cref="ManualResetEvent"/> that can be used to block while the device is running.
         /// </summary>
         public ManualResetEvent DoneEvent { get; private set; }
-
-        /// <summary>
-        /// Gets a <see cref="ManualResetEvent"/> that signals when the device is completely ready.
-        /// </summary>
-        protected ManualResetEvent ReadyEvent { get; private set; }
 
         /// <summary>
         /// Initializes the frontend and backend sockets. Called automatically when starting the device.
@@ -201,7 +195,6 @@
             TimeSpan timeout = TimeSpan.FromMilliseconds(PollingIntervalMsec);
 
             DoneEvent.Reset();
-            ReadyEvent.Reset();
             IsRunning = true;
 
             try
@@ -209,9 +202,6 @@
                 while (IsRunning)
                 {
                     poller.Poll(timeout);
-
-                    // XXX: Is there a better way to notify when the device is actually running?
-                    ReadyEvent.Set();
                 }
             }
             catch (ZmqException)
