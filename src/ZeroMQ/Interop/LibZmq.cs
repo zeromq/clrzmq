@@ -12,7 +12,7 @@
     [SuppressMessage("StyleCop.CSharp.OrderingRules", "SA1202:ElementsMustBeOrderedByAccess", Justification = "Reviewed. Suppression is OK here.")]
     internal static class LibZmq
     {
-        public const string LibraryName = "libzmq.dll";
+        public const string LibraryName = "libzmq";
 
         // From zmq.h:
         // typedef struct {unsigned char _ [32];} zmq_msg_t;

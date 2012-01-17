@@ -3,11 +3,7 @@
     using System;
     using System.IO;
     using System.Reflection;
-    using System.Runtime.ConstrainedExecution;
     using System.Runtime.InteropServices;
-    using System.Security.Permissions;
-
-    using Microsoft.Win32.SafeHandles;
 
     /// <summary>
     /// Utility class to wrap an unmanaged shared lib and be responsible for freeing it.
@@ -18,7 +14,7 @@
     /// </remarks>
     internal sealed class UnmanagedLibrary : IDisposable
     {
-        private static readonly string CurrentPlatform = Environment.Is64BitProcess ? "x64" : "x86";
+        private static readonly string CurrentArch = Environment.Is64BitProcess ? "x64" : "x86";
 
         private readonly string _fileName;
         private readonly SafeLibraryHandle _handle;
@@ -41,12 +37,12 @@
                 throw new ArgumentException("A valid file name is expected.", "fileName");
             }
 
-            _fileName = fileName;
+            _fileName = fileName + Platform.LibSuffix;
             _handle = LoadFromSystemPath() ?? LoadFromLocalBinPath() ?? LoadFromExecutingPath() ?? LoadFromTempPath();
                 
             if (_handle == null || _handle.IsInvalid)
             {
-                NativeMethods.ThrowLastLibraryError();
+                Platform.ThrowLastLibraryError();
             }
         }
 
@@ -67,7 +63,7 @@
         /// </remarks>
         public TDelegate GetUnmanagedFunction<TDelegate>(string functionName) where TDelegate : class
         {
-            IntPtr p = NativeMethods.LoadProcedure(_handle, functionName);
+            IntPtr p = Platform.LoadProcedure(_handle, functionName);
 
             if (p == IntPtr.Zero)
             {
@@ -95,7 +91,7 @@
 
         private SafeLibraryHandle LoadFromSystemPath()
         {
-            return NullifyInvalidHandle(NativeMethods.OpenHandle(_fileName));
+            return NullifyInvalidHandle(Platform.OpenHandle(_fileName));
         }
 
         private SafeLibraryHandle LoadFromLocalBinPath()
@@ -106,14 +102,14 @@
         private SafeLibraryHandle ExtractAndLoadFromPath(string dir)
         {
             string libPath = Path.GetFullPath(Path.Combine(dir, _fileName));
-            string platformSuffix = "." + CurrentPlatform;
+            string platformSuffix = "." + CurrentArch;
 
             if (!ManifestResource.Extract(_fileName + platformSuffix, libPath))
             {
                 return null;
             }
 
-            return NullifyInvalidHandle(NativeMethods.OpenHandle(libPath));
+            return NullifyInvalidHandle(Platform.OpenHandle(libPath));
         }
 
         private SafeLibraryHandle LoadFromExecutingPath()
@@ -123,102 +119,10 @@
 
         private SafeLibraryHandle LoadFromTempPath()
         {
-            string dir = Path.Combine(Path.GetTempPath(), Assembly.GetExecutingAssembly().FullName, CurrentPlatform);
+            string dir = Path.Combine(Path.GetTempPath(), Assembly.GetExecutingAssembly().FullName, CurrentArch);
             Directory.CreateDirectory(dir);
 
             return ExtractAndLoadFromPath(dir);
-        }
-
-        private static class NativeMethods
-        {
-#if POSIX
-            private const string KernelLib = "libdl.so";
-                
-            private const int RTLD_NOW = 2;
-            private const int RTLD_GLOBAL = 0x100;
-            
-            public static SafeLibraryHandle OpenHandle(string filename)
-            {
-                return NativeMethods.dlopen(filename + ".so", RTLD_NOW | RTLD_GLOBAL);
-            }
-            
-            public static IntPtr LoadProcedure(SafeLibraryHandle handle, string functionName)
-            {
-                return NativeMethods.dlsym(handle, functionName);
-            }
-            
-            public static bool ReleaseHandle(IntPtr handle)
-            {
-                return dlclose(handle) == 0;
-            }
-            
-            public static void ThrowLastLibraryError()
-            {
-                throw new DllNotFoundException(dlerror());
-            }
-    
-            [DllImport(KernelLib)]
-            private static extern SafeLibraryHandle dlopen(string filename, int flags);
-            
-            [DllImport(KernelLib)]
-            private static extern int dlclose(IntPtr handle);
-            
-            [DllImport(KernelLib)]
-            private static extern string dlerror();
-    
-            [DllImport(KernelLib)]
-            private static extern IntPtr dlsym(SafeLibraryHandle handle, string symbol);
-#else
-            private const string KernelLib = "kernel32";
-
-            public static SafeLibraryHandle OpenHandle(string filename)
-            {
-                return LoadLibrary(filename);
-            }
-
-            public static IntPtr LoadProcedure(SafeLibraryHandle handle, string functionName)
-            {
-                return GetProcAddress(handle, functionName);
-            }
-
-            public static bool ReleaseHandle(IntPtr handle)
-            {
-                return FreeLibrary(handle);
-            }
-
-            public static void ThrowLastLibraryError()
-            {
-                Marshal.ThrowExceptionForHR(Marshal.GetHRForLastWin32Error());
-            }
-
-            [DllImport(KernelLib, CharSet = CharSet.Auto, BestFitMapping = false, SetLastError = true)]
-            private static extern SafeLibraryHandle LoadLibrary(string fileName);
-
-            [ReliabilityContract(Consistency.WillNotCorruptState, Cer.Success)]
-            [DllImport(KernelLib, SetLastError = true)]
-            [return: MarshalAs(UnmanagedType.Bool)]
-            private static extern bool FreeLibrary(IntPtr moduleHandle);
-
-            [DllImport(KernelLib)]
-            private static extern IntPtr GetProcAddress(SafeLibraryHandle moduleHandle, string procname);
-#endif
-        }
-
-        /// <summary>
-        /// Safe handle for unmanaged libraries. See http://msdn.microsoft.com/msdnmag/issues/05/10/Reliability/ for more about safe handles.
-        /// </summary>
-        [SecurityPermission(SecurityAction.LinkDemand, UnmanagedCode = true)]
-        private sealed class SafeLibraryHandle : SafeHandleZeroOrMinusOneIsInvalid
-        {
-            private SafeLibraryHandle()
-                : base(true)
-            {
-            }
-
-            protected override bool ReleaseHandle()
-            {
-                return NativeMethods.ReleaseHandle(handle);
-            }
         }
     }
 }
