@@ -39,10 +39,13 @@
 
             _fileName = fileName + Platform.LibSuffix;
             _handle = LoadFromSystemPath() ?? LoadFromLocalBinPath() ?? LoadFromExecutingPath() ?? LoadFromTempPath();
-                
+
             if (_handle == null || _handle.IsInvalid)
             {
-                Platform.ThrowLastLibraryError();
+                throw new FileNotFoundException(
+                    "Unable to find " + _fileName + " on system path or the file found was not the expected file.",
+                    _fileName,
+                    Platform.GetLastLibraryError());
             }
         }
 

@@ -29,9 +29,9 @@ namespace ZeroMQ.Interop
             return dlclose(handle) == 0;
         }
 
-        public static void ThrowLastLibraryError()
+        public static Exception GetLastLibraryError()
         {
-            throw new DllNotFoundException(dlerror());
+            return new DllNotFoundException(dlerror());
         }
 
         [DllImport(KernelLib)]

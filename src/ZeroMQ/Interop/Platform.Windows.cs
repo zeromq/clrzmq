@@ -27,9 +27,9 @@ namespace ZeroMQ.Interop
             return FreeLibrary(handle);
         }
 
-        public static void ThrowLastLibraryError()
+        public static Exception GetLastLibraryError()
         {
-            Marshal.ThrowExceptionForHR(Marshal.GetHRForLastWin32Error());
+            return Marshal.GetExceptionForHR(Marshal.GetHRForLastWin32Error());
         }
 
         [DllImport(KernelLib, CharSet = CharSet.Auto, BestFitMapping = false, SetLastError = true)]
