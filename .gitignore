@@ -6,7 +6,8 @@ publish/
 perf/
 
 # Native libraries
-lib/**/libzmq.dll
+lib
+^lib/**/*.txt
 
 # Generated Files
 VersionInfo.cs

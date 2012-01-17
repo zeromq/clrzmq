@@ -8,7 +8,8 @@
         {
             RunTests(
                 new HelloWorld(),
-                new ReceiveBenchmark());
+                new LatencyBenchmark(),
+                new ThroughputBenchmark());
 
             Console.WriteLine("Finished running tests.");
             Console.ReadLine();
