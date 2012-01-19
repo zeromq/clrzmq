@@ -60,6 +60,9 @@
             DoneEvent = new ManualResetEvent(false);
         }
 
+        /// <summary>
+        /// Finalizes an instance of the <see cref="Device"/> class.
+        /// </summary>
         ~Device()
         {
             Dispose(false);

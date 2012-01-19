@@ -34,6 +34,9 @@
             SocketType = socketType;
         }
 
+        /// <summary>
+        /// Finalizes an instance of the <see cref="ZmqSocket"/> class.
+        /// </summary>
         ~ZmqSocket()
         {
             Dispose(false);

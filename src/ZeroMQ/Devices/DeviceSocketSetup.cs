@@ -120,7 +120,7 @@
         }
 
         /// <summary>
-        /// Configure the socket to subscribe to a specific prefix. See <see cref="SubscribeSocket.Subscribe"/> for details.
+        /// Configure the socket to subscribe to a specific prefix. See <see cref="ZmqSocket.Subscribe"/> for details.
         /// </summary>
         /// <param name="prefix">A byte array containing the prefix to which the socket will subscribe.</param>
         /// <returns>The current <see cref="DeviceSocketSetup"/> object.</returns>
@@ -130,7 +130,7 @@
         }
 
         /// <summary>
-        /// Configure the socket to subscribe to all incoming messages. See <see cref="SubscribeSocket.SubscribeAll"/> for details.
+        /// Configure the socket to subscribe to all incoming messages. See <see cref="ZmqSocket.SubscribeAll"/> for details.
         /// </summary>
         /// <returns>The current <see cref="DeviceSocketSetup"/> object.</returns>
         public DeviceSocketSetup SubscribeAll()

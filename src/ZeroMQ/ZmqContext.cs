@@ -36,6 +36,9 @@
             _contextProxy = contextProxy;
         }
 
+        /// <summary>
+        /// Finalizes an instance of the <see cref="ZmqContext"/> class.
+        /// </summary>
         ~ZmqContext()
         {
             Dispose(false);

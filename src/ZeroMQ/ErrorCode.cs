@@ -1,4 +1,6 @@
-﻿namespace ZeroMQ
+﻿#pragma warning disable 1591
+
+namespace ZeroMQ
 {
     using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
@@ -77,3 +79,5 @@
         }
     }
 }
+
+#pragma warning restore 1591
