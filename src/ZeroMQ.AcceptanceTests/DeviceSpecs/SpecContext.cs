@@ -56,7 +56,9 @@
                 device.Initialize();
 
                 device.Start();
-                Thread.Sleep(50);
+
+                // XXX: This is a hack until a better method of guaranteeing device readiness is discovered
+                Thread.Sleep(100);
 
                 deviceReady.Set();
             });
