@@ -63,6 +63,12 @@
 
             int bytesReceived = RetryIfInterrupted(() => LibZmq.zmq_recvmsg(SocketHandle, _message, flags));
 
+            if (bytesReceived == 0 && LibZmq.MajorVersion < 3)
+            {
+                // 0MQ 2.x does not return number of bytes received
+                bytesReceived = LibZmq.zmq_msg_size(_message);
+            }
+
             if (bytesReceived > 0)
             {
                 Marshal.Copy(LibZmq.zmq_msg_data(_message), buffer, 0, bytesReceived);
@@ -89,6 +95,12 @@
 
             if (bytesReceived >= 0)
             {
+                if (bytesReceived == 0 && LibZmq.MajorVersion < 3)
+                {
+                    // 0MQ 2.x does not return number of bytes received
+                    bytesReceived = LibZmq.zmq_msg_size(_message);
+                }
+
                 size = bytesReceived;
 
                 if (buffer == null || size > buffer.Length)
@@ -121,6 +133,12 @@
 
             int bytesSent = RetryIfInterrupted(() => LibZmq.zmq_sendmsg(SocketHandle, _message, flags));
 
+            if (bytesSent == 0 && LibZmq.MajorVersion < 3)
+            {
+                // 0MQ 2.x does not report number of bytes sent, so this may be inaccurate/misleading
+                bytesSent = size;
+            }
+
             if (LibZmq.zmq_msg_close(_message) == -1)
             {
                 return -1;
@@ -129,7 +147,7 @@
             return bytesSent;
         }
 
-        public int Forward(IntPtr destinationHandle, int receiveMoreOption, int sendMoreValue)
+        public int Forward(IntPtr destinationHandle)
         {
             if (LibZmq.zmq_msg_init(_message) == -1)
             {
@@ -146,12 +164,12 @@
                     return -1;
                 }
 
-                if (GetSocketOption(receiveMoreOption, out receiveMore) == -1)
+                if (GetReceiveMore(out receiveMore) == -1)
                 {
                     return -1;
                 }
 
-                if ((bytesSent = LibZmq.zmq_sendmsg(destinationHandle, _message, receiveMore == 1 ? sendMoreValue : 0)) == -1)
+                if ((bytesSent = LibZmq.zmq_sendmsg(destinationHandle, _message, receiveMore == 1 ? (int)SocketFlags.SendMore : 0)) == -1)
                 {
                     return -1;
                 }
@@ -295,6 +313,20 @@
                 rc = func();
             }
             while (rc == -1 && LibZmq.zmq_errno() == ErrorCode.EINTR);
+
+            return rc;
+        }
+
+        private int GetReceiveMore(out int receiveMore)
+        {
+            if (LibZmq.MajorVersion >= 3)
+            {
+                return GetSocketOption((int)SocketOption.RCVMORE, out receiveMore);
+            }
+
+            long value;
+            int rc = GetSocketOption((int)SocketOption.RCVMORE, out value);
+            receiveMore = (int)value;
 
             return rc;
         }

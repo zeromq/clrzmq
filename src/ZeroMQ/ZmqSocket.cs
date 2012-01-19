@@ -12,7 +12,12 @@
     /// </summary>
     public class ZmqSocket : IDisposable
     {
+        private const int LatestVersion = 3;
+
         private static readonly int ProcessorCount = Environment.ProcessorCount;
+
+        private static readonly SocketOption ReceiveHwmOpt = ZmqVersion.Current.IsAtLeast(LatestVersion) ? SocketOption.RCVHWM : SocketOption.HWM;
+        private static readonly SocketOption SendHwmOpt = ZmqVersion.Current.IsAtLeast(LatestVersion) ? SocketOption.SNDHWM : SocketOption.HWM;
 
         private readonly SocketProxy _socketProxy;
 
@@ -96,23 +101,25 @@
         /// <summary>
         /// Gets or sets the maximum size for inbound messages (bytes). (Default = -1, no limit).
         /// </summary>
+        /// <exception cref="ZmqVersionException">This socket option was used in ZeroMQ 2.1 or lower.</exception>
         /// <exception cref="ZmqSocketException">An error occurred when getting or setting the socket option.</exception>
         /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
         public long MaxMessageSize
         {
-            get { return GetSocketOptionInt64(SocketOption.MAX_MSG_SIZE); }
-            set { SetSocketOption(SocketOption.MAX_MSG_SIZE, value); }
+            get { return ZmqVersion.OnlyIfAtLeast(LatestVersion, () => GetSocketOptionInt64(SocketOption.MAX_MSG_SIZE)); }
+            set { ZmqVersion.OnlyIfAtLeast(LatestVersion, () => SetSocketOption(SocketOption.MAX_MSG_SIZE, value)); }
         }
 
         /// <summary>
         /// Gets or sets the time-to-live field in every multicast packet sent from this socket (network hops). (Default = 1 hop).
         /// </summary>
+        /// <exception cref="ZmqVersionException">This socket option was used in ZeroMQ 2.1 or lower.</exception>
         /// <exception cref="ZmqSocketException">An error occurred when getting or setting the socket option.</exception>
         /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
         public int MulticastHops
         {
-            get { return GetSocketOptionInt32(SocketOption.MULTICAST_HOPS); }
-            set { SetSocketOption(SocketOption.MULTICAST_HOPS, value); }
+            get { return ZmqVersion.OnlyIfAtLeast(LatestVersion, () => GetSocketOptionInt32(SocketOption.MULTICAST_HOPS)); }
+            set { ZmqVersion.OnlyIfAtLeast(LatestVersion, () => SetSocketOption(SocketOption.MULTICAST_HOPS, value)); }
         }
 
         /// <summary>
@@ -122,8 +129,8 @@
         /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
         public int MulticastRate
         {
-            get { return GetSocketOptionInt32(SocketOption.RATE); }
-            set { SetSocketOption(SocketOption.RATE, value); }
+            get { return GetLegacySocketOption(SocketOption.RATE, GetSocketOptionInt64); }
+            set { SetLegacySocketOption(SocketOption.RATE, value, (long)value, SetSocketOption); }
         }
 
         /// <summary>
@@ -133,8 +140,8 @@
         /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
         public TimeSpan MulticastRecoveryInterval
         {
-            get { return TimeSpan.FromMilliseconds(GetSocketOptionInt32(SocketOption.RECOVERY_IVL)); }
-            set { SetSocketOption(SocketOption.RECOVERY_IVL, (int)value.TotalMilliseconds); }
+            get { return TimeSpan.FromMilliseconds(GetLegacySocketOption(SocketOption.RECOVERY_IVL, GetSocketOptionInt64)); }
+            set { SetLegacySocketOption(SocketOption.RECOVERY_IVL, (int)value.TotalMilliseconds, (long)value.TotalMilliseconds, SetSocketOption); }
         }
 
         /// <summary>
@@ -144,8 +151,8 @@
         /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
         public int ReceiveBufferSize
         {
-            get { return GetSocketOptionInt32(SocketOption.RCVBUF); }
-            set { SetSocketOption(SocketOption.RCVBUF, value); }
+            get { return GetLegacySocketOption(SocketOption.RCVBUF, GetSocketOptionUInt64); }
+            set { SetLegacySocketOption(SocketOption.RCVBUF, value, (ulong)value, SetSocketOption); }
         }
 
         /// <summary>
@@ -156,8 +163,8 @@
         /// <remarks>If using 0MQ 2.x, will use the (deprecated) HWM socket option instead.</remarks>
         public int ReceiveHighWatermark
         {
-            get { return GetSocketOptionInt32(ZmqVersion.Current.IsAtLeast(3) ? SocketOption.RCVHWM : SocketOption.HWM); }
-            set { SetSocketOption(ZmqVersion.Current.IsAtLeast(3) ? SocketOption.RCVHWM : SocketOption.HWM, value); }
+            get { return GetLegacySocketOption(ReceiveHwmOpt, GetSocketOptionUInt64); }
+            set { SetLegacySocketOption(ReceiveHwmOpt, value, (ulong)value, SetSocketOption); }
         }
 
         /// <summary>
@@ -167,18 +174,19 @@
         /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
         public bool ReceiveMore
         {
-            get { return GetSocketOptionInt32(SocketOption.RCVMORE) == 1; }
+            get { return GetLegacySocketOption(SocketOption.RCVMORE, GetSocketOptionInt64) == 1; }
         }
 
         /// <summary>
         /// Gets or sets the timeout for receive operations. (Default = <see cref="TimeSpan.MaxValue"/>, infinite).
         /// </summary>
+        /// <exception cref="ZmqVersionException">This socket option was used in ZeroMQ 2.1 or lower.</exception>
         /// <exception cref="ZmqSocketException">An error occurred when getting or setting the socket option.</exception>
         /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
         public TimeSpan ReceiveTimeout
         {
-            get { return TimeSpan.FromMilliseconds(GetSocketOptionInt32(SocketOption.RCVTIMEO)); }
-            set { SetSocketOption(SocketOption.RCVTIMEO, (int)value.TotalMilliseconds); }
+            get { return ZmqVersion.OnlyIfAtLeast(LatestVersion, () => TimeSpan.FromMilliseconds(GetSocketOptionInt32(SocketOption.RCVTIMEO))); }
+            set { ZmqVersion.OnlyIfAtLeast(LatestVersion, () => SetSocketOption(SocketOption.RCVTIMEO, (int)value.TotalMilliseconds)); }
         }
 
         /// <summary>
@@ -210,8 +218,8 @@
         /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
         public int SendBufferSize
         {
-            get { return GetSocketOptionInt32(SocketOption.SNDBUF); }
-            set { SetSocketOption(SocketOption.SNDBUF, value); }
+            get { return GetLegacySocketOption(SocketOption.SNDBUF, GetSocketOptionUInt64); }
+            set { SetLegacySocketOption(SocketOption.SNDBUF, value, (ulong)value, SetSocketOption); }
         }
 
         /// <summary>
@@ -222,19 +230,20 @@
         /// <remarks>If using 0MQ 2.x, will use the (deprecated) HWM socket option instead.</remarks>
         public int SendHighWatermark
         {
-            get { return GetSocketOptionInt32(ZmqVersion.Current.IsAtLeast(3) ? SocketOption.SNDHWM : SocketOption.HWM); }
-            set { SetSocketOption(ZmqVersion.Current.IsAtLeast(3) ? SocketOption.SNDHWM : SocketOption.HWM, value); }
+            get { return GetLegacySocketOption(SendHwmOpt, GetSocketOptionUInt64); }
+            set { SetLegacySocketOption(SendHwmOpt, value, (ulong)value, SetSocketOption); }
         }
 
         /// <summary>
         /// Gets or sets the timeout for send operations. (Default = <see cref="TimeSpan.MaxValue"/>, infinite).
         /// </summary>
+        /// <exception cref="ZmqVersionException">This socket option was used in ZeroMQ 2.1 or lower.</exception>
         /// <exception cref="ZmqSocketException">An error occurred when getting or setting the socket option.</exception>
         /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
         public TimeSpan SendTimeout
         {
-            get { return TimeSpan.FromMilliseconds(GetSocketOptionInt32(SocketOption.SNDTIMEO)); }
-            set { SetSocketOption(SocketOption.SNDTIMEO, (int)value.TotalMilliseconds); }
+            get { return ZmqVersion.OnlyIfAtLeast(LatestVersion, () => TimeSpan.FromMilliseconds(GetSocketOptionInt32(SocketOption.SNDTIMEO))); }
+            set { ZmqVersion.OnlyIfAtLeast(LatestVersion, () => SetSocketOption(SocketOption.SNDTIMEO, (int)value.TotalMilliseconds)); }
         }
 
         /// <summary>
@@ -246,8 +255,8 @@
         /// <remarks>Not supported in 0MQ version 2.</remarks>
         public ProtocolType SupportedProtocol
         {
-            get { return ZmqVersion.OnlyIfAtLeast(3, () => (ProtocolType)GetSocketOptionInt32(SocketOption.IPV4_ONLY)); }
-            set { ZmqVersion.OnlyIfAtLeast(3, () => SetSocketOption(SocketOption.IPV4_ONLY, (int)value)); }
+            get { return ZmqVersion.OnlyIfAtLeast(LatestVersion, () => (ProtocolType)GetSocketOptionInt32(SocketOption.IPV4_ONLY)); }
+            set { ZmqVersion.OnlyIfAtLeast(LatestVersion, () => SetSocketOption(SocketOption.IPV4_ONLY, (int)value)); }
         }
 
         /// <summary>
@@ -528,7 +537,7 @@
                 throw new ArgumentNullException("destination");
             }
 
-            if (_socketProxy.Forward(destination.SocketHandle, (int)SocketOption.RCVMORE, (int)SocketFlags.SendMore) == -1)
+            if (_socketProxy.Forward(destination.SocketHandle) == -1)
             {
                 throw new ZmqSocketException(ErrorProxy.GetLastError());
             }
@@ -794,6 +803,23 @@
             if (result == -1 && !ErrorProxy.ContextWasTerminated)
             {
                 throw new ZmqSocketException(ErrorProxy.GetLastError());
+            }
+        }
+
+        private int GetLegacySocketOption<TLegacy>(SocketOption option, Func<SocketOption, TLegacy> legacyGetter)
+        {
+            return ZmqVersion.Current.IsAtLeast(LatestVersion) ? GetSocketOptionInt32(option) : Convert.ToInt32(legacyGetter(option));
+        }
+
+        private void SetLegacySocketOption<TLegacy>(SocketOption option, int value, TLegacy legacyValue, Action<SocketOption, TLegacy> legacySetter)
+        {
+            if (ZmqVersion.Current.IsAtLeast(LatestVersion))
+            {
+                SetSocketOption(option, value);
+            }
+            else
+            {
+                legacySetter(option, legacyValue);
             }
         }
 
