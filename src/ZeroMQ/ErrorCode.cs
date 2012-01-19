@@ -31,6 +31,7 @@
         public static readonly int ENODEV = 19;
         public static readonly int ENOTDIR = 20;
         public static readonly int EISDIR = 21;
+        public static readonly int EINVAL = 22;
         public static readonly int ENFILE = 23;
         public static readonly int EMFILE = 24;
         public static readonly int ENOTTY = 25;
