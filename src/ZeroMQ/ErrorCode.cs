@@ -7,57 +7,60 @@ namespace ZeroMQ
     using System.Linq;
     using System.Reflection;
 
+    using ZeroMQ.Interop;
+
     /// <summary>
     /// Contains cross-platform error code definitions.
     /// </summary>
-    [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1600:ElementsMustBeDocumented", Justification = "Reviewed. Suppression is OK here.")]
+    [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1600:ElementsMustBeDocumented",
+        Justification = "Errno values can be looked up easily.")]
     public static class ErrorCode
     {
-        public static readonly int EPERM = 1;
-        public static readonly int ENOENT = 2;
-        public static readonly int ESRCH = 3;
-        public static readonly int EINTR = 4;
-        public static readonly int EIO = 5;
-        public static readonly int ENXIO = 6;
-        public static readonly int E2BIG = 7;
-        public static readonly int ENOEXEC = 8;
-        public static readonly int EBADF = 9;
-        public static readonly int ECHILD = 10;
-        public static readonly int EAGAIN = 11;
-        public static readonly int ENOMEM = 12;
-        public static readonly int EACCES = 13;
-        public static readonly int EFAULT = 14;
-        public static readonly int EBUSY = 16;
-        public static readonly int EEXIST = 17;
-        public static readonly int EXDEV = 18;
-        public static readonly int ENODEV = 19;
-        public static readonly int ENOTDIR = 20;
-        public static readonly int EISDIR = 21;
-        public static readonly int EINVAL = 22;
-        public static readonly int ENFILE = 23;
-        public static readonly int EMFILE = 24;
-        public static readonly int ENOTTY = 25;
-        public static readonly int EFBIG = 27;
-        public static readonly int ENOSPC = 28;
-        public static readonly int ESPIPE = 29;
-        public static readonly int EROFS = 30;
-        public static readonly int EMLINK = 31;
-        public static readonly int EPIPE = 32;
-        public static readonly int EDOM = 33;
-        public static readonly int EDEADLK = 36;
-        public static readonly int ENAMETOOLONG = 38;
-        public static readonly int ENOLCK = 39;
-        public static readonly int ENOSYS = 40;
-        public static readonly int ENOTEMPTY = 41;
-        public static readonly int EADDRINUSE = 100;
-        public static readonly int EADDRNOTAVAIL = 101;
-        public static readonly int ECONNREFUSED = 107;
-        public static readonly int EINPROGRESS = 112;
-        public static readonly int ENETDOWN = 116;
-        public static readonly int ENOBUFS = 119;
-        public static readonly int ENOTSOCK = 128;
-        public static readonly int ENOTSUP = 129;
-        public static readonly int EPROTONOSUPPORT = 135;
+        public static readonly int EPERM = Platform.Errno.EPERM;
+        public static readonly int ENOENT = Platform.Errno.ENOENT;
+        public static readonly int ESRCH = Platform.Errno.ESRCH;
+        public static readonly int EINTR = Platform.Errno.EINTR;
+        public static readonly int EIO = Platform.Errno.EIO;
+        public static readonly int ENXIO = Platform.Errno.ENXIO;
+        public static readonly int E2BIG = Platform.Errno.E2BIG;
+        public static readonly int ENOEXEC = Platform.Errno.ENOEXEC;
+        public static readonly int EBADF = Platform.Errno.EBADF;
+        public static readonly int ECHILD = Platform.Errno.ECHILD;
+        public static readonly int EAGAIN = Platform.Errno.EAGAIN;
+        public static readonly int ENOMEM = Platform.Errno.ENOMEM;
+        public static readonly int EACCES = Platform.Errno.EACCES;
+        public static readonly int EFAULT = Platform.Errno.EFAULT;
+        public static readonly int EBUSY = Platform.Errno.EBUSY;
+        public static readonly int EEXIST = Platform.Errno.EEXIST;
+        public static readonly int EXDEV = Platform.Errno.EXDEV;
+        public static readonly int ENODEV = Platform.Errno.ENODEV;
+        public static readonly int ENOTDIR = Platform.Errno.ENOTDIR;
+        public static readonly int EISDIR = Platform.Errno.EISDIR;
+        public static readonly int EINVAL = Platform.Errno.EINVAL;
+        public static readonly int ENFILE = Platform.Errno.ENFILE;
+        public static readonly int EMFILE = Platform.Errno.EMFILE;
+        public static readonly int ENOTTY = Platform.Errno.ENOTTY;
+        public static readonly int EFBIG = Platform.Errno.EFBIG;
+        public static readonly int ENOSPC = Platform.Errno.ENOSPC;
+        public static readonly int ESPIPE = Platform.Errno.ESPIPE;
+        public static readonly int EROFS = Platform.Errno.EROFS;
+        public static readonly int EMLINK = Platform.Errno.EMLINK;
+        public static readonly int EPIPE = Platform.Errno.EPIPE;
+        public static readonly int EDOM = Platform.Errno.EDOM;
+        public static readonly int EDEADLK = Platform.Errno.EDEADLK;
+        public static readonly int ENAMETOOLONG = Platform.Errno.ENAMETOOLONG;
+        public static readonly int ENOLCK = Platform.Errno.ENOLCK;
+        public static readonly int ENOSYS = Platform.Errno.ENOSYS;
+        public static readonly int ENOTEMPTY = Platform.Errno.ENOTEMPTY;
+        public static readonly int EADDRINUSE = Platform.Errno.EADDRINUSE;
+        public static readonly int EADDRNOTAVAIL = Platform.Errno.EADDRNOTAVAIL;
+        public static readonly int ECONNREFUSED = Platform.Errno.ECONNREFUSED;
+        public static readonly int EINPROGRESS = Platform.Errno.EINPROGRESS;
+        public static readonly int ENETDOWN = Platform.Errno.ENETDOWN;
+        public static readonly int ENOBUFS = Platform.Errno.ENOBUFS;
+        public static readonly int ENOTSOCK = Platform.Errno.ENOTSOCK;
+        public static readonly int ENOTSUP = Platform.Errno.ENOTSUP;
+        public static readonly int EPROTONOSUPPORT = Platform.Errno.EPROTONOSUPPORT;
 
         [SuppressMessage("StyleCop.CSharp.NamingRules", "SA1310:FieldNamesMustNotContainUnderscore",
             Justification = "Mirrors constant defined in zmq.h.")]

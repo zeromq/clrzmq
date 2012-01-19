@@ -5,7 +5,7 @@ namespace ZeroMQ.Interop
     using System;
     using System.Runtime.InteropServices;
 
-    internal static class Platform
+    internal static partial class Platform
     {
         public const string LibSuffix = ".so";
 

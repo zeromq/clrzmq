@@ -88,7 +88,6 @@
         Because of = () =>
             exception = Catch.Exception(() => rep.Bind("ipc:///tmp/testsock"));
         
-        [Ignore("Deferred until EPROTONOSUPPORT is set correctly for all platforms.")] // TODO
         It should_have_an_error_code_of_eprotonosupport = () =>
             ((ZmqException)exception).ErrorCode.ShouldEqual(ErrorCode.EPROTONOSUPPORT);
         
@@ -110,7 +109,6 @@
         Because of = () =>
             exception = Catch.Exception(() => rep.Connect("ipc:///tmp/testsock"));
         
-        [Ignore("Deferred until EPROTONOSUPPORT is set correctly for all platforms.")] // TODO
         It should_have_an_error_code_of_eprotonosupport = () =>
             ((ZmqException)exception).ErrorCode.ShouldEqual(ErrorCode.EPROTONOSUPPORT);
         
