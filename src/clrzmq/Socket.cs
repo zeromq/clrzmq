@@ -1135,6 +1135,7 @@ namespace ZMQ {
         /// <summary>
         /// ZMQ Device creation
         /// </summary>
+        [Obsolete("zmq_device support will be removed in 3.x.")]
         public static class Device {
             /// <summary>
             /// Create ZMQ Device
@@ -1144,7 +1145,9 @@ namespace ZMQ {
             /// <param name="outSocket">Output socket</param>
             /// <exception cref="ZMQ.Exception">ZMQ Exception</exception>
             public static void Create(DeviceType device, Socket inSocket, Socket outSocket) {
-                if (C.zmq_device((int)device, inSocket.Ptr, outSocket.Ptr) != 0)
+                int rc = C.zmq_device((int)device, inSocket.Ptr, outSocket.Ptr);
+
+                if (rc == -1 && C.zmq_errno() != (int)ERRNOS.ETERM)
                     throw new Exception();
             }
 
