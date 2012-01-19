@@ -27,3 +27,4 @@ clrzmq.userprefs
 _ReSharper.*
 *.swp
 *.pidb
+*.cache

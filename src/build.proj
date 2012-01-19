@@ -1,25 +1,23 @@
-<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build" ToolsVersion="4.0">
 
   <PropertyGroup>
-    <SolutionDir Condition="'$(SolutionDir)' == ''">src</SolutionDir>
-    <LibDir Condition="'$(LibDir)' == ''">lib</LibDir>
-    <BuildDir>build</BuildDir>
-    <PackageDir>publish</PackageDir>
+    <SolutionDir Condition="'$(SolutionDir)' == ''">.</SolutionDir>
+    <LibDir Condition="'$(LibDir)' == ''">..\lib</LibDir>
+    <BuildDir>..\build</BuildDir>
+    <PackageDir>..\publish</PackageDir>
     <Platform Condition="'$(Platform)' == ''">x86</Platform>
     <Configuration Condition="'$(Configuration)' == ''">Release</Configuration>
-    <OSConfiguration Condition="'$(OSConfiguration)' == ''">WIN_RELEASE</OSConfiguration>
     <MSpecOptions Condition="'$(MSpecOptions)' == ''"></MSpecOptions>
-    <KeyFileProperty Condition="'$(SignAssembly)' == 'true'">KeyOriginatorFile=src\clrzmq.snk</KeyFileProperty>
+    <KeyFileProperty Condition="'$(SignAssembly)' == 'true'">KeyOriginatorFile=Shared\clrzmq.snk</KeyFileProperty>
+    <OperatingPlatform Condition="'$(OperatingPlatform)' == ''">Windows</OperatingPlatform>
   </PropertyGroup>
 
   <Target Name="Clean">
     <ItemGroup>
       <CleanFiles Include="$(BuildDir)" />
       <CleanFiles Include="$(SolutionDir)\**\bin\$(Configuration)\**" />
-      <CleanFiles Include="$(SolutionDir)\**\bin\$(Platform)\$(OSConfiguration)\**" />
       <CleanFiles Include="$(SolutionDir)\**\bin\*.*" />
       <CleanFiles Include="$(SolutionDir)\**\obj\$(Configuration)\**" />
-      <CleanFiles Include="$(SolutionDir)\**\obj\$(Platform)\$(OSConfiguration)\**" />
       <CleanFiles Include="$(SolutionDir)\**\obj\*.*" />
     </ItemGroup>
 
@@ -31,17 +29,17 @@
   </Target>
   
   <Target Name="Compile" DependsOnTargets="Initialize">
-    <MSBuild Projects="clrzmq.sln" Targets="Build" ToolsVersion="3.5" Properties="Configuration=$(OSConfiguration);Platform=$(Platform);$(KeyFileProperty)" />
+    <MSBuild Projects="clrzmq.sln" Targets="Build" Properties="Configuration=$(Configuration);Platform=$(Platform);$(KeyFileProperty)" />
   </Target>
 
   <Target Name="Test" DependsOnTargets="Compile">
     <PropertyGroup>
-      <MSpecExe Condition="'$(MSpecExe)' == '' and '$(Platform)' == 'x64'">$([System.IO.Directory]::GetDirectories("packages", "Machine.Specifications.*")[0])\tools\mspec.exe</MSpecExe>
-      <MSpecExe Condition="'$(MSpecExe)' == '' and '$(Platform)' == 'x86'">$([System.IO.Directory]::GetDirectories("packages", "Machine.Specifications.*")[0])\tools\mspec-x86.exe</MSpecExe>
+      <MSpecExe Condition="'$(MSpecExe)' == '' and '$(Platform)' == 'x64'">$([System.IO.Directory]::GetDirectories("..\\packages", "Machine.Specifications.*")[0])\tools\mspec-clr4.exe</MSpecExe>
+      <MSpecExe Condition="'$(MSpecExe)' == '' and '$(Platform)' == 'x86'">$([System.IO.Directory]::GetDirectories("..\\packages", "Machine.Specifications.*")[0])\tools\mspec-x86-clr4.exe</MSpecExe>
     </PropertyGroup>
     
     <ItemGroup>
-      <TestAssmbly Include="tests\**\bin\$(Platform)\$(OSConfiguration)\*Tests.dll" />
+      <TestAssmbly Include="$(SolutionDir)\**\bin\$(Platform)\$(Configuration)\*Tests.dll" />
     </ItemGroup>
   
     <Exec Command="$(MSpecExe) $(MSpecOptions) %(TestAssmbly.Identity)" />
@@ -49,9 +47,6 @@
   
   <Target Name="Build" DependsOnTargets="Test">
     <ItemGroup>
-      <OutputFiles Include="$(SolutionDir)\**\bin\$(Platform)\$(OSConfiguration)\*.dll" />
-      <OutputFiles Include="$(SolutionDir)\**\bin\$(Platform)\$(OSConfiguration)\*.pdb" />
-      <OutputFiles Include="$(SolutionDir)\**\bin\$(Platform)\$(OSConfiguration)\*.xml" />
       <OutputFiles Include="$(SolutionDir)\**\bin\$(Configuration)\*.dll" />
       <OutputFiles Include="$(SolutionDir)\**\bin\$(Configuration)\*.pdb" />
       <OutputFiles Include="$(SolutionDir)\**\bin\$(Configuration)\*.xml" />
@@ -61,14 +56,50 @@
     <Copy SourceFiles="@(OutputFiles)" DestinationFolder="$(BuildDir)" ContinueOnError="true" />
   </Target>
 
-  <Target Name="Package" DependsOnTargets="Build">
+  <Target Name="Package">
+    <PropertyGroup>
+      <DebugType Condition="'$(Configuration)' == 'Debug'">full</DebugType>
+      <DebugType Condition="'$(Configuration)' != 'Debug'">pdbonly</DebugType>
+
+      <Optimize Condition="'$(Configuration)' == 'Debug'">false</Optimize>
+      <Optimize Condition="'$(Configuration)' != 'Debug'">true</Optimize>
+
+      <Constants Condition="'$(OperatingPlatform)' == 'Windows'"></Constants>
+      <Constants Condition="'$(OperatingPlatform)' == 'Unix'">UNIX</Constants>
+    </PropertyGroup>
     <ItemGroup>
       <BuildOutput Include="$(BuildDir)\*.*" />
+
+      <ZeroMQSources Include="ZeroMQ\**\*.cs;Shared\*.cs" Exclude="ZeroMQ\**\Platform.*.cs" />
+      <ZeroMQSources Include="ZeroMQ\**\Platform.$(OperatingPlatform).cs" />
+      
+      <Resources Include="$(LibDir)\x64\libzmq.dll">
+        <Platform>x64</Platform>
+      </Resources>
+      <Resources Include="$(LibDir)\x86\libzmq.dll">
+        <Platform>x86</Platform>
+      </Resources>
+
+      <EmbeddedResources Include="@(Resources)">
+        <LogicalName>%(filename)%(extension).%(Platform)</LogicalName>
+      </EmbeddedResources>
     </ItemGroup>
     
-    <RemoveDir Directories="$(PackageDir)\$(Platform)" />
-    <MakeDir Directories="$(PackageDir)\$(Platform)" />
-    <Copy SourceFiles="@(BuildOutput)" DestinationFolder="$(PackageDir)\$(Platform)" ContinueOnError="false" />
+    <Csc Sources="@(ZeroMQSources)"
+         DocumentationFile="$(BuildDir)\clrzmq.xml"
+         OutputAssembly="$(BuildDir)\clrzmq.dll"
+         Resources="@(EmbeddedResources)"
+         TargetType="library"
+         DebugType="$(DebugType)"
+         PdbFile="$(BuildDir)\clrzmq.pdb"
+         Optimize="$(Optimize)"
+         KeyFile="Shared\clrzmq.snk"
+         DefineConstants="$(Constants)"
+      />
+
+    <RemoveDir Directories="$(PackageDir)" />
+    <MakeDir Directories="$(PackageDir)" />
+    <Copy SourceFiles="@(BuildOutput)" DestinationFolder="$(PackageDir)" ContinueOnError="false" />
   </Target>
 
 </Project>

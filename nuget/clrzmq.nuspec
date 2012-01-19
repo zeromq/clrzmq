@@ -9,17 +9,15 @@
     <licenseUrl>http://www.zeromq.org/area:licensing</licenseUrl>
     <iconUrl>http://gravatar.com/avatar/810f6c181bb9cf3dea392892bac793f0?s=32</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <summary>Official .NET bindings for ZeroMQ (x86)</summary>
-    <description>The clrzmq project contains .NET bindings for ØMQ (ZeroMQ), an open source, high performance transport layer. Includes a compiled version of the native libzmq library. WARNING: This package targets the x86 build platform.</description>
+    <summary>Official .NET bindings for ZeroMQ</summary>
+    <description>The clrzmq project contains .NET bindings for ØMQ (ZeroMQ), an open source, high performance transport layer. Targets Any CPU and includes compiled versions of the native libzmq library for x86 and x64.</description>
     <language>en-US</language>
     <tags>zeromq zmq 0mq messaging transport distributed</tags>
   </metadata>
   <files>
-    <file src="publish\x86\clrzmq*.dll" target="lib" />
-    <file src="publish\x86\*.pdb" target="lib" />
-    <file src="publish\x86\*.xml" target="lib" />
-    <file src="lib\x86\*.dll" target="content" />
-    <file src="nuget\install.ps1" target="tools" />
+    <file src="publish\clrzmq*.dll" target="lib\net40" />
+    <file src="publish\*.pdb" target="lib\net40" />
+    <file src="publish\*.xml" target="lib\net40" />
     <file src="LICENSE"/>
   </files>
 </package>
