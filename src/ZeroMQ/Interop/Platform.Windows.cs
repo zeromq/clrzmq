@@ -1,4 +1,4 @@
-﻿#if WINDOWS
+﻿#if !UNIX
 
 namespace ZeroMQ.Interop
 {
