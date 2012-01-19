@@ -10,10 +10,9 @@
         {
             if (File.Exists(outputPath))
             {
-                // There is potential for version conflicts by doing this. However, it is necessary to
-                // prevent file access conflicts if multiple processes are run from the same location.
-
-                // TODO: Implement a better file conflict prevention scheme
+                // This is necessary to prevent access conflicts if multiple processes are run from the
+                // same location. The naming scheme implemented in UnmanagedLibrary should ensure that
+                // the correct version is always used.
                 return true;
             }
 

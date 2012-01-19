@@ -16,7 +16,8 @@
     {
         private static readonly string CurrentArch = Environment.Is64BitProcess ? "x64" : "x86";
 
-        private readonly string _fileName;
+        private readonly string _systemFileName;
+        private readonly string _extractedFileName;
         private readonly SafeLibraryHandle _handle;
 
         /// <summary>
@@ -37,14 +38,22 @@
                 throw new ArgumentException("A valid file name is expected.", "fileName");
             }
 
-            _fileName = fileName + Platform.LibSuffix;
-            _handle = LoadFromSystemPath() ?? LoadFromLocalBinPath() ?? LoadFromExecutingPath() ?? LoadFromTempPath();
+            _systemFileName = fileName + Platform.LibSuffix;
+            _handle = LoadFromSystemPath();
+            
+            if (_handle == null)
+            {
+                // Ensure the correct manifest resource will always be used, even if it has already been extracted
+                _extractedFileName = fileName + "-" + CurrentArch + "-" + Assembly.GetExecutingAssembly().GetName().Version + Platform.LibSuffix;
+
+                _handle = LoadFromLocalBinPath() ?? LoadFromExecutingPath() ?? LoadFromTempPath();
+            }
 
             if (_handle == null || _handle.IsInvalid)
             {
                 throw new FileNotFoundException(
-                    "Unable to find " + _fileName + " on system path or the file found was not the expected file.",
-                    _fileName,
+                    "Unable to find " + _systemFileName + " on system path or the file found was not the expected file.",
+                    _systemFileName,
                     Platform.GetLastLibraryError());
             }
         }
@@ -94,25 +103,12 @@
 
         private SafeLibraryHandle LoadFromSystemPath()
         {
-            return NullifyInvalidHandle(Platform.OpenHandle(_fileName));
+            return NullifyInvalidHandle(Platform.OpenHandle(_systemFileName));
         }
 
         private SafeLibraryHandle LoadFromLocalBinPath()
         {
             return Directory.Exists("bin") ? ExtractAndLoadFromPath("bin") : null;
-        }
-
-        private SafeLibraryHandle ExtractAndLoadFromPath(string dir)
-        {
-            string libPath = Path.GetFullPath(Path.Combine(dir, _fileName));
-            string platformSuffix = "." + CurrentArch;
-
-            if (!ManifestResource.Extract(_fileName + platformSuffix, libPath))
-            {
-                return null;
-            }
-
-            return NullifyInvalidHandle(Platform.OpenHandle(libPath));
         }
 
         private SafeLibraryHandle LoadFromExecutingPath()
@@ -126,6 +122,19 @@
             Directory.CreateDirectory(dir);
 
             return ExtractAndLoadFromPath(dir);
+        }
+
+        private SafeLibraryHandle ExtractAndLoadFromPath(string dir)
+        {
+            string libPath = Path.GetFullPath(Path.Combine(dir, _extractedFileName));
+            string platformSuffix = "." + CurrentArch;
+
+            if (!ManifestResource.Extract(_systemFileName + platformSuffix, libPath))
+            {
+                return null;
+            }
+
+            return NullifyInvalidHandle(Platform.OpenHandle(libPath));
         }
     }
 }
