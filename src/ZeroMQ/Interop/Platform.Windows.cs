@@ -6,7 +6,7 @@ namespace ZeroMQ.Interop
     using System.Runtime.ConstrainedExecution;
     using System.Runtime.InteropServices;
 
-    internal static class Platform
+    internal static partial class Platform
     {
         public const string LibSuffix = ".dll";
 
