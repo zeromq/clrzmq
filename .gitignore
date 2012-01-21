@@ -20,7 +20,7 @@ nuget.exe
 # User Settings
 *.suo
 *.user
-clrzmq.userprefs
+*.userprefs
 
 # Other
 *.snk

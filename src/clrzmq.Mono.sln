@@ -1,0 +1,161 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Build", "Build", "{516295C0-29D3-4E06-B685-95A4E06658D1}"
+	ProjectSection(SolutionItems) = preProject
+		build.proj = build.proj
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{E36B3F3D-071A-48EF-8C9F-BA36ED0F7F95}"
+	ProjectSection(SolutionItems) = preProject
+		..\AUTHORS = ..\AUTHORS
+		..\LICENSE = ..\LICENSE
+		..\README.md = ..\README.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Performance", "Performance", "{21827F6B-75CE-4C27-B8C5-12C224EA8072}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZeroMQ.Perf.LatLocal.Mono", "ZeroMQ.Perf.LatLocal\ZeroMQ.Perf.LatLocal.Mono.csproj", "{B157E8FE-D522-49A1-88CF-237E015A124F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZeroMQ.Perf.LatRemote.Mono", "ZeroMQ.Perf.LatRemote\ZeroMQ.Perf.LatRemote.Mono.csproj", "{5F7D5755-4E9A-492E-A314-51CA8824CE00}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZeroMQ.Perf.ThrLocal.Mono", "ZeroMQ.Perf.ThrLocal\ZeroMQ.Perf.ThrLocal.Mono.csproj", "{05CFD3AE-11D8-401F-846B-DC6DFFC16BCD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZeroMQ.Perf.ThrRemote.Mono", "ZeroMQ.Perf.ThrRemote\ZeroMQ.Perf.ThrRemote.Mono.csproj", "{21B192C6-C805-403C-9962-C62D1473AEA7}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Projects", "Projects", "{940121F6-564E-48D8-9D7D-3AE41DA07753}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZeroMQ.Mono", "ZeroMQ\ZeroMQ.Mono.csproj", "{6FFD872F-A4A4-4EFA-9B4D-4342BA6CF250}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Settings", "Settings", "{0A8901A1-3B3D-429A-BEAD-DE99F90CFFD1}"
+	ProjectSection(SolutionItems) = preProject
+		nuget.config = nuget.config
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{FBFC4B07-0BA6-4B54-8734-5DF66A655BA6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZeroMQ.AcceptanceTests.Mono", "ZeroMQ.AcceptanceTests\ZeroMQ.AcceptanceTests.Mono.csproj", "{54688B3D-BDDD-4803-A0AF-53B7A9C23432}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZeroMQ.SimpleTests.Mono", "ZeroMQ.SimpleTests\ZeroMQ.SimpleTests.Mono.csproj", "{9D199424-9F3A-442B-B74B-6C4A97D601F7}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x86 = Debug|x86
+		Release|x86 = Release|x86
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{05CFD3AE-11D8-401F-846B-DC6DFFC16BCD}.Debug|x64.ActiveCfg = Debug|x64
+		{05CFD3AE-11D8-401F-846B-DC6DFFC16BCD}.Debug|x64.Build.0 = Debug|x64
+		{05CFD3AE-11D8-401F-846B-DC6DFFC16BCD}.Debug|x86.ActiveCfg = Debug|x86
+		{05CFD3AE-11D8-401F-846B-DC6DFFC16BCD}.Debug|x86.Build.0 = Debug|x86
+		{05CFD3AE-11D8-401F-846B-DC6DFFC16BCD}.Release|x64.ActiveCfg = Release|x64
+		{05CFD3AE-11D8-401F-846B-DC6DFFC16BCD}.Release|x64.Build.0 = Release|x64
+		{05CFD3AE-11D8-401F-846B-DC6DFFC16BCD}.Release|x86.ActiveCfg = Release|x86
+		{05CFD3AE-11D8-401F-846B-DC6DFFC16BCD}.Release|x86.Build.0 = Release|x86
+		{21B192C6-C805-403C-9962-C62D1473AEA7}.Debug|x64.ActiveCfg = Debug|x64
+		{21B192C6-C805-403C-9962-C62D1473AEA7}.Debug|x64.Build.0 = Debug|x64
+		{21B192C6-C805-403C-9962-C62D1473AEA7}.Debug|x86.ActiveCfg = Debug|x86
+		{21B192C6-C805-403C-9962-C62D1473AEA7}.Debug|x86.Build.0 = Debug|x86
+		{21B192C6-C805-403C-9962-C62D1473AEA7}.Release|x64.ActiveCfg = Release|x64
+		{21B192C6-C805-403C-9962-C62D1473AEA7}.Release|x64.Build.0 = Release|x64
+		{21B192C6-C805-403C-9962-C62D1473AEA7}.Release|x86.ActiveCfg = Release|x86
+		{21B192C6-C805-403C-9962-C62D1473AEA7}.Release|x86.Build.0 = Release|x86
+		{54688B3D-BDDD-4803-A0AF-53B7A9C23432}.Debug|x64.ActiveCfg = Debug|x64
+		{54688B3D-BDDD-4803-A0AF-53B7A9C23432}.Debug|x64.Build.0 = Debug|x64
+		{54688B3D-BDDD-4803-A0AF-53B7A9C23432}.Debug|x86.ActiveCfg = Debug|x86
+		{54688B3D-BDDD-4803-A0AF-53B7A9C23432}.Debug|x86.Build.0 = Debug|x86
+		{54688B3D-BDDD-4803-A0AF-53B7A9C23432}.Release|x64.ActiveCfg = Release|x64
+		{54688B3D-BDDD-4803-A0AF-53B7A9C23432}.Release|x64.Build.0 = Release|x64
+		{54688B3D-BDDD-4803-A0AF-53B7A9C23432}.Release|x86.ActiveCfg = Release|x86
+		{54688B3D-BDDD-4803-A0AF-53B7A9C23432}.Release|x86.Build.0 = Release|x86
+		{5F7D5755-4E9A-492E-A314-51CA8824CE00}.Debug|x64.ActiveCfg = Debug|x64
+		{5F7D5755-4E9A-492E-A314-51CA8824CE00}.Debug|x64.Build.0 = Debug|x64
+		{5F7D5755-4E9A-492E-A314-51CA8824CE00}.Debug|x86.ActiveCfg = Debug|x86
+		{5F7D5755-4E9A-492E-A314-51CA8824CE00}.Debug|x86.Build.0 = Debug|x86
+		{5F7D5755-4E9A-492E-A314-51CA8824CE00}.Release|x64.ActiveCfg = Release|x64
+		{5F7D5755-4E9A-492E-A314-51CA8824CE00}.Release|x64.Build.0 = Release|x64
+		{5F7D5755-4E9A-492E-A314-51CA8824CE00}.Release|x86.ActiveCfg = Release|x86
+		{5F7D5755-4E9A-492E-A314-51CA8824CE00}.Release|x86.Build.0 = Release|x86
+		{6FFD872F-A4A4-4EFA-9B4D-4342BA6CF250}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{6FFD872F-A4A4-4EFA-9B4D-4342BA6CF250}.Debug|x64.Build.0 = Debug|Any CPU
+		{6FFD872F-A4A4-4EFA-9B4D-4342BA6CF250}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{6FFD872F-A4A4-4EFA-9B4D-4342BA6CF250}.Debug|x86.Build.0 = Debug|Any CPU
+		{6FFD872F-A4A4-4EFA-9B4D-4342BA6CF250}.Release|x64.ActiveCfg = Release|Any CPU
+		{6FFD872F-A4A4-4EFA-9B4D-4342BA6CF250}.Release|x64.Build.0 = Release|Any CPU
+		{6FFD872F-A4A4-4EFA-9B4D-4342BA6CF250}.Release|x86.ActiveCfg = Release|Any CPU
+		{6FFD872F-A4A4-4EFA-9B4D-4342BA6CF250}.Release|x86.Build.0 = Release|Any CPU
+		{9D199424-9F3A-442B-B74B-6C4A97D601F7}.Debug|x64.ActiveCfg = Debug|x64
+		{9D199424-9F3A-442B-B74B-6C4A97D601F7}.Debug|x64.Build.0 = Debug|x64
+		{9D199424-9F3A-442B-B74B-6C4A97D601F7}.Debug|x86.ActiveCfg = Debug|x86
+		{9D199424-9F3A-442B-B74B-6C4A97D601F7}.Debug|x86.Build.0 = Debug|x86
+		{9D199424-9F3A-442B-B74B-6C4A97D601F7}.Release|x64.ActiveCfg = Release|x64
+		{9D199424-9F3A-442B-B74B-6C4A97D601F7}.Release|x64.Build.0 = Release|x64
+		{9D199424-9F3A-442B-B74B-6C4A97D601F7}.Release|x86.ActiveCfg = Release|x86
+		{9D199424-9F3A-442B-B74B-6C4A97D601F7}.Release|x86.Build.0 = Release|x86
+		{B157E8FE-D522-49A1-88CF-237E015A124F}.Debug|x64.ActiveCfg = Debug|x64
+		{B157E8FE-D522-49A1-88CF-237E015A124F}.Debug|x64.Build.0 = Debug|x64
+		{B157E8FE-D522-49A1-88CF-237E015A124F}.Debug|x86.ActiveCfg = Debug|x86
+		{B157E8FE-D522-49A1-88CF-237E015A124F}.Debug|x86.Build.0 = Debug|x86
+		{B157E8FE-D522-49A1-88CF-237E015A124F}.Release|x64.ActiveCfg = Release|x64
+		{B157E8FE-D522-49A1-88CF-237E015A124F}.Release|x64.Build.0 = Release|x64
+		{B157E8FE-D522-49A1-88CF-237E015A124F}.Release|x86.ActiveCfg = Release|x86
+		{B157E8FE-D522-49A1-88CF-237E015A124F}.Release|x86.Build.0 = Release|x86
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{B157E8FE-D522-49A1-88CF-237E015A124F} = {21827F6B-75CE-4C27-B8C5-12C224EA8072}
+		{5F7D5755-4E9A-492E-A314-51CA8824CE00} = {21827F6B-75CE-4C27-B8C5-12C224EA8072}
+		{05CFD3AE-11D8-401F-846B-DC6DFFC16BCD} = {21827F6B-75CE-4C27-B8C5-12C224EA8072}
+		{21B192C6-C805-403C-9962-C62D1473AEA7} = {21827F6B-75CE-4C27-B8C5-12C224EA8072}
+		{6FFD872F-A4A4-4EFA-9B4D-4342BA6CF250} = {940121F6-564E-48D8-9D7D-3AE41DA07753}
+		{54688B3D-BDDD-4803-A0AF-53B7A9C23432} = {FBFC4B07-0BA6-4B54-8734-5DF66A655BA6}
+		{9D199424-9F3A-442B-B74B-6C4A97D601F7} = {FBFC4B07-0BA6-4B54-8734-5DF66A655BA6}
+	EndGlobalSection
+	GlobalSection(MonoDevelopProperties) = preSolution
+		StartupItem = ZeroMQ.SimpleTests\ZeroMQ.SimpleTests.Mono.csproj
+		Policies = $0
+		$0.DotNetNamingPolicy = $1
+		$1.DirectoryNamespaceAssociation = None
+		$1.ResourceNamePolicy = FileFormatDefault
+		$0.TextStylePolicy = $2
+		$2.inheritsSet = null
+		$2.scope = text/x-csharp
+		$0.CSharpFormattingPolicy = $3
+		$3.AnonymousMethodBraceStyle = NextLine
+		$3.PropertyBraceStyle = NextLine
+		$3.PropertyGetBraceStyle = NextLine
+		$3.PropertySetBraceStyle = NextLine
+		$3.EventBraceStyle = NextLine
+		$3.EventAddBraceStyle = NextLine
+		$3.EventRemoveBraceStyle = NextLine
+		$3.StatementBraceStyle = NextLine
+		$3.IfElseBraceForcement = AddBraces
+		$3.ForBraceForcement = AddBraces
+		$3.WhileBraceForcement = AddBraces
+		$3.FixedBraceForcement = AddBraces
+		$3.PlaceElseOnNewLine = True
+		$3.PlaceCatchOnNewLine = True
+		$3.PlaceFinallyOnNewLine = True
+		$3.PlaceWhileOnNewLine = True
+		$3.BeforeMethodDeclarationParentheses = False
+		$3.BeforeMethodCallParentheses = False
+		$3.BeforeConstructorDeclarationParentheses = False
+		$3.BeforeIndexerDeclarationBracket = False
+		$3.BeforeDelegateDeclarationParentheses = False
+		$3.AfterDelegateDeclarationParameterComma = True
+		$3.NewParentheses = False
+		$3.SpacesBeforeBrackets = False
+		$3.inheritsSet = Mono
+		$3.inheritsScope = text/x-csharp
+		$3.scope = text/x-csharp
+		$0.TextStylePolicy = $4
+		$4.inheritsSet = VisualStudio
+		$4.inheritsScope = text/plain
+		$4.scope = text/plain
+		$0.StandardHeader = $5
+		$5.Text = 
+		$5.IncludeInNewFiles = False
+		outputpath = build
+	EndGlobalSection
+EndGlobal
