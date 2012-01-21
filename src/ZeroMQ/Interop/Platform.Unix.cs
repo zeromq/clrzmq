@@ -16,7 +16,7 @@ namespace ZeroMQ.Interop
 
         public static SafeLibraryHandle OpenHandle(string filename)
         {
-            return dlopen(filename + ".so", RTLD_NOW | RTLD_GLOBAL);
+            return dlopen(filename, RTLD_NOW | RTLD_GLOBAL);
         }
 
         public static IntPtr LoadProcedure(SafeLibraryHandle handle, string functionName)

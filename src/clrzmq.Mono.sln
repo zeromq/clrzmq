@@ -4,6 +4,7 @@ Microsoft Visual Studio Solution File, Format Version 11.00
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Build", "Build", "{516295C0-29D3-4E06-B685-95A4E06658D1}"
 	ProjectSection(SolutionItems) = preProject
 		build.proj = build.proj
+		..\Makefile = ..\Makefile
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{E36B3F3D-071A-48EF-8C9F-BA36ED0F7F95}"
@@ -156,6 +157,19 @@ Global
 		$0.StandardHeader = $5
 		$5.Text = 
 		$5.IncludeInNewFiles = False
+		$0.TextStylePolicy = $6
+		$6.inheritsSet = null
+		$6.scope = application/config+xml
+		$0.XmlFormattingPolicy = $7
+		$7.inheritsSet = null
+		$7.scope = application/config+xml
+		$0.TextStylePolicy = $8
+		$8.inheritsSet = null
+		$8.scope = application/xml
+		$0.XmlFormattingPolicy = $9
+		$9.inheritsSet = Mono
+		$9.inheritsScope = application/xml
+		$9.scope = application/xml
 		outputpath = build
 	EndGlobalSection
 EndGlobal
