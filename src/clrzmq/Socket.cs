@@ -630,28 +630,22 @@ namespace ZMQ {
         }
 
         /// <summary>
-        /// DO NOT USE. Left in for backward compatibility, but SendRecvOpt flags are
-        /// not compatible with RecvAll.
         /// Listen for message, retrieving all pending message parts.
         /// </summary>
         /// <param name="flags">Receive options</param>
         /// <returns>Queue of message parts</returns>
         /// <exception cref="ZMQ.Exception">ZMQ Exception</exception>
-        [Obsolete("Will be removed in version 3.x.")]
         public Queue<byte[]> RecvAll(params SendRecvOpt[] flags) {
             return RecvAll((Queue<byte[]>)null, flags);
         }
 
         /// <summary>
-        /// DO NOT USE. Left in for backward compatibility, but SendRecvOpt flags are
-        /// not compatible with RecvAll.
         /// Listen for message, retrieving all pending message parts.
         /// </summary>
         /// <param name="messages">The queue object to put the message into</param>
         /// <param name="flags">Receive options</param>
         /// <returns>Queue of message parts</returns>
         /// <exception cref="ZMQ.Exception">ZMQ Exception</exception>
-        [Obsolete("Will be removed in version 3.x.")]
         public Queue<byte[]> RecvAll(Queue<byte[]> messages, params SendRecvOpt[] flags) {
             if (messages == null) {
                 messages = new Queue<byte[]>();
@@ -680,15 +674,12 @@ namespace ZMQ {
         }
 
         /// <summary>
-        /// DO NOT USE. Left in for backward compatibility, but SendRecvOpt flags are
-        /// not compatible with RecvAll.
         /// Listen for message, retrieving all pending message parts.
         /// </summary>
         /// <param name="encoding">String Encoding</param>
         /// <param name="flags">Socket options to use when receiving</param>
         /// <returns>Queue of message parts</returns>
         /// <exception cref="ZMQ.Exception">ZMQ Exception</exception>
-        [Obsolete("Will be removed in version 3.x.")]
         public Queue<string> RecvAll(Encoding encoding, params SendRecvOpt[] flags) {
             var messages = new Queue<string>();
             messages.Enqueue(Recv(encoding, flags));
