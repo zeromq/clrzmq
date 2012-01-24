@@ -10,9 +10,6 @@ lib
 lib-*
 ^lib/**/*.txt
 
-# Generated Files
-VersionInfo.cs
-
 # NuGet-related
 packages
 nuget.exe
@@ -20,7 +17,7 @@ nuget.exe
 # User Settings
 *.suo
 *.user
-clrzmq.userprefs
+*.userprefs
 
 # Other
 *.snk
