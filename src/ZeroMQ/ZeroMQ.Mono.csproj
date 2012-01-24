@@ -68,7 +68,6 @@
     <Compile Include="Interop\DisposableIntPtr.cs" />
     <Compile Include="ErrorCode.cs" />
     <Compile Include="Interop\ErrorProxy.cs" />
-    <Compile Include="Interop\LibZmq.cs" />
     <Compile Include="ReceiveSocket.cs" />
     <Compile Include="SendSocket.cs" />
     <Compile Include="SocketFlags.cs" />
@@ -85,6 +84,8 @@
     <Compile Include="ZmqSocketException.cs" />
     <Compile Include="ZmqVersion.cs" />
     <Compile Include="ZmqVersionException.cs" />
+    <Compile Include="Interop\LibZmq.Mono.cs" />
+    <Compile Include="Interop\LibZmq.NET.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

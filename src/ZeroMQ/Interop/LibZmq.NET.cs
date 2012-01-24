@@ -1,4 +1,6 @@
-﻿namespace ZeroMQ.Interop
+﻿#if !MONO
+
+namespace ZeroMQ.Interop
 {
     using System;
     using System.Diagnostics.CodeAnalysis;
@@ -190,3 +192,5 @@
     }
     // ReSharper restore InconsistentNaming
 }
+
+#endif
