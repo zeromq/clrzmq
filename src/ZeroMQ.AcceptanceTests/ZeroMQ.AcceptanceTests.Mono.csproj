@@ -9,7 +9,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>ZeroMQ.AcceptanceTests</RootNamespace>
-    <AssemblyName>ZeroMQ.AcceptanceTests.Mono</AssemblyName>
+    <AssemblyName>ZeroMQ.AcceptanceTests</AssemblyName>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -17,12 +17,14 @@
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug</OutputPath>
     <WarningLevel>4</WarningLevel>
+    <NoWarn>414;169;649</NoWarn>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>none</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Release</OutputPath>
     <WarningLevel>4</WarningLevel>
+    <NoWarn>414;169;649</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Machine.Specifications">

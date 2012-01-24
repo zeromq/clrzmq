@@ -10,8 +10,6 @@
 
         private static readonly int[] MessageSizes = { 8, 64, 512, 4096, 8192, 16384, 32768 };
 
-        private readonly ManualResetEvent _readyEvent = new ManualResetEvent(false);
-
         public string TestName
         {
             get { return "Latency Benchmark"; }
@@ -22,11 +20,14 @@
             var client = new Thread(ClientThread);
             var server = new Thread(ServerThread);
 
+            client.Name = "Client";
+            server.Name = "Server";
+
             server.Start();
             client.Start();
 
-            server.Join();
-            client.Join();
+            server.Join(5000);
+            client.Join(5000);
         }
 
         private void ClientThread()
@@ -34,8 +35,6 @@
             using (var context = ZmqContext.Create())
             using (var socket = context.CreateSocket(SocketType.REQ))
             {
-                _readyEvent.WaitOne();
-
                 socket.Connect("tcp://localhost:9000");
 
                 foreach (int messageSize in MessageSizes)
@@ -48,15 +47,13 @@
 
                     for (int i = 0; i < RoundtripCount; i++)
                     {
-                        int sentBytes = socket.Send(msg, messageSize, SocketFlags.None);
+                        int sentBytes = socket.Send(msg);
 
                         Debug.Assert(sentBytes == messageSize, "Message was not indicated as sent.");
 
                         int bytesReceived = socket.Receive(reply);
 
                         Debug.Assert(bytesReceived == messageSize, "Pong message did not have the expected size.");
-
-                        msg = reply;
                     }
 
                     watch.Stop();
@@ -78,8 +75,6 @@
             {
                 socket.Bind("tcp://*:9000");
 
-                _readyEvent.Set();
-
                 foreach (int messageSize in MessageSizes)
                 {
                     var message = new byte[messageSize];
@@ -90,7 +85,9 @@
 
                         Debug.Assert(receivedBytes == messageSize, "Ping message length did not match expected value.");
 
-                        socket.Send(message, messageSize, SocketFlags.None);
+                        int sentBytes = socket.Send(message);
+
+                        Debug.Assert(sentBytes == messageSize, "Message was not indicated as sent.");
                     }
                 }
             }

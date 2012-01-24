@@ -9,7 +9,7 @@
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>ZeroMQ.SimpleTests</RootNamespace>
-    <AssemblyName>ZeroMQ.SimpleTests.Mono</AssemblyName>
+    <AssemblyName>ZeroMQ.SimpleTests</AssemblyName>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -54,4 +54,11 @@
       <Name>ZeroMQ.Mono</Name>
     </ProjectReference>
   </ItemGroup>
+  <ProjectExtensions>
+    <MonoDevelop>
+      <Properties>
+        <Deployment.LinuxDeployData scriptName="simple_tests" />
+      </Properties>
+    </MonoDevelop>
+  </ProjectExtensions>
 </Project>
