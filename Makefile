@@ -1,12 +1,7 @@
 PROJ = src/build.proj
-ARCH = x86
-FLAGS = /property:OperatingPlatform=Unix /property:Platform=$(ARCH)
+FLAGS = /property:OperatingPlatform=Unix
 
-ifeq ($(ARCH), x86)
-	MSPECEXE = mspec-x86-clr4.exe
-else
-	MSPECEXE = mspec-clr4.exe
-endif
+MSPECEXE = mspec-clr4.exe
 
 MSPEC = /property:MSpecExe="mono --runtime%3Dv4.0 .${shell find . -name '$(MSPECEXE)'}"
 XBUILD = xbuild /tv:4.0
@@ -22,12 +17,12 @@ VERSIONINFO = src/Shared/VersionInfo.cs
 PACK = tar -czf clrzmq-mono-$(VERSTR).tar.gz
 PACKFILES = build/clrzmq.* README.md AUTHORS LICENSE
 
-all: build
+.PHONY=all release package clean
 
-build: $(PROJ)
+all:
 	$(XBUILD) $(FLAGS) $(MSPEC) $(PROJ)
 
-release: $(PROJ)
+release:
 	ifdef VERSION
 		mv $(VERSIONINFO) $(VERSIONINFO).bak
 		echo using System.Reflection; > $(VERSIONINFO)
@@ -47,5 +42,5 @@ release: $(PROJ)
 package: release
 	$(PACK) $(PACKFILES)
 
-clean: $(PROJ)
+clean:
 	$(XBUILD) /target:Clean $(FLAGS) $(PROJ)

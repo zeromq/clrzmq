@@ -5,7 +5,7 @@
     <LibDir Condition="'$(LibDir)' == ''">..\lib</LibDir>
     <BuildDir>..\build</BuildDir>
     <PackageDir>..\publish</PackageDir>
-    <Platform Condition="'$(Platform)' == ''">x86</Platform>
+    <Platform Condition="'$(Platform)' == ''">Any CPU</Platform>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <MSpecOptions Condition="'$(MSpecOptions)' == ''"></MSpecOptions>
     <KeyFileProperty Condition="'$(SignAssembly)' == 'true'">KeyOriginatorFile=Shared\clrzmq.snk</KeyFileProperty>
@@ -30,13 +30,14 @@
   <ItemGroup>
     <CleanFiles Include="$(BuildDir)" />
     <CleanFiles Include="$(SolutionDir)\**\bin\$(Configuration)\**" />
-    <CleanFiles Include="$(SolutionDir)\**\bin\*.*" />
+    <CleanFiles Include="$(SolutionDir)\**\bin\**\*.*" />
     <CleanFiles Include="$(SolutionDir)\**\obj\$(Configuration)\**" />
-    <CleanFiles Include="$(SolutionDir)\**\obj\*.*" />
+    <CleanFiles Include="$(SolutionDir)\**\obj\**\*.*" />
   </ItemGroup>
 
   <ItemGroup>
-    <TestAssmbly Include="$(SolutionDir)\**\bin\$(Platform)\$(Configuration)\*Tests.dll" />
+    <TestAssembly Condition="'$(Platform)' != 'Any CPU'" Include="$(SolutionDir)\**\bin\$(Platform)\$(Configuration)\*Tests.dll" />
+    <TestAssembly Condition="'$(Platform)' == 'Any CPU'" Include="$(SolutionDir)\**\bin\$(Configuration)\*Tests.dll" />
   </ItemGroup>
   
   <ItemGroup>
@@ -77,7 +78,7 @@
   </Target>
 
   <Target Name="Test" DependsOnTargets="Compile">
-    <Exec Command="$(MSpecExe) $(MSpecOptions) %(TestAssmbly.Identity)" />
+    <Exec Command="$(MSpecExe) $(MSpecOptions) %(TestAssembly.Identity)" />
   </Target>
   
   <Target Name="Build" DependsOnTargets="Test">
