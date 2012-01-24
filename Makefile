@@ -1,9 +1,5 @@
 PROJ = src/build.proj
 FLAGS = /property:OperatingPlatform=Unix
-
-MSPECEXE = mspec-clr4.exe
-
-MSPEC = /property:MSpecExe="mono --runtime%3Dv4.0 .${shell find . -name '$(MSPECEXE)'}"
 XBUILD = xbuild /tv:4.0
 
 VERSION =
@@ -20,7 +16,7 @@ PACKFILES = build/clrzmq.* README.md AUTHORS LICENSE
 .PHONY=all release package clean
 
 all:
-	$(XBUILD) $(FLAGS) $(MSPEC) $(PROJ)
+	$(XBUILD) $(FLAGS) $(PROJ)
 
 release:
 	ifdef VERSION

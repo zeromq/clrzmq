@@ -5,15 +5,12 @@
     <LibDir Condition="'$(LibDir)' == ''">..\lib</LibDir>
     <BuildDir>..\build</BuildDir>
     <PackageDir>..\publish</PackageDir>
-    <Platform Condition="'$(Platform)' == ''">Any CPU</Platform>
+    <Platform Condition="'$(OperatingPlatform)' == 'Unix' and '$(Platform)' == ''">Any CPU</Platform>
+    <Platform Condition="'$(OperatingPlatform)' == '' and '$(Platform)' == ''">x86</Platform>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
-    <MSpecOptions Condition="'$(MSpecOptions)' == ''"></MSpecOptions>
     <KeyFileProperty Condition="'$(SignAssembly)' == 'true'">KeyOriginatorFile=Shared\clrzmq.snk</KeyFileProperty>
     <OperatingPlatform Condition="'$(OperatingPlatform)' == ''">Windows</OperatingPlatform>
     <SolutionSuffix Condition="'$(OperatingPlatform)' == 'Unix'">.Mono</SolutionSuffix>
-
-    <MSpecExe Condition="'$(MSpecExe)' == '' and '$(Platform)' == 'x64' and '$(OperatingPlatform)' == 'Windows'">$([System.IO.Directory]::GetDirectories("..\\packages", "Machine.Specifications.*")[0])\tools\mspec-clr4.exe</MSpecExe>
-    <MSpecExe Condition="'$(MSpecExe)' == '' and '$(Platform)' == 'x86' and '$(OperatingPlatform)' == 'Windows'">$([System.IO.Directory]::GetDirectories("..\\packages", "Machine.Specifications.*")[0])\tools\mspec-x86-clr4.exe</MSpecExe>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -66,22 +63,15 @@
   </ItemGroup>
 
   <Target Name="Clean">
-    <Delete Files="@(CleanFiles)" />
+    <Delete Files="@(CleanFiles)" ContinueOnError="true" />
   </Target>
 
   <Target Name="Initialize" DependsOnTargets="Clean">
     <MakeDir Directories="$(BuildDir)" />
   </Target>
-  
-  <Target Name="Compile" DependsOnTargets="Initialize">
-    <MSBuild Projects="clrzmq$(SolutionSuffix).sln" Targets="Build" Properties="Configuration=$(Configuration);Platform=$(Platform);$(KeyFileProperty)" />
-  </Target>
 
-  <Target Name="Test" DependsOnTargets="Compile">
-    <Exec Command="$(MSpecExe) $(MSpecOptions) %(TestAssembly.Identity)" />
-  </Target>
-  
-  <Target Name="Build" DependsOnTargets="Test">
+  <Target Name="Build" DependsOnTargets="Initialize">
+    <MSBuild Projects="clrzmq$(SolutionSuffix).sln" Targets="Build" Properties="Configuration=$(Configuration);Platform=$(Platform);$(KeyFileProperty)" />
     <Copy SourceFiles="@(OutputFiles)" DestinationFolder="$(BuildDir)" ContinueOnError="true" />
   </Target>
 
