@@ -10,6 +10,8 @@
         protected static byte[] message2;
         protected static bool receiveMore1;
         protected static bool receiveMore2;
+        protected static SendStatus sendStatus1;
+        protected static SendStatus sendStatus2;
 
         Establish context = () =>
         {
@@ -32,8 +34,8 @@
 
             senderAction = pub =>
             {
-                pub.Send(Messages.PubSubFirst);
-                pub.Send(Messages.PubSubSecond);
+                sendStatus1 = pub.Send(Messages.PubSubFirst);
+                sendStatus2 = pub.Send(Messages.PubSubSecond);
             };
         };
 
@@ -49,6 +51,8 @@
         protected static byte[] message2;
         protected static bool receiveMore1;
         protected static bool receiveMore2;
+        protected static SendStatus sendStatus1;
+        protected static SendStatus sendStatus2;
 
         Establish context = () =>
         {
@@ -71,8 +75,8 @@
 
             senderAction = pub =>
             {
-                pub.Send(Messages.PubSubFirst);
-                pub.Send(Messages.PubSubSecond);
+                sendStatus1 = pub.Send(Messages.PubSubFirst);
+                sendStatus2 = pub.Send(Messages.PubSubSecond);
             };
         };
 

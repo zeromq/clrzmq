@@ -23,6 +23,10 @@ namespace ZMQ.AcceptanceTests
     {
         protected static Socket receiver;
         protected static byte[] message;
+        protected static SendStatus sendStatus;
+
+        It should_be_successfully_sent = () =>
+            sendStatus.ShouldEqual(SendStatus.Sent);
 
         It should_be_successfully_received = () =>
             message.ShouldNotBeNull();
@@ -54,6 +58,10 @@ namespace ZMQ.AcceptanceTests
         protected static byte[] message;
         protected static byte[] buffer;
         protected static int size;
+        protected static SendStatus sendStatus;
+
+        It should_be_successfully_sent = () =>
+            sendStatus.ShouldEqual(SendStatus.Sent);
 
         It should_be_successfully_received = () =>
             message.ShouldNotBeNull();
@@ -73,6 +81,14 @@ namespace ZMQ.AcceptanceTests
     {
         protected static Socket receiver;
         protected static Queue<byte[]> messages;
+        protected static SendStatus sendStatus1;
+        protected static SendStatus sendStatus2;
+
+        It should_successfully_send_the_first_message = () =>
+            sendStatus1.ShouldEqual(SendStatus.Sent);
+
+        It should_successfully_send_the_second_message = () =>
+            sendStatus2.ShouldEqual(SendStatus.Sent);
 
         It should_receive_all_message_parts = () =>
             messages.Count.ShouldEqual(2);
@@ -94,6 +110,14 @@ namespace ZMQ.AcceptanceTests
         protected static byte[] message2;
         protected static bool receiveMore1;
         protected static bool receiveMore2;
+        protected static SendStatus sendStatus1;
+        protected static SendStatus sendStatus2;
+
+        It should_successfully_send_the_first_message = () =>
+            sendStatus1.ShouldEqual(SendStatus.Sent);
+
+        It should_successfully_send_the_second_message = () =>
+            sendStatus2.ShouldEqual(SendStatus.Sent);
 
         It should_receive_the_first_message_successfully = () =>
             message1.ShouldNotBeNull();
@@ -118,6 +142,14 @@ namespace ZMQ.AcceptanceTests
         protected static byte[] message2;
         protected static bool receiveMore1;
         protected static bool receiveMore2;
+        protected static SendStatus sendStatus1;
+        protected static SendStatus sendStatus2;
+
+        It should_successfully_send_the_first_message = () =>
+            sendStatus1.ShouldEqual(SendStatus.Sent);
+
+        It should_successfully_send_the_second_message = () =>
+            sendStatus2.ShouldEqual(SendStatus.Sent);
 
         It should_receive_the_first_message_successfully = () =>
             message1.ShouldNotBeNull();

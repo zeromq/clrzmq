@@ -7,10 +7,11 @@
     class when_transferring_in_blocking_mode : using_threaded_req_rep
     {
         protected static byte[] message;
+        protected static SendStatus sendStatus;
 
         Establish context = () =>
         {
-            senderAction = req => req.Send(Messages.SingleMessage);
+            senderAction = req => sendStatus = req.Send(Messages.SingleMessage);
             receiverAction = rep => message = rep.Recv();
         };
 
@@ -23,13 +24,14 @@
     class when_transferring_with_an_ample_receive_timeout : using_threaded_req_rep
     {
         protected static byte[] message;
+        protected static SendStatus sendStatus;
 
         Establish context = () =>
         {
             senderAction = req =>
             {
                 Thread.Sleep(500);
-                req.Send(Messages.SingleMessage);
+                sendStatus = req.Send(Messages.SingleMessage);
             };
 
             receiverAction = rep => message = rep.Recv(2000);
@@ -61,10 +63,11 @@
         protected static byte[] message;
         protected static byte[] buffer;
         protected static int size;
+        protected static SendStatus sendStatus;
 
         Establish context = () =>
         {
-            senderAction = req => req.Send(Messages.SingleMessage);
+            senderAction = req => sendStatus = req.Send(Messages.SingleMessage);
 
             buffer = new byte[256];
             receiverAction = rep => message = rep.Recv(buffer, out size);
@@ -84,10 +87,11 @@
         protected static byte[] message;
         protected static byte[] buffer;
         protected static int size;
+        protected static SendStatus sendStatus;
 
         Establish context = () =>
         {
-            senderAction = req => req.Send(Messages.SingleMessage);
+            senderAction = req => sendStatus = req.Send(Messages.SingleMessage);
 
             buffer = new byte[1];
             receiverAction = rep => message = rep.Recv(buffer, out size);
