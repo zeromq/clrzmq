@@ -46,6 +46,7 @@
     <Compile Include="DuplexSocket.cs" />
     <Compile Include="Devices\IDevice.cs" />
     <Compile Include="Interop\ErrorDetails.cs" />
+    <Compile Include="Interop\LibZmq.Mono.cs" />
     <Compile Include="Interop\Platform.Mono.cs" />
     <Compile Include="Interop\Platform.NET.cs" />
     <Compile Include="Interop\Platform.Unix.cs" />
@@ -67,7 +68,7 @@
     <Compile Include="Interop\DisposableIntPtr.cs" />
     <Compile Include="ErrorCode.cs" />
     <Compile Include="Interop\ErrorProxy.cs" />
-    <Compile Include="Interop\LibZmq.cs" />
+    <Compile Include="Interop\LibZmq.NET.cs" />
     <Compile Include="ReceiveSocket.cs" />
     <Compile Include="SendSocket.cs" />
     <Compile Include="SocketFlags.cs" />

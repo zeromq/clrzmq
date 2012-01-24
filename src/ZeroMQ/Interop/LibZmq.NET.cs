@@ -18,21 +18,38 @@
         // typedef struct {unsigned char _ [32];} zmq_msg_t;
         public const int ZmqMsgTSize = 32;
 
+        public static readonly int MajorVersion;
+        public static readonly int MinorVersion;
+        public static readonly int PatchVersion;
+
         private static readonly UnmanagedLibrary NativeLib;
 
-        public static int MajorVersion;
-        public static int MinorVersion;
-        public static int PatchVersion;
-
-        public static long PollTimeoutRatio;
+        public static readonly long PollTimeoutRatio;
 
         static LibZmq()
         {
             NativeLib = new UnmanagedLibrary(LibraryName);
 
             AssignCommonDelegates();
-            GetCurrentVersion();
-            AssignVersionSpecificDelegates();
+            AssignCurrentVersion(out MajorVersion, out MinorVersion, out PatchVersion);
+
+            if (MajorVersion >= 3)
+            {
+                zmq_getmsgopt = NativeLib.GetUnmanagedFunction<ZmqGetMsgOptProc>("zmq_getmsgopt");
+                zmq_recvmsg = NativeLib.GetUnmanagedFunction<ZmqRecvMsgProc>("zmq_recvmsg");
+                zmq_sendmsg = NativeLib.GetUnmanagedFunction<ZmqSendMsgProc>("zmq_sendmsg");
+                zmq_msg_init_data = NativeLib.GetUnmanagedFunction<ZmqMsgInitDataProc>("zmq_msg_init_data");
+                zmq_msg_move = NativeLib.GetUnmanagedFunction<ZmqMsgMoveProc>("zmq_msg_move");
+
+                PollTimeoutRatio = 1;
+            }
+            else if (MajorVersion == 2)
+            {
+                zmq_recvmsg = NativeLib.GetUnmanagedFunction<ZmqRecvMsgProc>("zmq_recv");
+                zmq_sendmsg = NativeLib.GetUnmanagedFunction<ZmqSendMsgProc>("zmq_send");
+
+                PollTimeoutRatio = 1000;
+            }
         }
 
         private static void AssignCommonDelegates()
@@ -57,28 +74,7 @@
             zmq_poll = NativeLib.GetUnmanagedFunction<ZmqPollProc>("zmq_poll");
         }
 
-        private static void AssignVersionSpecificDelegates()
-        {
-            if (MajorVersion >= 3)
-            {
-                zmq_getmsgopt = NativeLib.GetUnmanagedFunction<ZmqGetMsgOptProc>("zmq_getmsgopt");
-                zmq_recvmsg = NativeLib.GetUnmanagedFunction<ZmqRecvMsgProc>("zmq_recvmsg");
-                zmq_sendmsg = NativeLib.GetUnmanagedFunction<ZmqSendMsgProc>("zmq_sendmsg");
-                zmq_msg_init_data = NativeLib.GetUnmanagedFunction<ZmqMsgInitDataProc>("zmq_msg_init_data");
-                zmq_msg_move = NativeLib.GetUnmanagedFunction<ZmqMsgMoveProc>("zmq_msg_move");
-
-                PollTimeoutRatio = 1;
-            }
-            else if (MajorVersion == 2)
-            {
-                zmq_recvmsg = NativeLib.GetUnmanagedFunction<ZmqRecvMsgProc>("zmq_recv");
-                zmq_sendmsg = NativeLib.GetUnmanagedFunction<ZmqSendMsgProc>("zmq_send");
-
-                PollTimeoutRatio = 1000;
-            }
-        }
-
-        private static void GetCurrentVersion()
+        private static void AssignCurrentVersion(out int majorVersion, out int minorVersion, out int patchVersion)
         {
             int sizeofInt32 = Marshal.SizeOf(typeof(int));
 
@@ -88,9 +84,9 @@
 
             zmq_version(majorPointer, minorPointer, patchPointer);
 
-            MajorVersion = Marshal.ReadInt32(majorPointer);
-            MinorVersion = Marshal.ReadInt32(minorPointer);
-            PatchVersion = Marshal.ReadInt32(patchPointer);
+            majorVersion = Marshal.ReadInt32(majorPointer);
+            minorVersion = Marshal.ReadInt32(minorPointer);
+            patchVersion = Marshal.ReadInt32(patchPointer);
 
             Marshal.FreeHGlobal(majorPointer);
             Marshal.FreeHGlobal(minorPointer);
