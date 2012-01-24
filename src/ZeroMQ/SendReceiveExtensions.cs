@@ -16,16 +16,18 @@
         /// </remarks>
         /// <param name="socket">A <see cref="ZmqSocket"/> object.</param>
         /// <param name="buffer">A <see cref="byte"/> array that contains the message to be sent.</param>
-        /// <returns>The number of bytes sent by the socket.</returns>
+        /// <returns>A <see cref="SendStatus"/> describing the outcome of the send operation.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="buffer"/> is null.</exception>
         /// <exception cref="ZmqSocketException">An error occurred sending data to a remote endpoint.</exception>
         /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
         /// <exception cref="NotSupportedException">The current socket type does not support Send operations.</exception>
-        public static int Send(this ZmqSocket socket, byte[] buffer)
+        public static SendStatus Send(this ZmqSocket socket, byte[] buffer)
         {
             VerifySocket(socket);
 
-            return socket.Send(buffer, buffer.Length, SocketFlags.None);
+            socket.Send(buffer, buffer.Length, SocketFlags.None);
+
+            return socket.SendStatus;
         }
 
         /// <summary>
@@ -38,16 +40,18 @@
         /// <param name="socket">A <see cref="ZmqSocket"/> object.</param>
         /// <param name="buffer">A <see cref="byte"/> array that contains the message to be sent.</param>
         /// <param name="timeout">A <see cref="TimeSpan"/> specifying the send timeout.</param>
-        /// <returns>The number of bytes sent by the socket.</returns>
+        /// <returns>A <see cref="SendStatus"/> describing the outcome of the send operation.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="buffer"/> is null.</exception>
         /// <exception cref="ZmqSocketException">An error occurred sending data to a remote endpoint.</exception>
         /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
         /// <exception cref="NotSupportedException">The current socket type does not support Send operations.</exception>
-        public static int Send(this ZmqSocket socket, byte[] buffer, TimeSpan timeout)
+        public static SendStatus Send(this ZmqSocket socket, byte[] buffer, TimeSpan timeout)
         {
             VerifySocket(socket);
 
-            return socket.Send(buffer, buffer.Length, SocketFlags.None, timeout);
+            socket.Send(buffer, buffer.Length, SocketFlags.None, timeout);
+
+            return socket.SendStatus;
         }
 
         /// <summary>
@@ -56,12 +60,12 @@
         /// <param name="socket">A <see cref="ZmqSocket"/> object.</param>
         /// <param name="message">A <see cref="string"/> that contains the message to be sent.</param>
         /// <param name="encoding">The <see cref="Encoding"/> to use when converting <paramref name="message"/> to a buffer.</param>
-        /// <returns>The number of bytes sent by the socket.</returns>
+        /// <returns>A <see cref="SendStatus"/> describing the outcome of the send operation.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="message"/> or <paramref name="encoding"/> is null.</exception>
         /// <exception cref="ZmqSocketException">An error occurred sending data to a remote endpoint.</exception>
         /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
         /// <exception cref="NotSupportedException">The current socket type does not support Send operations.</exception>
-        public static int Send(this ZmqSocket socket, string message, Encoding encoding)
+        public static SendStatus Send(this ZmqSocket socket, string message, Encoding encoding)
         {
             return Send(socket, message, encoding, TimeSpan.MaxValue);
         }
@@ -74,12 +78,12 @@
         /// <param name="message">A <see cref="string"/> that contains the message to be sent.</param>
         /// <param name="encoding">The <see cref="Encoding"/> to use when converting <paramref name="message"/> to a buffer.</param>
         /// <param name="timeout">A <see cref="TimeSpan"/> specifying the send timeout.</param>
-        /// <returns>The number of bytes sent by the socket.</returns>
+        /// <returns>A <see cref="SendStatus"/> describing the outcome of the send operation.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="message"/> or <paramref name="encoding"/> is null.</exception>
         /// <exception cref="ZmqSocketException">An error occurred sending data to a remote endpoint.</exception>
         /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
         /// <exception cref="NotSupportedException">The current socket type does not support Send operations.</exception>
-        public static int Send(this ZmqSocket socket, string message, Encoding encoding, TimeSpan timeout)
+        public static SendStatus Send(this ZmqSocket socket, string message, Encoding encoding, TimeSpan timeout)
         {
             VerifySocket(socket);
             VerifyStringMessage(message);
@@ -87,7 +91,9 @@
 
             byte[] buffer = encoding.GetBytes(message);
 
-            return socket.Send(buffer, buffer.Length, SocketFlags.None, timeout);
+            socket.Send(buffer, buffer.Length, SocketFlags.None, timeout);
+
+            return socket.SendStatus;
         }
 
         /// <summary>
@@ -100,12 +106,12 @@
         /// </remarks>
         /// <param name="socket">A <see cref="ZmqSocket"/> object.</param>
         /// <param name="buffer">A <see cref="byte"/> array that contains the message to be sent.</param>
-        /// <returns>The number of bytes sent by the socket.</returns>
+        /// <returns>A <see cref="SendStatus"/> describing the outcome of the send operation.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="buffer"/> is null.</exception>
         /// <exception cref="ZmqSocketException">An error occurred sending data to a remote endpoint.</exception>
         /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
         /// <exception cref="NotSupportedException">The current socket type does not support Send operations.</exception>
-        public static int SendMore(this ZmqSocket socket, byte[] buffer)
+        public static SendStatus SendMore(this ZmqSocket socket, byte[] buffer)
         {
             return SendMore(socket, buffer, TimeSpan.MaxValue);
         }
@@ -121,16 +127,18 @@
         /// <param name="socket">A <see cref="ZmqSocket"/> object.</param>
         /// <param name="buffer">A <see cref="byte"/> array that contains the message to be sent.</param>
         /// <param name="timeout">A <see cref="TimeSpan"/> specifying the send timeout.</param>
-        /// <returns>The number of bytes sent by the socket.</returns>
+        /// <returns>A <see cref="SendStatus"/> describing the outcome of the send operation.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="buffer"/> is null.</exception>
         /// <exception cref="ZmqSocketException">An error occurred sending data to a remote endpoint.</exception>
         /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
         /// <exception cref="NotSupportedException">The current socket type does not support Send operations.</exception>
-        public static int SendMore(this ZmqSocket socket, byte[] buffer, TimeSpan timeout)
+        public static SendStatus SendMore(this ZmqSocket socket, byte[] buffer, TimeSpan timeout)
         {
             VerifySocket(socket);
 
-            return socket.Send(buffer, buffer.Length, SocketFlags.SendMore, timeout);
+            socket.Send(buffer, buffer.Length, SocketFlags.SendMore, timeout);
+
+            return socket.SendStatus;
         }
 
         /// <summary>
@@ -139,12 +147,12 @@
         /// <param name="socket">A <see cref="ZmqSocket"/> object.</param>
         /// <param name="message">A <see cref="string"/> that contains the message to be sent.</param>
         /// <param name="encoding">The <see cref="Encoding"/> to use when converting <paramref name="message"/> to a buffer.</param>
-        /// <returns>The number of bytes sent by the socket.</returns>
+        /// <returns>A <see cref="SendStatus"/> describing the outcome of the send operation.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="message"/> or <paramref name="encoding"/> is null.</exception>
         /// <exception cref="ZmqSocketException">An error occurred sending data to a remote endpoint.</exception>
         /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
         /// <exception cref="NotSupportedException">The current socket type does not support Send operations.</exception>
-        public static int SendMore(this ZmqSocket socket, string message, Encoding encoding)
+        public static SendStatus SendMore(this ZmqSocket socket, string message, Encoding encoding)
         {
             return SendMore(socket, message, encoding, TimeSpan.MaxValue);
         }
@@ -156,12 +164,12 @@
         /// <param name="message">A <see cref="string"/> that contains the message to be sent.</param>
         /// <param name="encoding">The <see cref="Encoding"/> to use when converting <paramref name="message"/> to a buffer.</param>
         /// <param name="timeout">A <see cref="TimeSpan"/> specifying the send timeout.</param>
-        /// <returns>The number of bytes sent by the socket.</returns>
+        /// <returns>A <see cref="SendStatus"/> describing the outcome of the send operation.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="message"/> or <paramref name="encoding"/> is null.</exception>
         /// <exception cref="ZmqSocketException">An error occurred sending data to a remote endpoint.</exception>
         /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
         /// <exception cref="NotSupportedException">The current socket type does not support Send operations.</exception>
-        public static int SendMore(this ZmqSocket socket, string message, Encoding encoding, TimeSpan timeout)
+        public static SendStatus SendMore(this ZmqSocket socket, string message, Encoding encoding, TimeSpan timeout)
         {
             VerifySocket(socket);
             VerifyStringMessage(message);
@@ -169,7 +177,9 @@
 
             byte[] buffer = encoding.GetBytes(message);
 
-            return socket.Send(buffer, buffer.Length, SocketFlags.SendMore, timeout);
+            socket.Send(buffer, buffer.Length, SocketFlags.SendMore, timeout);
+
+            return socket.SendStatus;
         }
 
         /// <summary>

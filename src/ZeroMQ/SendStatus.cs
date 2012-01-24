@@ -6,9 +6,19 @@
     public enum SendStatus
     {
         /// <summary>
+        /// No send operation was performed.
+        /// </summary>
+        None,
+
+        /// <summary>
         /// The message was queued to be sent by the socket.
         /// </summary>
         Sent,
+
+        /// <summary>
+        /// The send operation completed but only part of the requested message was sent.
+        /// </summary>
+        Incomplete,
 
         /// <summary>
         /// Non-blocking mode was requested and the message cannot be sent at the moment.

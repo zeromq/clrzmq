@@ -483,7 +483,7 @@
 
             if (sentBytes >= 0)
             {
-                SendStatus = SendStatus.Sent;
+                SendStatus = (sentBytes == size || LibZmq.MajorVersion < LatestVersion) ? SendStatus.Sent : SendStatus.Incomplete;
                 return sentBytes;
             }
 

@@ -30,7 +30,7 @@
             client.Join(5000);
         }
 
-        private void ClientThread()
+        private static void ClientThread()
         {
             using (var context = ZmqContext.Create())
             using (var socket = context.CreateSocket(SocketType.REQ))
@@ -47,9 +47,9 @@
 
                     for (int i = 0; i < RoundtripCount; i++)
                     {
-                        int sentBytes = socket.Send(msg);
+                        SendStatus sendStatus = socket.Send(msg);
 
-                        Debug.Assert(sentBytes == messageSize, "Message was not indicated as sent.");
+                        Debug.Assert(sendStatus == SendStatus.Sent, "Message was not indicated as sent.");
 
                         int bytesReceived = socket.Receive(reply);
 
@@ -68,7 +68,7 @@
             }
         }
 
-        private void ServerThread()
+        private static void ServerThread()
         {
             using (var context = ZmqContext.Create())
             using (var socket = context.CreateSocket(SocketType.REP))
@@ -85,9 +85,9 @@
 
                         Debug.Assert(receivedBytes == messageSize, "Ping message length did not match expected value.");
 
-                        int sentBytes = socket.Send(message);
+                        SendStatus sendStatus = socket.Send(message);
 
-                        Debug.Assert(sentBytes == messageSize, "Message was not indicated as sent.");
+                        Debug.Assert(sendStatus == SendStatus.Sent, "Message was not indicated as sent.");
                     }
                 }
             }
