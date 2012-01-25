@@ -6,8 +6,6 @@ namespace ZeroMQ.Interop
     using System.Diagnostics.CodeAnalysis;
     using System.Runtime.InteropServices;
 
-    // ReSharper disable InconsistentNaming
-    [SuppressMessage("StyleCop.CSharp.NamingRules", "SA1310:FieldNamesMustNotContainUnderscore", Justification = "Compatibility with native headers.")]
     internal static class LibZmq
     {
         public const string LibraryName = "libzmq";
@@ -170,7 +168,6 @@ namespace ZeroMQ.Interop
         [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
         public static extern int zmq_poll([In, Out] PollItem[] items, int numItems, long timeout);
     }
-    // ReSharper restore InconsistentNaming
 }
 
 #endif
