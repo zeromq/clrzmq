@@ -10,7 +10,7 @@
     /// original request. This device is part of the request-reply pattern. The frontend
     /// speaks to clients and the backend speaks to services.
     /// </remarks>
-    public class QueueDevice : ThreadDevice
+    public class QueueDevice : Device
     {
         /// <summary>
         /// The frontend <see cref="SocketType"/> for a queue device.
@@ -23,7 +23,8 @@
         public const SocketType BackendType = SocketType.XREQ;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="QueueDevice"/> class.
+        /// Initializes a new instance of the <see cref="QueueDevice"/> class that will run in a
+        /// self-managed thread.
         /// </summary>
         /// <param name="context">The <see cref="ZmqContext"/> to use when creating the sockets.</param>
         /// <param name="frontendBindAddr">The endpoint used to bind the frontend socket.</param>
@@ -39,8 +40,33 @@
         /// Initializes a new instance of the <see cref="QueueDevice"/> class.
         /// </summary>
         /// <param name="context">The <see cref="ZmqContext"/> to use when creating the sockets.</param>
+        /// <param name="frontendBindAddr">The endpoint used to bind the frontend socket.</param>
+        /// <param name="backendBindAddr">The endpoint used to bind the backend socket.</param>
+        /// <param name="mode">The <see cref="DeviceMode"/> for the current device.</param>
+        public QueueDevice(ZmqContext context, string frontendBindAddr, string backendBindAddr, DeviceMode mode)
+            : this(context, mode)
+        {
+            FrontendSetup.Bind(frontendBindAddr);
+            BackendSetup.Bind(backendBindAddr);
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="QueueDevice"/> class that will run in a
+        /// self-managed thread.
+        /// </summary>
+        /// <param name="context">The <see cref="ZmqContext"/> to use when creating the sockets.</param>
         public QueueDevice(ZmqContext context)
-            : base(context.CreateSocket(FrontendType), context.CreateSocket(BackendType))
+            : base(context.CreateSocket(FrontendType), context.CreateSocket(BackendType), DeviceMode.Threaded)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="QueueDevice"/> class.
+        /// </summary>
+        /// <param name="context">The <see cref="ZmqContext"/> to use when creating the sockets.</param>
+        /// <param name="mode">The <see cref="DeviceMode"/> for the current device.</param>
+        public QueueDevice(ZmqContext context, DeviceMode mode)
+            : base(context.CreateSocket(FrontendType), context.CreateSocket(BackendType), mode)
         {
         }
 

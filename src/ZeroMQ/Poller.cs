@@ -23,7 +23,7 @@
     /// be invoked when data is ready to be received or sent.
     /// </para>
     /// </remarks>
-    public class Poller
+    public class Poller : IDisposable
     {
         private readonly Dictionary<PollItem, ZmqSocket> _pollableSockets;
         private readonly PollerProxy _pollerProxy;
@@ -57,6 +57,21 @@
 
             _pollerProxy = pollerProxy;
             _pollableSockets = new Dictionary<PollItem, ZmqSocket>();
+            Pulse = new AutoResetEvent(false);
+        }
+
+        /// <summary>
+        /// Gets an <see cref="AutoResetEvent"/> that is pulsed after every Poll call.
+        /// </summary>
+        public AutoResetEvent Pulse { get; private set; }
+
+        /// <summary>
+        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+        /// </summary>
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
         /// <summary>
@@ -91,6 +106,14 @@
         }
 
         /// <summary>
+        /// Removes all sockets from the current collection.
+        /// </summary>
+        public void ClearSockets()
+        {
+            _pollableSockets.Clear();
+        }
+
+        /// <summary>
         /// Multiplex input/output events over the contained set of sockets in blocking mode, firing
         /// <see cref="ZmqSocket.ReceiveReady" /> or <see cref="ZmqSocket.SendReady" /> as appropriate.
         /// </summary>
@@ -117,6 +140,18 @@
             else
             {
                 PollNonBlocking(timeout);
+            }
+        }
+
+        /// <summary>
+        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+        /// </summary>
+        /// <param name="disposing">True if the object is being disposed, false otherwise.</param>
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                Pulse.Dispose();
             }
         }
 
@@ -179,6 +214,8 @@
             }
 
             int readyCount = _pollerProxy.Poll(_pollItems, timeoutMilliseconds);
+
+            Pulse.Set();
 
             if (readyCount > 0)
             {

@@ -117,7 +117,7 @@
         {
             createSender = () => zmqContext.CreateSocket(SocketType.PUSH);
             createReceiver = () => zmqContext.CreateSocket(SocketType.PULL);
-            createDevice = () => new StreamerDevice(zmqContext, FrontendAddr, BackendAddr);
+            createDevice = () => new StreamerDevice(zmqContext, FrontendAddr, BackendAddr, DeviceMode.Blocking);
         }
     }
 }

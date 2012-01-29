@@ -8,7 +8,7 @@
     /// load-balanced to pullers. This device is part of the pipeline pattern. The
     /// frontend speaks to pushers and the backend speaks to pullers.
     /// </remarks>
-    public class StreamerDevice : ThreadDevice
+    public class StreamerDevice : Device
     {
         /// <summary>
         /// The frontend <see cref="SocketType"/> for a streamer device.
@@ -21,7 +21,8 @@
         public const SocketType BackendType = SocketType.PUSH;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="StreamerDevice"/> class.
+        /// Initializes a new instance of the <see cref="StreamerDevice"/> class that will run in
+        /// a self-managed thread.
         /// </summary>
         /// <param name="context">The <see cref="ZmqContext"/> to use when creating the sockets.</param>
         /// <param name="frontendBindAddr">The address used to bind the frontend socket.</param>
@@ -37,8 +38,33 @@
         /// Initializes a new instance of the <see cref="StreamerDevice"/> class.
         /// </summary>
         /// <param name="context">The <see cref="ZmqContext"/> to use when creating the sockets.</param>
+        /// <param name="frontendBindAddr">The address used to bind the frontend socket.</param>
+        /// <param name="backendBindAddr">The endpoint used to bind the backend socket.</param>
+        /// <param name="mode">The <see cref="DeviceMode"/> for the current device.</param>
+        public StreamerDevice(ZmqContext context, string frontendBindAddr, string backendBindAddr, DeviceMode mode)
+            : this(context, mode)
+        {
+            FrontendSetup.Bind(frontendBindAddr);
+            BackendSetup.Bind(backendBindAddr);
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="StreamerDevice"/> class that will run in
+        /// a self-managed thread.
+        /// </summary>
+        /// <param name="context">The <see cref="ZmqContext"/> to use when creating the sockets.</param>
         public StreamerDevice(ZmqContext context)
-            : base(context.CreateSocket(FrontendType), context.CreateSocket(BackendType))
+            : base(context.CreateSocket(FrontendType), context.CreateSocket(BackendType), DeviceMode.Threaded)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="StreamerDevice"/> class.
+        /// </summary>
+        /// <param name="context">The <see cref="ZmqContext"/> to use when creating the sockets.</param>
+        /// <param name="mode">The <see cref="DeviceMode"/> for the current device.</param>
+        public StreamerDevice(ZmqContext context, DeviceMode mode)
+            : base(context.CreateSocket(FrontendType), context.CreateSocket(BackendType), mode)
         {
         }
 

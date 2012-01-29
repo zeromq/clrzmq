@@ -36,12 +36,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Devices\DeviceMode.cs" />
+    <Compile Include="Devices\ThreadedDeviceRunner.cs" />
     <Compile Include="Devices\Device.cs" />
+    <Compile Include="Devices\DeviceRunner.cs" />
     <Compile Include="Devices\DeviceSocketSetup.cs" />
     <Compile Include="Devices\ForwarderDevice.cs" />
     <Compile Include="Devices\QueueDevice.cs" />
     <Compile Include="Devices\StreamerDevice.cs" />
-    <Compile Include="Devices\ThreadDevice.cs" />
     <Compile Include="Devices\ZmqDeviceException.cs" />
     <Compile Include="DuplexSocket.cs" />
     <Compile Include="Devices\IDevice.cs" />

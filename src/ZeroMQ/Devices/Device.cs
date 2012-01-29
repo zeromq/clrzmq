@@ -28,6 +28,9 @@
         /// </summary>
         protected readonly ZmqSocket BackendSocket;
 
+        private readonly Poller _poller;
+        private readonly DeviceRunner _runner;
+
         private volatile bool _isRunning;
 
         private bool _disposed;
@@ -41,7 +44,8 @@
         /// <param name="backendSocket">
         /// A <see cref="ZmqSocket"/> that will receive messages from (and optionally send replies to) <paramref name="frontendSocket"/>.
         /// </param>
-        protected Device(ZmqSocket frontendSocket, ZmqSocket backendSocket)
+        /// <param name="mode">The <see cref="DeviceMode"/> for the current device.</param>
+        protected Device(ZmqSocket frontendSocket, ZmqSocket backendSocket, DeviceMode mode)
         {
             if (frontendSocket == null)
             {
@@ -58,6 +62,9 @@
             FrontendSetup = new DeviceSocketSetup(FrontendSocket);
             BackendSetup = new DeviceSocketSetup(BackendSocket);
             DoneEvent = new ManualResetEvent(false);
+
+            _poller = new Poller();
+            _runner = mode == DeviceMode.Blocking ? new DeviceRunner(this) : new ThreadedDeviceRunner(this);
         }
 
         /// <summary>
@@ -93,6 +100,14 @@
         public ManualResetEvent DoneEvent { get; private set; }
 
         /// <summary>
+        /// Gets an <see cref="AutoResetEvent"/> that is pulsed after every Poll call.
+        /// </summary>
+        public AutoResetEvent PollerPulse
+        {
+            get { return _poller.Pulse; }
+        }
+
+        /// <summary>
         /// Initializes the frontend and backend sockets. Called automatically when starting the device.
         /// If called multiple times, will only execute once.
         /// </summary>
@@ -108,7 +123,7 @@
         /// <exception cref="ObjectDisposedException">The <see cref="Device"/> has already been disposed.</exception>
         public virtual void Start()
         {
-            Run();
+            _runner.Start();
         }
 
         /// <summary>
@@ -116,7 +131,7 @@
         /// </summary>
         public virtual void Join()
         {
-            DoneEvent.WaitOne();
+            _runner.Join();
         }
 
         /// <summary>
@@ -131,7 +146,7 @@
         /// </returns>
         public virtual bool Join(TimeSpan timeout)
         {
-            return DoneEvent.WaitOne(timeout);
+            return _runner.Join(timeout);
         }
 
         /// <summary>
@@ -167,25 +182,12 @@
         }
 
         /// <summary>
-        /// Invoked when a message has been received by the frontend socket.
-        /// </summary>
-        /// <param name="args">A <see cref="SocketEventArgs"/> object containing the poll event args.</param>
-        protected abstract void FrontendHandler(SocketEventArgs args);
-
-        /// <summary>
-        /// Invoked when a message has been received by the backend socket.
-        /// </summary>
-        /// <param name="args">A <see cref="SocketEventArgs"/> object containing the poll event args.</param>
-        protected abstract void BackendHandler(SocketEventArgs args);
-
-        /// <summary>
-        /// Start the device in the current thread. Should be used by implementations of
-        /// the <see cref="Start"/> method.
+        /// Start the device in the current thread. Should be used by implementations of the <see cref="DeviceRunner.Start"/> method.
         /// </summary>
         /// <remarks>
         /// Initializes the sockets prior to starting the device with <see cref="Initialize"/>.
         /// </remarks>
-        protected void Run()
+        protected internal void Run()
         {
             EnsureNotDisposed();
 
@@ -194,17 +196,19 @@
             FrontendSocket.ReceiveReady += (sender, args) => FrontendHandler(args);
             BackendSocket.ReceiveReady += (sender, args) => BackendHandler(args);
 
-            var poller = new Poller(new[] { FrontendSocket, BackendSocket });
-            TimeSpan timeout = TimeSpan.FromMilliseconds(PollingIntervalMsec);
-
             DoneEvent.Reset();
             IsRunning = true;
+
+            _poller.ClearSockets();
+            _poller.AddSockets(new[] { FrontendSocket, BackendSocket });
+
+            TimeSpan timeout = TimeSpan.FromMilliseconds(PollingIntervalMsec);
 
             try
             {
                 while (IsRunning)
                 {
-                    poller.Poll(timeout);
+                    _poller.Poll(timeout);
                 }
             }
             catch (ZmqException)
@@ -219,6 +223,18 @@
             IsRunning = false;
             DoneEvent.Set();
         }
+
+        /// <summary>
+        /// Invoked when a message has been received by the frontend socket.
+        /// </summary>
+        /// <param name="args">A <see cref="SocketEventArgs"/> object containing the poll event args.</param>
+        protected abstract void FrontendHandler(SocketEventArgs args);
+
+        /// <summary>
+        /// Invoked when a message has been received by the backend socket.
+        /// </summary>
+        /// <param name="args">A <see cref="SocketEventArgs"/> object containing the poll event args.</param>
+        protected abstract void BackendHandler(SocketEventArgs args);
 
         /// <summary>
         /// Stops the device and releases the underlying sockets. Optionally disposes of managed resources.
@@ -241,6 +257,7 @@
             {
                 FrontendSocket.Dispose();
                 BackendSocket.Dispose();
+                _poller.Dispose();
             }
 
             _disposed = true;

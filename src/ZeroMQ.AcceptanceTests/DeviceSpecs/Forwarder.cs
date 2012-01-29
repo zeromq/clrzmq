@@ -22,7 +22,7 @@
             receiverAction = sub =>
             {
                 message1 = sub.ReceiveFrame();
-                message2 = sub.ReceiveFrame(TimeSpan.FromMilliseconds(500));
+                message2 = sub.ReceiveFrame(TimeSpan.FromMilliseconds(50));
             };
 
             senderAction = pub =>
@@ -53,7 +53,7 @@
             receiverAction = sub =>
             {
                 message1 = sub.ReceiveFrame();
-                message2 = sub.ReceiveFrame(TimeSpan.FromMilliseconds(500));
+                message2 = sub.ReceiveFrame(TimeSpan.FromMilliseconds(50));
             };
 
             senderAction = pub =>
@@ -84,7 +84,7 @@
             receiverAction = sub =>
             {
                 message1 = sub.ReceiveFrame();
-                message2 = sub.ReceiveFrame(TimeSpan.FromMilliseconds(500));
+                message2 = sub.ReceiveFrame(TimeSpan.FromMilliseconds(50));
             };
 
             senderAction = pub =>
@@ -105,7 +105,7 @@
         {
             createSender = () => zmqContext.CreateSocket(SocketType.PUB);
             createReceiver = () => zmqContext.CreateSocket(SocketType.SUB);
-            createDevice = () => new ForwarderDevice(zmqContext, FrontendAddr, BackendAddr);
+            createDevice = () => new ForwarderDevice(zmqContext, FrontendAddr, BackendAddr, DeviceMode.Blocking);
         }
     }
 }

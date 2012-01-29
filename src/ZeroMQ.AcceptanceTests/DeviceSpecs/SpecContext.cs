@@ -32,7 +32,8 @@
         private static Thread senderThread;
 
         private static ManualResetEvent deviceReady;
-        private static ManualResetEvent receiverSignal;
+        private static ManualResetEvent receiverReady;
+        private static ManualResetEvent receiverDone;
 
         Establish context = () =>
         {
@@ -48,19 +49,17 @@
             receiverAction = sck => { };
 
             deviceReady = new ManualResetEvent(false);
-            receiverSignal = new ManualResetEvent(false);
+            receiverReady = new ManualResetEvent(false);
+            receiverDone = new ManualResetEvent(false);
 
             deviceThread = new Thread(() =>
             {
                 deviceInit(device);
                 device.Initialize();
 
-                device.Start();
-
-                // XXX: This is a hack until a better method of guaranteeing device readiness is discovered
-                Thread.Sleep(100);
-
                 deviceReady.Set();
+
+                device.Start();
             });
 
             receiverThread = new Thread(() =>
@@ -69,20 +68,26 @@
 
                 receiverInit(receiver);
                 receiver.ReceiveHighWatermark = 1;
+                receiver.Linger = TimeSpan.Zero;
                 receiver.Connect(BackendAddr);
 
-                receiverSignal.Set();
+                receiverReady.Set();
 
                 receiverAction(receiver);
+
+                receiverDone.Set();
             });
 
             senderThread = new Thread(() =>
             {
-                receiverSignal.WaitOne();
+                receiverReady.WaitOne();
 
                 senderInit(sender);
                 sender.SendHighWatermark = 1;
+                sender.Linger = TimeSpan.Zero;
                 sender.Connect(FrontendAddr);
+
+                device.PollerPulse.WaitOne();
 
                 senderAction(sender);
             });
@@ -90,10 +95,31 @@
 
         Cleanup resources = () =>
         {
-            sender.Dispose();
-            receiver.Dispose();
-            device.Dispose();
-            zmqContext.Dispose();
+            receiverDone.WaitOne();
+
+            deviceReady.Dispose();
+            receiverReady.Dispose();
+            receiverDone.Dispose();
+
+            if (sender != null)
+            {
+                sender.Dispose();
+            }
+
+            if (receiver != null)
+            {
+                receiver.Dispose();
+            }
+
+            if (device != null)
+            {
+                device.Dispose();
+            }
+
+            if (zmqContext != null)
+            {
+                zmqContext.Dispose();
+            }
         };
 
         protected static void StartThreads()
