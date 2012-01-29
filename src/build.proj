@@ -80,7 +80,7 @@
 
   <Target Name="Test" DependsOnTargets="Compile">
     <Exec Condition="'$(OperatingPlatform)' == 'Windows'" Command="..\$(MSpecExe) $(MSpecOptions) %(TestAssembly.Identity)" />
-    <Exec Condition="'$(OperatingPlatform)' == 'Unix'" Command="$(MSpecExe) $(MSpecOptions) %(TestAssembly.Identity)" />
+    <!--<Exec Condition="'$(OperatingPlatform)' == 'Unix'" Command="$(MSpecExe) $(MSpecOptions) %(TestAssembly.Identity)" />-->
   </Target>
   
   <Target Name="Build" DependsOnTargets="Test">

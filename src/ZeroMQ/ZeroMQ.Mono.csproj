@@ -42,7 +42,6 @@
     <Compile Include="Devices\ForwarderDevice.cs" />
     <Compile Include="Devices\QueueDevice.cs" />
     <Compile Include="Devices\StreamerDevice.cs" />
-    <Compile Include="Devices\ThreadDevice.cs" />
     <Compile Include="Devices\ZmqDeviceException.cs" />
     <Compile Include="DuplexSocket.cs" />
     <Compile Include="Devices\IDevice.cs" />
@@ -86,6 +85,9 @@
     <Compile Include="ZmqVersionException.cs" />
     <Compile Include="Interop\LibZmq.Mono.cs" />
     <Compile Include="Interop\LibZmq.NET.cs" />
+    <Compile Include="Devices\DeviceMode.cs" />
+    <Compile Include="Devices\DeviceRunner.cs" />
+    <Compile Include="Devices\ThreadedDeviceRunner.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
