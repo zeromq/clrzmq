@@ -42,6 +42,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZeroMQ.Perf.ThrLocal", "Zer
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZeroMQ.Perf.ThrRemote", "ZeroMQ.Perf.ThrRemote\ZeroMQ.Perf.ThrRemote.csproj", "{21B192C6-C805-403C-9962-C62D1473AEA7}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{193968A9-CCA8-4496-9A99-FBB499F96340}"
+	ProjectSection(SolutionItems) = preProject
+		.nuget\nuget-bootstrap.exe = .nuget\nuget-bootstrap.exe
+		.nuget\NuGet.targets = .nuget\NuGet.targets
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64

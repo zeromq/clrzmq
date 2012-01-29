@@ -2,9 +2,8 @@
 setlocal
 
 set MSBUILD_EXE=%SYSTEMROOT%\Microsoft.NET\Framework\v4.0.30319\msbuild
-set DEPS_DIR=packages
-set NUGET_EXE=nuget\nuget.exe
-set NUSPEC=nuget\clrzmq.nuspec
+set NUGET_EXE=src\.nuget\nuget.exe
+set NUSPEC=src\.nuget\clrzmq.nuspec
 set VERSION_INFO_CS=src\Shared\VersionInfo.cs
 
 :version
@@ -21,8 +20,6 @@ echo [assembly: AssemblyVersion("%VERSION%.0.0")] >> %VERSION_INFO_CS%
 echo [assembly: AssemblyFileVersion("%VERSION%.%BUILD%.%REVISION%")] >> %VERSION_INFO_CS%
 echo [assembly: AssemblyInformationalVersion("%VERSION%.%BUILD%.%REVISION% %MATURITY%")] >> %VERSION_INFO_CS%
 echo [assembly: AssemblyConfiguration("%MATURITY%")] >> %VERSION_INFO_CS%
-
-if not exist %DEPS_DIR% call nuget.cmd
 
 %MSBUILD_EXE% src\build.proj /target:Package /Property:Configuration=Release /Property:SignAssembly=true
 
