@@ -9,8 +9,10 @@
     <Platform Condition="'$(Platform)' == ''">x86</Platform>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <MSpecOptions Condition="'$(MSpecOptions)' == ''"></MSpecOptions>
-    <KeyFileProperty Condition="'$(SignAssembly)' == 'true'">KeyOriginatorFile=Shared\clrzmq.snk</KeyFileProperty>
+    <KeyFile>Shared\clrzmq.snk</KeyFile>
+    <KeyFileProperty Condition="'$(SignAssembly)' == 'true'">KeyOriginatorFile=$(KeyFile)</KeyFileProperty>
     <OperatingPlatform Condition="'$(OperatingPlatform)' == ''">Windows</OperatingPlatform>
+    <NetFramework Condition="'$(NetFramework)' == ''">NET</NetFramework>
     <SolutionSuffix Condition="'$(OperatingPlatform)' == 'Unix'">.Mono</SolutionSuffix>
   </PropertyGroup>
 
@@ -22,7 +24,7 @@
     <Optimize Condition="'$(Configuration)' != 'Debug'">true</Optimize>
 
     <Constants Condition="'$(OperatingPlatform)' == 'Windows'"></Constants>
-    <Constants Condition="'$(OperatingPlatform)' == 'Unix'">UNIX</Constants>
+    <Constants Condition="'$(OperatingPlatform)' == 'Unix'">UNIX;MONO</Constants>
   </PropertyGroup>
   
   <ItemGroup>
@@ -46,10 +48,9 @@
   </ItemGroup>
   
   <ItemGroup>
-    <BuildOutput Include="$(BuildDir)\*.*" />
-
     <ZeroMQSources Include="ZeroMQ\**\*.cs;Shared\*.cs" Exclude="ZeroMQ\**\Platform.*.cs" />
     <ZeroMQSources Include="ZeroMQ\**\Platform.$(OperatingPlatform).cs" />
+    <ZeroMQSources Include="ZeroMQ\**\Platform.$(NetFramework).cs" />
       
     <Resources Include="$(LibDir)\x64\libzmq.dll">
       <Platform>x64</Platform>
@@ -90,6 +91,9 @@
   </Target>
 
   <Target Name="Package">
+    <RemoveDir Directories="$(BuildDir)" />
+    <MakeDir Directories="$(BuildDir)" />
+
     <Csc Sources="@(ZeroMQSources)"
          DocumentationFile="$(BuildDir)\clrzmq.xml"
          OutputAssembly="$(BuildDir)\clrzmq.dll"
@@ -98,9 +102,13 @@
          DebugType="$(DebugType)"
          PdbFile="$(BuildDir)\clrzmq.pdb"
          Optimize="$(Optimize)"
-         KeyFile="Shared\clrzmq.snk"
+         KeyFile="$(KeyFile)"
          DefineConstants="$(Constants)"
       />
+
+    <ItemGroup>
+      <BuildOutput Include="$(BuildDir)\*.*;$(SolutionDir)\*.txt" />
+    </ItemGroup>
 
     <RemoveDir Directories="$(PackageDir)" />
     <MakeDir Directories="$(PackageDir)" />

@@ -1,5 +1,5 @@
 PROJ = src/build.proj
-FLAGS = /property:OperatingPlatform=Unix
+FLAGS = /property:OperatingPlatform=Unix /property:NetFramework=Mono
 XBUILD = xbuild /tv:4.0
 
 VERSION =

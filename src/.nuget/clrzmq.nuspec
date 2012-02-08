@@ -18,6 +18,7 @@
     <file src="publish\clrzmq*.dll" target="lib\net40" />
     <file src="publish\*.pdb" target="lib\net40" />
     <file src="publish\*.xml" target="lib\net40" />
+    <file src="src\libzmq-version.txt"/>
     <file src="LICENSE"/>
   </files>
 </package>
