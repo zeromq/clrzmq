@@ -5,6 +5,7 @@
     <LibDir Condition="'$(LibDir)' == ''">..\lib</LibDir>
     <BuildDir>..\build</BuildDir>
     <PackageDir>..\publish</PackageDir>
+    <NugetPackageDir>packages</NugetPackageDir>
     <Platform Condition="'$(Platform)' == '' and '$(OperatingPlatform)' == ''">x86</Platform>
     <Platform Condition="'$(Platform)' == '' and '$(OperatingPlatform)' == 'Unix'">Any CPU</Platform>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
@@ -12,9 +13,6 @@
     <KeyFileProperty Condition="'$(SignAssembly)' == 'true'">KeyOriginatorFile=Shared\clrzmq.snk</KeyFileProperty>
     <OperatingPlatform Condition="'$(OperatingPlatform)' == ''">Windows</OperatingPlatform>
     <SolutionSuffix Condition="'$(OperatingPlatform)' == 'Unix'">.Mono</SolutionSuffix>
-
-    <MSpecExe Condition="'$(MSpecExe)' == '' and '$(Platform)' == 'x64' and '$(OperatingPlatform)' == 'Windows'">$([System.IO.Directory]::GetDirectories("packages", "Machine.Specifications.*")[0])\tools\mspec-clr4.exe</MSpecExe>
-    <MSpecExe Condition="'$(MSpecExe)' == '' and '$(Platform)' == 'x86' and '$(OperatingPlatform)' == 'Windows'">$([System.IO.Directory]::GetDirectories("packages", "Machine.Specifications.*")[0])\tools\mspec-x86-clr4.exe</MSpecExe>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -79,6 +77,11 @@
   </Target>
 
   <Target Name="Test" DependsOnTargets="Compile">
+    <PropertyGroup Condition="'$(OperatingPlatform)' == 'Windows'">
+      <MSpecExe Condition="'$(MSpecExe)' == '' and '$(Platform)' == 'x64'">$([System.IO.Directory]::GetDirectories("$(NugetPackageDir)", "Machine.Specifications.*")[0])\tools\mspec-clr4.exe</MSpecExe>
+      <MSpecExe Condition="'$(MSpecExe)' == '' and '$(Platform)' == 'x86'">$([System.IO.Directory]::GetDirectories("$(NugetPackageDir)", "Machine.Specifications.*")[0])\tools\mspec-x86-clr4.exe</MSpecExe>
+    </PropertyGroup>
+
     <Exec Condition="'$(OperatingPlatform)' == 'Windows'" Command="$(MSpecExe) $(MSpecOptions) %(TestAssembly.Identity)" />
     <!--<Exec Condition="'$(OperatingPlatform)' == 'Unix'" Command="$(MSpecExe) $(MSpecOptions) %(TestAssembly.Identity)" />-->
   </Target>
