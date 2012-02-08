@@ -2,11 +2,9 @@
 setlocal
 
 set MSBUILD_EXE=%SYSTEMROOT%\Microsoft.NET\Framework\v4.0.30319\msbuild
-set DEPS_DIR=packages
-set NUGET_EXE=nuget\nuget.exe
-set NUSPEC_X86=nuget\clrzmq.nuspec
-set NUSPEC_X64=nuget\clrzmq-x64.nuspec
-set VERSION_INFO_CS=src\VersionInfo.cs
+set NUGET_EXE=src\.nuget\nuget.exe
+set NUSPEC=src\.nuget\clrzmq.nuspec
+set VERSION_INFO_CS=src\Shared\VersionInfo.cs
 
 :version
 set /p VERSION=Enter version (e.g. 1.0): 
@@ -23,13 +21,9 @@ echo [assembly: AssemblyFileVersion("%VERSION%.%BUILD%.%REVISION%")] >> %VERSION
 echo [assembly: AssemblyInformationalVersion("%VERSION%.%BUILD%.%REVISION% %MATURITY%")] >> %VERSION_INFO_CS%
 echo [assembly: AssemblyConfiguration("%MATURITY%")] >> %VERSION_INFO_CS%
 
-if not exist %DEPS_DIR% call nuget.cmd
+%MSBUILD_EXE% src\build.proj /target:Package /Property:Configuration=Release /Property:SignAssembly=true
 
-%MSBUILD_EXE% build.proj /target:Package /Property:Platform=x86 /Property:Configuration=Release /Property:OSConfiguration=WIN_RELEASE /Property:SignAssembly=true
-%MSBUILD_EXE% build.proj /target:Package /Property:Platform=x64 /Property:Configuration=Release /Property:OSConfiguration=WIN_RELEASE /Property:SignAssembly=true
-
-%NUGET_EXE% Pack %NUSPEC_X86% -Version %VERSION%.%REVISION% -OutputDirectory publish -BasePath .
-%NUGET_EXE% Pack %NUSPEC_X64% -Version %VERSION%.%REVISION% -OutputDirectory publish -BasePath .
+%NUGET_EXE% Pack %NUSPEC% -Version %VERSION%.%REVISION% -OutputDirectory publish -BasePath .
 
 :: Clean up
 move %VERSION_INFO_CS%.bak %VERSION_INFO_CS%

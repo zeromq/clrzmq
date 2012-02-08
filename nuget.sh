@@ -1,8 +1,8 @@
 #!/bin/sh
 
-NUGET_EXE=nuget/nuget.exe
-NUGET_BOOTSTRAPPER_EXE=nuget/nuget-bootstrap.exe
-PACKAGE_DIR=packages
+NUGET_EXE=src/.nuget/nuget.exe
+NUGET_BOOTSTRAPPER_EXE=src/.nuget/nuget-bootstrap.exe
+PACKAGE_DIR=src/packages
 
 if [ ! -e $NUGET_EXE ]; then
 	mono --runtime=v4.0 $NUGET_BOOTSTRAPPER_EXE

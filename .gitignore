@@ -1,16 +1,27 @@
-clrzmq.userprefs
-obj
-bin
-!/bin
-/build
-/packages
-/publish
+# Build Folders
+bin/
+obj/
+build/
+publish/
+perf/
+
+# Native libraries
+lib
+lib-*
+^lib/**/*.txt
+
+# NuGet-related
+packages
 nuget.exe
-lib/**/libzmq.dll
-*.snk
-*.pidb
+
+# User Settings
 *.suo
+*.user
+*.userprefs
+
+# Other
+*.snk
 _ReSharper.*
-*.ReSharper.user
-*.Cache
+*.swp
+*.pidb
 *.cache

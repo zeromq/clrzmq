@@ -3,11 +3,12 @@
 
 This project aims to provide the full functionality of the underlying ZeroMQ API to CLR projects.
 
-The version of libzmq currently being targeted is **2.1 (stable)**.
+Bundled libzmq version: **3.1 (unstable)**  
+Legacy libzmq version supported: **2.1.11 (stable)**
 
 ## Getting Started
 
-The quickest way to get started with clrzmq is by using the [NuGet package][clrzmq-nuget-x86] ([64-bit version][clrzmq-nuget-x64]). The NuGet packages include a copy of the native libzmq.dll, which is required to use clrzmq.
+The quickest way to get started with clrzmq is by using the [NuGet package][clrzmq-nuget]. The NuGet packages include a copy of the native libzmq.dll, which is required to use clrzmq.
 
 You may also build clrzmq directly from the source. See the Development Environment Setup instructions below for more detail.
 
@@ -28,22 +29,22 @@ namespace ZMQGuide
         static void Main(string[] args)
         {
             // ZMQ Context, server socket
-            using (Context context = new Context(1)
-            using (Socket socket = context.Socket(SocketType.REP))
+            using (ZmqContext context = ZmqContext.Create())
+            using (ZmqSocket server = context.CreateSocket(SocketType.REP))
             {
                 socket.Bind("tcp://*:5555");
                 
                 while (true)
                 {
                     // Wait for next request from client
-                    string message = socket.Recv(Encoding.Unicode);
+                    string message = server.Receive(Encoding.Unicode);
                     Console.WriteLine("Received request: {0}", message);
 
                     // Do Some 'work'
                     Thread.Sleep(1000);
 
                     // Send reply back to client
-                    socket.Send("World", Encoding.Unicode);
+                    server.Send("World", Encoding.Unicode);
                 }
             }
         }
@@ -65,18 +66,18 @@ namespace ZMQGuide
         static void Main(string[] args)
         {
             // ZMQ Context and client socket
-            using (Context context = new Context(1))
-            using (Socket requester = context.Socket(SocketType.REQ))
+            using (ZmqContext context = ZmqContext.Create())
+            using (ZmqSocket client = context.CreateSocket(SocketType.REQ))
             {
-                requester.Connect("tcp://localhost:5555");
+                client.Connect("tcp://localhost:5555");
 
                 string request = "Hello";
                 for (int requestNum = 0; requestNum < 10; requestNum++)
                 {
                     Console.WriteLine("Sending request {0}...", requestNum);
-                    requester.Send(request, Encoding.Unicode);
+                    client.Send(request, Encoding.Unicode);
 
-                    string reply = requester.Recv(Encoding.Unicode);
+                    string reply = client.Receive(Encoding.Unicode);
                     Console.WriteLine("Received reply {0}: {1}", requestNum, reply);
                 }
             }
@@ -93,24 +94,23 @@ On Windows/.NET, clrzmq is developed with Visual Studio 2010. Mono development i
 
 ### Windows/.NET
 
-Before clrzmq can be used, the native `libzmq.dll` must be compiled for your target platform from [0MQ sources][libzmq-2].
+Before clrzmq can be used, the native `libzmq.dll` must be compiled for your target platform from [0MQ sources][libzmq].
 
 #### libzmq
 
-1. Download/clone the source from the [repository][libzmq-2] or the [ZeroMQ website][zmq-dl].
+1. Download/clone the source from the [repository][libzmq] or the [ZeroMQ website][zmq-dl].
 2. Open the Visual Studio solution, located in `builds/msvc/msvc.sln`.
-3. Set the build configuration as necessary (e.g., Release/Win32 or WithOpenPGM/x64).
+3. Set the build configuration as necessary (e.g., Release/Win32, WithOpenPGM/x64, etc.).
    * **NOTE:** WithOpenPGM builds require the bundled OpenPGM sources to be built for Windows, the steps of which are beyond the scope of this README.
 4. Build the `libzmq` project.
-5. `libzmq.dll` should now be located at `/lib` in the zeromq source tree.
+5. `libzmq.dll` should now be located at `/bin` in the zeromq source tree.
 
 #### clrzmq
 
 1. Clone the source.
-2. Run `nuget.cmd`, which downloads any dependent packages (e.g., Machine.Specifications for acceptance tests).
-3. Copy `libzmq.dll` from the zeromq project to the appropriate location in the clrzmq lib folder (i.e., `/lib/x86` or `/lib/x64`).
-4. Run `build.cmd` to build the project and run the test suite. PGM-related tests will fail if a non-PGM build of libzmq is used.
-5. The resulting binaries will be available in `/build`.
+2. Copy `libzmq.dll` from the zeromq project to the appropriate location in the clrzmq lib folder (i.e., `/lib/x86` or `/lib/x64`).
+3. Run `build.cmd` to build the project and run the test suite. PGM-related tests will fail if a non-PGM build of libzmq is used.
+4. The resulting binaries will be available in `/build`.
 
 ### Mono
 
@@ -130,19 +130,22 @@ $ certmgr -ssl https://nugetgallery.blob.core.windows.net
 $ certmgr -ssl https://nuget.org
 ```
 
-With any luck, this is the correct set of certificates to get NuGet working on Mono.
+This should result in a working Mono setup for use with NuGet.
 
 #### libzmq
 
-Either clone the [ZeroMQ repository][libzmq-2] or [download the sources][zmq-dl], and then follow the build/install instructions for your platform.
+Either clone the [ZeroMQ repository][libzmq] or [download the sources][zmq-dl], and then follow the build/install instructions for your platform.
 Use the `--with-pgm` option if possible.
 
 #### clrzmq
 
 1. Clone the source.
 2. Run `nuget.sh`, which downloads any dependent packages (e.g., Machine.Specifications for acceptance tests).
-3. Run `build.sh` to build the project and run the test suite. PGM-related tests will fail if a non-PGM build of libzmq is used.
+3. Run `make` to build the project.
 4. The resulting binaries will be available in `/build`.
+
+**NOTE**: The combination of 0MQ, MSpec, and Mono currently has issues, so the test suite does not automatically run.  
+**NOTE**: `clrzmq` only supports x86 builds on Mono at this time
 
 ## Issues
 
@@ -172,9 +175,8 @@ Pull requests will still be accepted if some of these guidelines are not followe
 This project is released under the [LGPL][lgpl] license, as is the native libzmq library. See LICENSE for more details as well as the [0MQ Licensing][zmq-license] page.
 
 [clrzmq-old]: https://github.com/zeromq/clrzmq-old
-[clrzmq-nuget-x86]: http://packages.nuget.org/Packages/clrzmq
-[clrzmq-nuget-x64]: http://packages.nuget.org/Packages/clrzmq-x64
-[libzmq-2]: https://github.com/zeromq/zeromq2-1
+[clrzmq-nuget]: http://packages.nuget.org/Packages/clrzmq
+[libzmq]: https://github.com/zeromq/libzmq
 [zmq-guide]: http://zguide.zeromq.org/page:all
 [zmq-example-repo]: https://github.com/imatix/zguide/tree/master/examples/C%23
 [zmq-dl]: http://www.zeromq.org/intro:get-the-software
