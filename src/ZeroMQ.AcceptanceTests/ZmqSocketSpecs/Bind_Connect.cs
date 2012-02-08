@@ -47,7 +47,7 @@
             exception.ShouldBeNull();
     }
 
-    [Subject("Connect"), Ignore("PGM is broken - LIBZMQ-303")]
+    [Subject("Connect")]
     class when_connecting_to_a_pgm_socket_with_pub_and_sub : using_pub_sub
     {
         Because of = () =>
@@ -56,10 +56,14 @@
                 pub.Linger = TimeSpan.Zero;
                 pub.Connect("epgm://127.0.0.1;239.192.1.1:5000");
 
+                sub.Linger = TimeSpan.Zero;
+                sub.SubscribeAll();
                 sub.Connect("epgm://127.0.0.1;239.192.1.1:5000");
 
+                pub.SendFrame(Messages.SingleMessage);
+
                 // TODO: Is there any other way to ensure the PGM thread has started?
-                Thread.Sleep(100);
+                Thread.Sleep(1000);
             });
 
         It should_not_fail = () =>
