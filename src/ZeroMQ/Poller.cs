@@ -85,7 +85,7 @@
                 throw new ArgumentNullException("socket");
             }
 
-            _pollableSockets.Add(new PollItem(socket.SocketHandle, IntPtr.Zero, socket.GetPollEvents()), socket);
+            _pollableSockets.Add(new PollItem(socket.SocketHandle, socket.GetPollEvents()), socket);
         }
 
         /// <summary>
