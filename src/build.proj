@@ -6,8 +6,7 @@
     <BuildDir>..\build</BuildDir>
     <PackageDir>..\publish</PackageDir>
     <NugetPackageDir>packages</NugetPackageDir>
-    <Platform Condition="'$(Platform)' == '' and '$(OperatingPlatform)' == ''">x86</Platform>
-    <Platform Condition="'$(Platform)' == '' and '$(OperatingPlatform)' == 'Unix'">Any CPU</Platform>
+    <Platform Condition="'$(Platform)' == ''">x86</Platform>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <MSpecOptions Condition="'$(MSpecOptions)' == ''"></MSpecOptions>
     <KeyFileProperty Condition="'$(SignAssembly)' == 'true'">KeyOriginatorFile=Shared\clrzmq.snk</KeyFileProperty>
