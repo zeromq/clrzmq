@@ -38,7 +38,7 @@ namespace ZeroMQ.Interop
             else if (MajorVersion == 2)
             {
                 zmq_recvmsg = zmq_recvmsg_v2;
-                zmq_sendmsg = zmq_sendmsg_v3;
+                zmq_sendmsg = zmq_sendmsg_v2;
 
                 zmq_getmsgopt = (message, option, optval, optvallen) => { throw new ZmqVersionException(MajorVersion, MinorVersion, 3, 1); };
                 zmq_msg_init_data = (msg, data, size, ffn, hint) => { throw new ZmqVersionException(MajorVersion, MinorVersion, 3, 1); };
