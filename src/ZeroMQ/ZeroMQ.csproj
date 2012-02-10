@@ -92,11 +92,20 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\nuget.targets" />
+  <Import Project="$(SolutionDir)CustomTasks.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
   </Target>
-  <Target Name="AfterBuild">
-  </Target>
   -->
+  <Target Name="AfterBuild">
+    <FindLastDirectory Path="$(PackagesDir)" Pattern="libzmq.*">
+      <Output TaskParameter="Dir" PropertyName="LibzmqDir" />
+    </FindLastDirectory>
+    <ItemGroup>
+      <LibzmqFiles Include="$(LibzmqDir)\Content\lib\**\*" />
+      <LibFiles Include="@(LibzmqFiles->'$(SolutionDir)..\lib\%(RecursiveDir)%(FileName)%(Extension)')" />
+    </ItemGroup>
+    <Copy SourceFiles="@(LibzmqFiles)" DestinationFiles="@(LibFiles)" SkipUnchangedFiles="true" />
+  </Target>
 </Project>

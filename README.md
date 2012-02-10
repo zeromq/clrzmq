@@ -94,23 +94,23 @@ On Windows/.NET, clrzmq is developed with Visual Studio 2010. Mono development i
 
 ### Windows/.NET
 
-Before clrzmq can be used, the native `libzmq.dll` must be compiled for your target platform from [0MQ sources][libzmq].
-
-#### libzmq
-
-1. Download/clone the source from the [repository][libzmq] or the [ZeroMQ website][zmq-dl].
-2. Open the Visual Studio solution, located in `builds/msvc/msvc.sln`.
-3. Set the build configuration as necessary (e.g., Release/Win32, WithOpenPGM/x64, etc.).
-   * **NOTE:** WithOpenPGM builds require the bundled OpenPGM sources to be built for Windows, the steps of which are beyond the scope of this README.
-4. Build the `libzmq` project.
-5. `libzmq.dll` should now be located at `/bin` in the zeromq source tree.
+clrzmq depends on `libzmq.dll`, which will be retrieved automatically via NuGet. If you require a specific version of libzmq, you can compile it from the [0MQ sources][libzmq].
 
 #### clrzmq
 
 1. Clone the source.
-2. Copy `libzmq.dll` from the zeromq project to the appropriate location in the clrzmq lib folder (i.e., `/lib/x86` or `/lib/x64`).
-3. Run `build.cmd` to build the project and run the test suite. PGM-related tests will fail if a non-PGM build of libzmq is used.
-4. The resulting binaries will be available in `/build`.
+2. Run `build.cmd` to build the project and run the test suite.
+3. The resulting binaries will be available in `/build`.
+
+#### Alternate libzmq (optional)
+
+If you want to use a custom build of `libzmq.dll`, perform the following steps:
+
+1. Delete or rename the `src/ZeroMQ/packages.config` file. This prevent the NuGet package from being retrieved.
+2. Remove any folders matching `src/packages/libzmq-*` that may have been downloaded previously.
+3. Copy the 32-bit and 64-bit (if applicable) build of `libzmq.dll` to `lib/x86` and `lib/x64`, respectively.
+
+Note that PGM-related tests will fail if a non-PGM build of libzmq is used.
 
 ### Mono
 
