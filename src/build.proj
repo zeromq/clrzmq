@@ -1,4 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build" ToolsVersion="4.0">
+  
+  <Import Project="$(SolutionDir)CustomTasks.targets" />
 
   <PropertyGroup>
     <SolutionDir Condition="'$(SolutionDir)' == ''">.</SolutionDir>
@@ -36,11 +38,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <TestAssembly Condition="'$(Platform)' != 'Any CPU'" Include="$(SolutionDir)\**\bin\$(Platform)\$(Configuration)\*Tests.dll" />
-    <TestAssembly Condition="'$(Platform)' == 'Any CPU'" Include="$(SolutionDir)\**\bin\$(Configuration)\*Tests.dll" />
-  </ItemGroup>
-  
-  <ItemGroup>
     <OutputFiles Include="$(SolutionDir)\**\bin\$(Configuration)\*.dll" />
     <OutputFiles Include="$(SolutionDir)\**\bin\$(Configuration)\*.pdb" />
     <OutputFiles Include="$(SolutionDir)\**\bin\$(Configuration)\*.xml" />
@@ -77,9 +74,18 @@
   </Target>
 
   <Target Name="Test" DependsOnTargets="Compile">
+    <FindLastDirectory Path="$(NugetPackageDir)" Pattern="Machine.Specifications.*">
+      <Output TaskParameter="Dir" PropertyName="MSpecDir" />
+    </FindLastDirectory>
+
+    <ItemGroup Condition="'$(OperatingPlatform)' == 'Windows'">
+      <TestAssembly Condition="'$(Platform)' != 'Any CPU'" Include="$(SolutionDir)\**\bin\$(Platform)\$(Configuration)\*Tests.dll" />
+      <TestAssembly Condition="'$(Platform)' == 'Any CPU'" Include="$(SolutionDir)\**\bin\$(Configuration)\*Tests.dll" />
+    </ItemGroup>
+
     <PropertyGroup Condition="'$(OperatingPlatform)' == 'Windows'">
-      <MSpecExe Condition="'$(MSpecExe)' == '' and '$(Platform)' == 'x64'">$([System.IO.Directory]::GetDirectories("$(NugetPackageDir)", "Machine.Specifications.*")[0])\tools\mspec-clr4.exe</MSpecExe>
-      <MSpecExe Condition="'$(MSpecExe)' == '' and '$(Platform)' == 'x86'">$([System.IO.Directory]::GetDirectories("$(NugetPackageDir)", "Machine.Specifications.*")[0])\tools\mspec-x86-clr4.exe</MSpecExe>
+      <MSpecExe Condition="'$(MSpecExe)' == '' and '$(Platform)' == 'x64'">$(MSpecDir)\tools\mspec-clr4.exe</MSpecExe>
+      <MSpecExe Condition="'$(MSpecExe)' == '' and '$(Platform)' == 'x86'">$(MSpecDir)\tools\mspec-x86-clr4.exe</MSpecExe>
     </PropertyGroup>
 
     <Exec Condition="'$(OperatingPlatform)' == 'Windows'" Command="$(MSpecExe) $(MSpecOptions) %(TestAssembly.Identity)" />
