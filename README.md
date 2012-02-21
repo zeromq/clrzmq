@@ -32,7 +32,7 @@ namespace ZMQGuide
             using (ZmqContext context = ZmqContext.Create())
             using (ZmqSocket server = context.CreateSocket(SocketType.REP))
             {
-                socket.Bind("tcp://*:5555");
+                server.Bind("tcp://*:5555");
                 
                 while (true)
                 {
