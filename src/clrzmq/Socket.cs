@@ -38,7 +38,9 @@ namespace ZMQ {
         private static int _appSocketCount;
         private static readonly Object _lockObj = new object();
 
+#if !PocketPC
         private readonly int _processorCount;
+#endif
 
         private PollItem _pollItem;
         private bool _localSocket;
@@ -58,7 +60,9 @@ namespace ZMQ {
         internal Socket(IntPtr ptr) {
             Ptr = ptr;
             CommonInit(false);
+#if !PocketPC
             _processorCount = Environment.ProcessorCount;
+#endif
         }
 
         /// <summary>
@@ -158,7 +162,7 @@ namespace ZMQ {
             }
         }
 
-#if x86
+#if x86 || PocketPC
         /// <summary>
         /// Allows cross platform reading of size_t
         /// </summary>
@@ -215,7 +219,7 @@ namespace ZMQ {
                 throw new ArgumentNullException("sysSocket");
             }
 
-#if x86 || POSIX
+#if x86 || POSIX || PocketPC
             return new PollItem(new ZMQPollItem(Ptr, sysSocket.Handle.ToInt32(), (short)events), this);
 #elif x64
             return new PollItem(new ZMQPollItem(Ptr, sysSocket.Handle.ToInt64(), (short)events), this);
@@ -357,7 +361,11 @@ namespace ZMQ {
             }
 
             _address = addr;
+#if PocketPC
+			if (C.zmq_bind(Ptr, Encoding.ASCII.GetBytes(addr)) != 0)
+#else
             if (C.zmq_bind(Ptr, addr) != 0)
+#endif
                 throw new Exception();
         }
 
@@ -373,7 +381,7 @@ namespace ZMQ {
                 throw new ArgumentNullException("addr");
             }
 
-            Bind(Enum.GetName(typeof(Transport), transport).ToLower() + "://" + addr + ":" + port);
+			Bind(GetTransportName(transport) + "://" + addr + ":" + port);
         }
 
         /// <summary>
@@ -387,7 +395,7 @@ namespace ZMQ {
                 throw new ArgumentNullException("addr");
             }
 
-            Bind(Enum.GetName(typeof(Transport), transport).ToLower() + "://" + addr);
+			Bind(GetTransportName(transport) + "://" + addr);
         }
 
         /// <summary>
@@ -401,8 +409,12 @@ namespace ZMQ {
             }
 
             _address = addr;
+#if PocketPC
+			if (C.zmq_connect(Ptr, Encoding.ASCII.GetBytes(addr)) != 0)
+#else
             if (C.zmq_connect(Ptr, addr) != 0)
-                throw new Exception();
+#endif
+			throw new Exception();
         }
 
         /// <summary>
@@ -417,7 +429,7 @@ namespace ZMQ {
                 throw new ArgumentNullException("addr");
             }
 
-            Connect(Enum.GetName(typeof(Transport), transport).ToLower() + "://" + addr + ":" + port);
+			Connect(GetTransportName(transport) + "://" + addr + ":" + port);
         }
 
         /// <summary>
@@ -431,8 +443,31 @@ namespace ZMQ {
                 throw new ArgumentNullException("addr");
             }
 
-            Connect(Enum.GetName(typeof(Transport), transport).ToLower() + "://" + addr);
+			Connect(GetTransportName(transport) + "://" + addr);
         }
+
+		private static string GetTransportName(Transport tr)
+		{
+#if PocketPC
+			switch (tr)
+			{
+				case Transport.TCP:
+					return "tcp";
+				case Transport.PGM:
+					return "pgm";
+				case Transport.IPC:
+					return "ipc";
+				case Transport.INPROC:
+					return "inproc";
+				case Transport.EPGM:
+					return "epgm";
+				default:
+					throw new ArgumentException("Unexpected transport.", "tr");
+			}
+#else
+			return Enum.GetName(typeof(Transport), tr).ToLower();
+#endif
+		}
 
         /// <summary>
         /// Forward all message parts directly to destination. No marshalling performed.
@@ -535,6 +570,7 @@ namespace ZMQ {
 
                 if (data == null) {
                     if (timeout > 1) {
+#if !PocketPC
                         if (iterations < 20 && _processorCount > 1) {
                             // If we have a short wait (< 20 iterations) we
                             // SpinWait to allow other threads on HT CPUs
@@ -544,13 +580,16 @@ namespace ZMQ {
                             Thread.SpinWait(100 * _processorCount);
                         }
                         else {
+#endif
                             // Yield my remaining time slice to another thread
 #if NET_4
                             Thread.Yield();
 #else
-                            Thread.Sleep(1);
+                            Thread.Sleep(0);
 #endif
+#if !PocketPC
                         }
+#endif
                     }
                 }
                 else {
@@ -584,7 +623,7 @@ namespace ZMQ {
             if (data == null) {
                 return null;
             }
-            return encoding.GetString(data);
+            return encoding.GetString(data, 0, data.Length);
         }
 
         /// <summary>
@@ -599,7 +638,7 @@ namespace ZMQ {
             if (data == null) {
                 return null;
             }
-            return encoding.GetString(data);
+            return encoding.GetString(data, 0, data.Length);
         }
 
         /// <summary>
@@ -856,7 +895,7 @@ namespace ZMQ {
         /// <returns>Socket Identity</returns>
         /// <exception cref="ZMQ.Exception">ZMQ Exception</exception>
         public string IdentityToString(Encoding encoding) {
-            return encoding.GetString(Identity);
+            return encoding.GetString(Identity, 0, Identity.Length);
         }
 
         /// <summary>
