@@ -40,7 +40,11 @@ namespace ZMQ {
         }
 
         public Exception()
+#if PocketPC
+		{
+#else
             : base(Marshal.PtrToStringAnsi(C.zmq_strerror(C.zmq_errno()))) {
+#endif
             _errno = C.zmq_errno();
         }
     }
@@ -112,7 +116,7 @@ namespace ZMQ {
                     Console.WriteLine(DecodeUUID(msg).Substring(1));
                 }
                 else {
-                    Console.WriteLine(encoding.GetString(msg));
+                    Console.WriteLine(encoding.GetString(msg, 0, msg.Length));
                 }
             }
         }
