@@ -71,8 +71,9 @@ namespace ZMQ.ZMQDevice {
         protected virtual void Dispose(bool disposing) {
             if (_isRunning) {
                 Stop();
-                while (_isRunning) { Thread.Sleep((int)PollingIntervalUsec / 1000); }
+                _runningThread.Join((int)PollingIntervalUsec * 2 / 1000);
             }
+
             _frontend.Dispose();
             _backend.Dispose();
         }
