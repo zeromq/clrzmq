@@ -25,7 +25,7 @@ using System.Threading;
 
 namespace ZMQ.ZMQDevice {
     public abstract class Device : IDisposable {
-        private const long PollingInterval = 750000;
+        private const long PollingIntervalUsec = 750000;
 
         protected volatile bool _run;
         protected Socket _frontend;
@@ -71,7 +71,7 @@ namespace ZMQ.ZMQDevice {
         protected virtual void Dispose(bool disposing) {
             if (_isRunning) {
                 Stop();
-                while (_isRunning) { Thread.Sleep((int)PollingInterval); }
+                while (_isRunning) { Thread.Sleep((int)PollingIntervalUsec / 1000); }
             }
             _frontend.Dispose();
             _backend.Dispose();
@@ -100,7 +100,7 @@ namespace ZMQ.ZMQDevice {
         protected virtual void RunningLoop() {
             var skts = new List<Socket> { _frontend, _backend };
             while (_run) {
-                Context.Poller(skts, PollingInterval);
+                Context.Poller(skts, PollingIntervalUsec);
             }
             IsRunning = false;
             _doneEvent.Set();
