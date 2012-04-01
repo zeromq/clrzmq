@@ -158,14 +158,14 @@ namespace ZMQ.ZMQDevice {
 
     public class Streamer : Device {
         public Streamer(Context context, string frontendAddr, string backendAddr, MessageProcessor msgProc)
-            : base(context.Socket(SocketType.PUB), context.Socket(SocketType.SUB)) {
+            : base(context.Socket(SocketType.PULL), context.Socket(SocketType.PUSH)) {
             _frontend.Bind(frontendAddr);
             _backend.Connect(backendAddr);
         }
 
         [Obsolete("Use the constructor that accepts a Context. Will be removed in 3.x.")]
         public Streamer(string frontendAddr, string backendAddr, MessageProcessor msgProc)
-            : base(new Socket(SocketType.PUB), new Socket(SocketType.SUB)) {
+            : base(new Socket(SocketType.PULL), new Socket(SocketType.PUSH)) {
             _frontend.Bind(frontendAddr);
             _backend.Connect(backendAddr);
         }
