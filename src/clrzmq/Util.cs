@@ -41,7 +41,7 @@ namespace ZMQ {
 
         public Exception()
 #if PocketPC
-		{
+        {
 #else
             : base(Marshal.PtrToStringAnsi(C.zmq_strerror(C.zmq_errno()))) {
 #endif

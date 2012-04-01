@@ -362,7 +362,7 @@ namespace ZMQ {
 
             _address = addr;
 #if PocketPC
-			if (C.zmq_bind(Ptr, Encoding.ASCII.GetBytes(addr)) != 0)
+            if (C.zmq_bind(Ptr, Encoding.ASCII.GetBytes(addr)) != 0)
 #else
             if (C.zmq_bind(Ptr, addr) != 0)
 #endif
@@ -381,7 +381,7 @@ namespace ZMQ {
                 throw new ArgumentNullException("addr");
             }
 
-			Bind(GetTransportName(transport) + "://" + addr + ":" + port);
+            Bind(GetTransportName(transport) + "://" + addr + ":" + port);
         }
 
         /// <summary>
@@ -395,7 +395,7 @@ namespace ZMQ {
                 throw new ArgumentNullException("addr");
             }
 
-			Bind(GetTransportName(transport) + "://" + addr);
+            Bind(GetTransportName(transport) + "://" + addr);
         }
 
         /// <summary>
@@ -410,11 +410,11 @@ namespace ZMQ {
 
             _address = addr;
 #if PocketPC
-			if (C.zmq_connect(Ptr, Encoding.ASCII.GetBytes(addr)) != 0)
+            if (C.zmq_connect(Ptr, Encoding.ASCII.GetBytes(addr)) != 0)
 #else
             if (C.zmq_connect(Ptr, addr) != 0)
 #endif
-			throw new Exception();
+            throw new Exception();
         }
 
         /// <summary>
@@ -429,7 +429,7 @@ namespace ZMQ {
                 throw new ArgumentNullException("addr");
             }
 
-			Connect(GetTransportName(transport) + "://" + addr + ":" + port);
+            Connect(GetTransportName(transport) + "://" + addr + ":" + port);
         }
 
         /// <summary>
@@ -443,31 +443,31 @@ namespace ZMQ {
                 throw new ArgumentNullException("addr");
             }
 
-			Connect(GetTransportName(transport) + "://" + addr);
+            Connect(GetTransportName(transport) + "://" + addr);
         }
 
-		private static string GetTransportName(Transport tr)
-		{
+        private static string GetTransportName(Transport tr)
+        {
 #if PocketPC
-			switch (tr)
-			{
-				case Transport.TCP:
-					return "tcp";
-				case Transport.PGM:
-					return "pgm";
-				case Transport.IPC:
-					return "ipc";
-				case Transport.INPROC:
-					return "inproc";
-				case Transport.EPGM:
-					return "epgm";
-				default:
-					throw new ArgumentException("Unexpected transport.", "tr");
-			}
+            switch (tr)
+            {
+                case Transport.TCP:
+                    return "tcp";
+                case Transport.PGM:
+                    return "pgm";
+                case Transport.IPC:
+                    return "ipc";
+                case Transport.INPROC:
+                    return "inproc";
+                case Transport.EPGM:
+                    return "epgm";
+                default:
+                    throw new ArgumentException("Unexpected transport.", "tr");
+            }
 #else
-			return Enum.GetName(typeof(Transport), tr).ToLower();
+            return Enum.GetName(typeof(Transport), tr).ToLower();
 #endif
-		}
+        }
 
         /// <summary>
         /// Forward all message parts directly to destination. No marshalling performed.
