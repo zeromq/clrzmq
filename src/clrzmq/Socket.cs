@@ -585,7 +585,7 @@ namespace ZMQ {
 #if NET_4
                             Thread.Yield();
 #else
-                            Thread.Sleep(0);
+                            Thread.Sleep(1);
 #endif
 #if !PocketPC
                         }
