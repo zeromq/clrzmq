@@ -34,9 +34,19 @@
             return LibZmq.zmq_bind(SocketHandle, endpoint);
         }
 
+        public int Unbind(string endpoint)
+        {
+            return LibZmq.zmq_unbind(SocketHandle, endpoint);
+        }
+
         public int Connect(string endpoint)
         {
             return LibZmq.zmq_connect(SocketHandle, endpoint);
+        }
+
+        public int Disconnect(string endpoint)
+        {
+            return LibZmq.zmq_disconnect(SocketHandle, endpoint);
         }
 
         public int Close()

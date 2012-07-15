@@ -49,6 +49,9 @@ namespace ZeroMQ.Interop
                 zmq_ctx_get = NativeLib.GetUnmanagedFunction<ZmqCtxGetProc>("zmq_ctx_get");
                 zmq_ctx_set = NativeLib.GetUnmanagedFunction<ZmqCtxSetProc>("zmq_ctx_set");
 
+                zmq_unbind = NativeLib.GetUnmanagedFunction<ZmqBindProc>("zmq_unbind");
+                zmq_disconnect = NativeLib.GetUnmanagedFunction<ZmqConnectProc>("zmq_disconnect");
+
                 PollTimeoutRatio = 1;
             }
             else if (MajorVersion == 2)
@@ -138,10 +141,12 @@ namespace ZeroMQ.Interop
         [UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         public delegate int ZmqBindProc(IntPtr socket, string addr);
         public static ZmqBindProc zmq_bind;
+        public static ZmqBindProc zmq_unbind;
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         public delegate int ZmqConnectProc(IntPtr socket, string addr);
         public static ZmqConnectProc zmq_connect;
+        public static ZmqConnectProc zmq_disconnect;
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         public delegate int ZmqCloseProc(IntPtr socket);

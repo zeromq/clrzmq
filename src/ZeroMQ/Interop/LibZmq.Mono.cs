@@ -36,6 +36,9 @@ namespace ZeroMQ.Interop
                 zmq_ctx_get = zmq_ctx_get_v3;
                 zmq_ctx_set = zmq_ctx_set_v3;
 
+                zmq_unbind = zmq_unbind_v3;
+                zmq_disconnect = zmq_disconnect_v3;
+
                 PollTimeoutRatio = 1;
             }
             else if (MajorVersion == 2)
@@ -49,6 +52,9 @@ namespace ZeroMQ.Interop
 
                 zmq_ctx_get = (ctx, opt) => { throw new ZmqVersionException(MajorVersion, MinorVersion, 3, 2); };
                 zmq_ctx_set = (ctx, opt, val) => { throw new ZmqVersionException(MajorVersion, MinorVersion, 3, 2); };
+
+                zmq_unbind = (sck, addr) => { throw new ZmqVersionException(MajorVersion, MinorVersion, 3, 2); };
+                zmq_disconnect = (sck, addr) => { throw new ZmqVersionException(MajorVersion, MinorVersion, 3, 2); };
 
                 PollTimeoutRatio = 1000;
             }
@@ -83,6 +89,14 @@ namespace ZeroMQ.Interop
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         public delegate int ZmqCtxSetProc(IntPtr context, int option, int optval);
         public static ZmqCtxSetProc zmq_ctx_set;
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        public delegate int ZmqBindProc(IntPtr socket, string addr);
+        public static ZmqBindProc zmq_unbind;
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        public delegate int ZmqConnectProc(IntPtr socket, string addr);
+        public static ZmqConnectProc zmq_disconnect;
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         public delegate int ZmqGetMsgOptProc(IntPtr message, int option, IntPtr optval, IntPtr optvallen);
@@ -131,8 +145,14 @@ namespace ZeroMQ.Interop
         [DllImport(LibraryName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
         public static extern int zmq_bind(IntPtr socket, string addr);
 
+        [DllImport(LibraryName, EntryPoint = "zmq_unbind", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
+        public static extern int zmq_unbind_v3(IntPtr socket, string addr);
+
         [DllImport(LibraryName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
         public static extern int zmq_connect(IntPtr socket, string addr);
+
+        [DllImport(LibraryName, EntryPoint = "zmq_disconnect", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
+        public static extern int zmq_disconnect_v3(IntPtr socket, string addr);
 
         [DllImport(LibraryName, EntryPoint = "zmq_recv", CallingConvention = CallingConvention.Cdecl)]
         public static extern int zmq_recvmsg(IntPtr socket, IntPtr msg, int flags);

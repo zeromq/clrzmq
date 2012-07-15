@@ -316,6 +316,37 @@
         }
 
         /// <summary>
+        /// Stop accepting connections for a previously bound endpoint on the current socket.
+        /// </summary>
+        /// <param name="endpoint">A string consisting of a transport and an address, formatted as <c><em>transport</em>://<em>address</em></c>.</param>
+        /// <exception cref="System.ArgumentNullException"><paramref name="endpoint"/> is null.</exception>
+        /// <exception cref="ZmqSocketException">An error occurred unbinding the socket to an endpoint.</exception>
+        /// <exception cref="System.ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
+        public void Unbind(string endpoint)
+        {
+            EnsureNotDisposed();
+
+            if (endpoint == null)
+            {
+                throw new ArgumentNullException("endpoint");
+            }
+
+            if (endpoint == string.Empty)
+            {
+                throw new ArgumentException("Unable to Unbind to an empty endpoint.", "endpoint");
+            }
+
+            int rc = _socketProxy.Unbind(endpoint);
+
+            // TODO: Silently fail if EAGAIN is thrown. As of 3.2.0-rc1, this appears to be returned
+            // if endpoint contains an address that was not previously bound.
+            if (rc == -1 && !ErrorProxy.ShouldTryAgain)
+            {
+                HandleProxyResult(rc);
+            }
+        }
+
+        /// <summary>
         /// Connect the current socket to the specified endpoint.
         /// </summary>
         /// <param name="endpoint">A string consisting of a transport and an address, formatted as <c><em>transport</em>://<em>address</em></c>.</param>
@@ -337,6 +368,37 @@
             }
 
             HandleProxyResult(_socketProxy.Connect(endpoint));
+        }
+
+        /// <summary>
+        /// Disconnect the current socket from a previously connected endpoint.
+        /// </summary>
+        /// <param name="endpoint">A string consisting of a transport and an address, formatted as <c><em>transport</em>://<em>address</em></c>.</param>
+        /// <exception cref="System.ArgumentNullException"><paramref name="endpoint"/> is null.</exception>
+        /// <exception cref="ZmqSocketException">An error occurred disconnecting the socket from a remote endpoint.</exception>
+        /// <exception cref="System.ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
+        public void Disconnect(string endpoint)
+        {
+            EnsureNotDisposed();
+
+            if (endpoint == null)
+            {
+                throw new ArgumentNullException("endpoint");
+            }
+
+            if (endpoint == string.Empty)
+            {
+                throw new ArgumentException("Unable to Disconnect to an empty endpoint.", "endpoint");
+            }
+
+            int rc = _socketProxy.Disconnect(endpoint);
+
+            // TODO: Silently fail if EAGAIN is thrown. As of 3.2.0-rc1, this appears to be returned
+            // if endpoint contains an address that was not previously connected.
+            if (rc == -1 && !ErrorProxy.ShouldTryAgain)
+            {
+                HandleProxyResult(rc);
+            }
         }
 
         /// <summary>
