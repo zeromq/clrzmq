@@ -99,8 +99,8 @@
             {
                 case SocketType.REQ:
                 case SocketType.REP:
-                case SocketType.XREQ:
-                case SocketType.XREP:
+                case SocketType.DEALER:
+                case SocketType.ROUTER:
                 case SocketType.XPUB:
                 case SocketType.PAIR:
                     return CreateSocket(sp => new DuplexSocket(sp, socketType), socketType);

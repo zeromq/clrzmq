@@ -37,18 +37,24 @@ namespace ZeroMQ.Interop
 
             if (MajorVersion >= 3)
             {
-                zmq_getmsgopt = NativeLib.GetUnmanagedFunction<ZmqGetMsgOptProc>("zmq_getmsgopt");
-                zmq_recvmsg = NativeLib.GetUnmanagedFunction<ZmqRecvMsgProc>("zmq_recvmsg");
-                zmq_sendmsg = NativeLib.GetUnmanagedFunction<ZmqSendMsgProc>("zmq_sendmsg");
+                zmq_msg_get = NativeLib.GetUnmanagedFunction<ZmqMsgGetProc>("zmq_msg_get");
+                zmq_msg_recv_impl = NativeLib.GetUnmanagedFunction<ZmqMsgRecvProc>("zmq_msg_recv");
+                zmq_msg_send_impl = NativeLib.GetUnmanagedFunction<ZmqMsgSendProc>("zmq_msg_send");
                 zmq_msg_init_data = NativeLib.GetUnmanagedFunction<ZmqMsgInitDataProc>("zmq_msg_init_data");
                 zmq_msg_move = NativeLib.GetUnmanagedFunction<ZmqMsgMoveProc>("zmq_msg_move");
+
+                zmq_msg_send = (msg, sck, flags) => zmq_msg_send_impl(msg, sck, flags);
+                zmq_msg_recv = (msg, sck, flags) => zmq_msg_recv_impl(msg, sck, flags);
 
                 PollTimeoutRatio = 1;
             }
             else if (MajorVersion == 2)
             {
-                zmq_recvmsg = NativeLib.GetUnmanagedFunction<ZmqRecvMsgProc>("zmq_recv");
-                zmq_sendmsg = NativeLib.GetUnmanagedFunction<ZmqSendMsgProc>("zmq_send");
+                zmq_msg_recv_impl = NativeLib.GetUnmanagedFunction<ZmqMsgRecvProc>("zmq_recv");
+                zmq_msg_send_impl = NativeLib.GetUnmanagedFunction<ZmqMsgSendProc>("zmq_send");
+
+                zmq_msg_send = (msg, sck, flags) => zmq_msg_send_impl(sck, msg, flags);
+                zmq_msg_recv = (msg, sck, flags) => zmq_msg_recv_impl(sck, msg, flags);
 
                 PollTimeoutRatio = 1000;
             }
@@ -56,8 +62,8 @@ namespace ZeroMQ.Interop
 
         private static void AssignCommonDelegates()
         {
-            zmq_init = NativeLib.GetUnmanagedFunction<ZmqInitProc>("zmq_init");
-            zmq_term = NativeLib.GetUnmanagedFunction<ZmqTermProc>("zmq_term");
+            zmq_ctx_new = NativeLib.GetUnmanagedFunction<ZmqCtxNewProc>("zmq_ctx_new");
+            zmq_ctx_destroy = NativeLib.GetUnmanagedFunction<ZmqCtxDestroyProc>("zmq_ctx_destroy");
             zmq_close = NativeLib.GetUnmanagedFunction<ZmqCloseProc>("zmq_close");
             zmq_setsockopt = NativeLib.GetUnmanagedFunction<ZmqSetSockOptProc>("zmq_setsockopt");
             zmq_getsockopt = NativeLib.GetUnmanagedFunction<ZmqGetSockOptProc>("zmq_getsockopt");
@@ -99,12 +105,12 @@ namespace ZeroMQ.Interop
         public delegate void FreeMessageDataCallback(IntPtr data, IntPtr hint);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        public delegate IntPtr ZmqInitProc(int io_threads);
-        public static ZmqInitProc zmq_init;
+        public delegate IntPtr ZmqCtxNewProc(int io_threads);
+        public static ZmqCtxNewProc zmq_ctx_new;
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        public delegate int ZmqTermProc(IntPtr context);
-        public static ZmqTermProc zmq_term;
+        public delegate int ZmqCtxDestroyProc(IntPtr context);
+        public static ZmqCtxDestroyProc zmq_ctx_destroy;
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         public delegate int ZmqSetSockOptProc(IntPtr socket, int option, IntPtr optval, int optvallen);
@@ -115,8 +121,8 @@ namespace ZeroMQ.Interop
         public static ZmqGetSockOptProc zmq_getsockopt;
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        public delegate int ZmqGetMsgOptProc(IntPtr message, int option, IntPtr optval, IntPtr optvallen);
-        public static ZmqGetMsgOptProc zmq_getmsgopt;
+        public delegate int ZmqMsgGetProc(IntPtr message, int option, IntPtr optval, IntPtr optvallen);
+        public static ZmqMsgGetProc zmq_msg_get;
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         public delegate int ZmqBindProc(IntPtr socket, string addr);
@@ -130,13 +136,17 @@ namespace ZeroMQ.Interop
         public delegate int ZmqCloseProc(IntPtr socket);
         public static ZmqCloseProc zmq_close;
 
+        // NOTE: For 2.x, this method signature is (socket, msg, flags)
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        public delegate int ZmqRecvMsgProc(IntPtr socket, IntPtr msg, int flags);
-        public static ZmqRecvMsgProc zmq_recvmsg;
+        public delegate int ZmqMsgRecvProc(IntPtr msg, IntPtr socket, int flags);
+        private static readonly ZmqMsgRecvProc zmq_msg_recv_impl;
+        public static ZmqMsgRecvProc zmq_msg_recv;
 
+        // NOTE: For 2.x, this method signature is (socket, msg, flags)
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        public delegate int ZmqSendMsgProc(IntPtr socket, IntPtr msg, int flags);
-        public static ZmqSendMsgProc zmq_sendmsg;
+        public delegate int ZmqMsgSendProc(IntPtr msg, IntPtr socket, int flags);
+        private static readonly ZmqMsgSendProc zmq_msg_send_impl;
+        public static ZmqMsgSendProc zmq_msg_send;
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         public delegate IntPtr ZmqSocketProc(IntPtr context, int type);

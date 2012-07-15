@@ -26,10 +26,10 @@ namespace ZeroMQ.Interop
 
             if (MajorVersion >= 3)
             {
-                zmq_recvmsg = zmq_recvmsg_v3;
-                zmq_sendmsg = zmq_sendmsg_v3;
+                zmq_msg_recv = zmq_msg_recv_v3;
+                zmq_msg_send = zmq_msg_send_v3;
 
-                zmq_getmsgopt = zmq_getmsgopt_v3;
+                zmq_msg_get = zmq_msg_get_v3;
                 zmq_msg_init_data = zmq_msg_init_data_v3;
                 zmq_msg_move = zmq_msg_move_v3;
 
@@ -37,10 +37,10 @@ namespace ZeroMQ.Interop
             }
             else if (MajorVersion == 2)
             {
-                zmq_recvmsg = zmq_recvmsg_v2;
-                zmq_sendmsg = zmq_sendmsg_v2;
+                zmq_msg_recv = (msg, sck, flags) => zmq_recvmsg(sck, msg, flags);
+                zmq_msg_send = (msg, sck, flags) => zmq_sendmsg(sck, msg, flags);
 
-                zmq_getmsgopt = (message, option, optval, optvallen) => { throw new ZmqVersionException(MajorVersion, MinorVersion, 3, 1); };
+                zmq_msg_get = (message, option, optval, optvallen) => { throw new ZmqVersionException(MajorVersion, MinorVersion, 3, 1); };
                 zmq_msg_init_data = (msg, data, size, ffn, hint) => { throw new ZmqVersionException(MajorVersion, MinorVersion, 3, 1); };
                 zmq_msg_move = (destmsg, srcmsg) => { throw new ZmqVersionException(MajorVersion, MinorVersion, 3, 1); };
 
@@ -72,15 +72,15 @@ namespace ZeroMQ.Interop
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         public delegate int ZmqGetMsgOptProc(IntPtr message, int option, IntPtr optval, IntPtr optvallen);
-        public static readonly ZmqGetMsgOptProc zmq_getmsgopt;
+        public static readonly ZmqGetMsgOptProc zmq_msg_get;
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        public delegate int ZmqRecvMsgProc(IntPtr socket, IntPtr msg, int flags);
-        public static readonly ZmqRecvMsgProc zmq_recvmsg;
+        public delegate int ZmqRecvMsgProc(IntPtr msg, IntPtr socket, int flags);
+        public static readonly ZmqRecvMsgProc zmq_msg_recv;
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        public delegate int ZmqSendMsgProc(IntPtr socket, IntPtr msg, int flags);
-        public static readonly ZmqSendMsgProc zmq_sendmsg;
+        public delegate int ZmqSendMsgProc(IntPtr msg, IntPtr socket, int flags);
+        public static readonly ZmqSendMsgProc zmq_msg_send;
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         public delegate int ZmqMsgInitDataProc(IntPtr msg, IntPtr data, int size, FreeMessageDataCallback ffn, IntPtr hint);
@@ -91,10 +91,10 @@ namespace ZeroMQ.Interop
         public static readonly ZmqMsgMoveProc zmq_msg_move;
 
         [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr zmq_init(int io_threads);
+        public static extern IntPtr zmq_ctx_new(int io_threads);
 
         [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int zmq_term(IntPtr context);
+        public static extern int zmq_ctx_destroy(IntPtr context);
 
         [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
         public static extern int zmq_close(IntPtr socket);
@@ -105,8 +105,8 @@ namespace ZeroMQ.Interop
         [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
         public static extern int zmq_getsockopt(IntPtr socket, int option, IntPtr optval, IntPtr optvallen);
 
-        [DllImport(LibraryName, EntryPoint = "zmq_getmsgopt", CallingConvention = CallingConvention.Cdecl)]
-        public static extern int zmq_getmsgopt_v3(IntPtr message, int option, IntPtr optval, IntPtr optvallen);
+        [DllImport(LibraryName, EntryPoint = "zmq_msg_get", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int zmq_msg_get_v3(IntPtr message, int option, IntPtr optval, IntPtr optvallen);
 
         [DllImport(LibraryName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
         public static extern int zmq_bind(IntPtr socket, string addr);
@@ -115,16 +115,16 @@ namespace ZeroMQ.Interop
         public static extern int zmq_connect(IntPtr socket, string addr);
 
         [DllImport(LibraryName, EntryPoint = "zmq_recv", CallingConvention = CallingConvention.Cdecl)]
-        public static extern int zmq_recvmsg_v2(IntPtr socket, IntPtr msg, int flags);
+        public static extern int zmq_recvmsg(IntPtr socket, IntPtr msg, int flags);
 
         [DllImport(LibraryName, EntryPoint = "zmq_send", CallingConvention = CallingConvention.Cdecl)]
-        public static extern int zmq_sendmsg_v2(IntPtr socket, IntPtr msg, int flags);
+        public static extern int zmq_sendmsg(IntPtr socket, IntPtr msg, int flags);
 
-        [DllImport(LibraryName, EntryPoint = "zmq_recvmsg", CallingConvention = CallingConvention.Cdecl)]
-        public static extern int zmq_recvmsg_v3(IntPtr socket, IntPtr msg, int flags);
+        [DllImport(LibraryName, EntryPoint = "zmq_msg_recv", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int zmq_msg_recv_v3(IntPtr msg, IntPtr socket, int flags);
 
-        [DllImport(LibraryName, EntryPoint = "zmq_sendmsg", CallingConvention = CallingConvention.Cdecl)]
-        public static extern int zmq_sendmsg_v3(IntPtr socket, IntPtr msg, int flags);
+        [DllImport(LibraryName, EntryPoint = "zmq_msg_send", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int zmq_msg_send_v3(IntPtr msg, IntPtr socket, int flags);
 
         [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr zmq_socket(IntPtr context, int type);

@@ -22,7 +22,7 @@
 
         public int Initialize()
         {
-            ContextHandle = LibZmq.zmq_init(ThreadPoolSize);
+            ContextHandle = LibZmq.zmq_ctx_new(ThreadPoolSize);
 
             return ContextHandle == IntPtr.Zero ? -1 : 0;
         }
@@ -39,11 +39,11 @@
                 return;
             }
 
-            while (LibZmq.zmq_term(ContextHandle) != 0)
+            while (LibZmq.zmq_ctx_destroy(ContextHandle) != 0)
             {
                 int errorCode = ErrorProxy.GetErrorCode();
 
-                // If zmq_term fails, valid return codes are EFAULT or EINTR. If EINTR is set, termination
+                // If zmq_ctx_destroy fails, valid return codes are EFAULT or EINTR. If EINTR is set, termination
                 // was interrupted by a signal and may be safely retried.
                 if (errorCode == ErrorCode.EFAULT)
                 {

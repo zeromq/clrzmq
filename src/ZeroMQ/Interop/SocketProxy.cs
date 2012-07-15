@@ -61,7 +61,7 @@
                 return -1;
             }
 
-            int bytesReceived = RetryIfInterrupted(() => LibZmq.zmq_recvmsg(SocketHandle, _message, flags));
+            int bytesReceived = RetryIfInterrupted(() => LibZmq.zmq_msg_recv(_message, SocketHandle, flags));
 
             if (bytesReceived == 0 && LibZmq.MajorVersion < 3)
             {
@@ -91,7 +91,7 @@
                 return buffer;
             }
 
-            int bytesReceived = RetryIfInterrupted(() => LibZmq.zmq_recvmsg(SocketHandle, _message, flags));
+            int bytesReceived = RetryIfInterrupted(() => LibZmq.zmq_msg_recv(_message, SocketHandle, flags));
 
             if (bytesReceived >= 0)
             {
@@ -131,7 +131,7 @@
                 Marshal.Copy(buffer, 0, LibZmq.zmq_msg_data(_message), size);
             }
 
-            int bytesSent = RetryIfInterrupted(() => LibZmq.zmq_sendmsg(SocketHandle, _message, flags));
+            int bytesSent = RetryIfInterrupted(() => LibZmq.zmq_msg_send(_message, SocketHandle, flags));
 
             if (bytesSent == 0 && LibZmq.MajorVersion < 3)
             {
@@ -159,7 +159,7 @@
 
             do
             {
-                if (LibZmq.zmq_recvmsg(SocketHandle, _message, 0) == -1)
+                if (LibZmq.zmq_msg_recv(_message, SocketHandle, 0) == -1)
                 {
                     return -1;
                 }
@@ -169,7 +169,7 @@
                     return -1;
                 }
 
-                if ((bytesSent = LibZmq.zmq_sendmsg(destinationHandle, _message, receiveMore == 1 ? (int)SocketFlags.SendMore : 0)) == -1)
+                if ((bytesSent = LibZmq.zmq_msg_send(_message, destinationHandle, receiveMore == 1 ? (int)SocketFlags.SendMore : 0)) == -1)
                 {
                     return -1;
                 }
