@@ -33,6 +33,9 @@ namespace ZeroMQ.Interop
                 zmq_msg_init_data = zmq_msg_init_data_v3;
                 zmq_msg_move = zmq_msg_move_v3;
 
+                zmq_ctx_get = zmq_ctx_get_v3;
+                zmq_ctx_set = zmq_ctx_set_v3;
+
                 PollTimeoutRatio = 1;
             }
             else if (MajorVersion == 2)
@@ -43,6 +46,9 @@ namespace ZeroMQ.Interop
                 zmq_msg_get = (message, option, optval, optvallen) => { throw new ZmqVersionException(MajorVersion, MinorVersion, 3, 1); };
                 zmq_msg_init_data = (msg, data, size, ffn, hint) => { throw new ZmqVersionException(MajorVersion, MinorVersion, 3, 1); };
                 zmq_msg_move = (destmsg, srcmsg) => { throw new ZmqVersionException(MajorVersion, MinorVersion, 3, 1); };
+
+                zmq_ctx_get = (ctx, opt) => { throw new ZmqVersionException(MajorVersion, MinorVersion, 3, 2); };
+                zmq_ctx_set = (ctx, opt, val) => { throw new ZmqVersionException(MajorVersion, MinorVersion, 3, 2); };
 
                 PollTimeoutRatio = 1000;
             }
@@ -71,6 +77,14 @@ namespace ZeroMQ.Interop
         public delegate void FreeMessageDataCallback(IntPtr data, IntPtr hint);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public delegate int ZmqCtxGetProc(IntPtr context, int option);
+        public static ZmqCtxGetProc zmq_ctx_get;
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public delegate int ZmqCtxSetProc(IntPtr context, int option, int optval);
+        public static ZmqCtxSetProc zmq_ctx_set;
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         public delegate int ZmqGetMsgOptProc(IntPtr message, int option, IntPtr optval, IntPtr optvallen);
         public static readonly ZmqGetMsgOptProc zmq_msg_get;
 
@@ -91,10 +105,16 @@ namespace ZeroMQ.Interop
         public static readonly ZmqMsgMoveProc zmq_msg_move;
 
         [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr zmq_ctx_new(int io_threads);
+        public static extern IntPtr zmq_ctx_new();
 
         [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
         public static extern int zmq_ctx_destroy(IntPtr context);
+
+        [DllImport(LibraryName, EntryPoint = "zmq_ctx_get", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int zmq_ctx_get_v3(IntPtr context, int option);
+
+        [DllImport(LibraryName, EntryPoint = "zmq_ctx_set", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int zmq_ctx_set_v3(IntPtr context, int option, int optval);
 
         [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
         public static extern int zmq_close(IntPtr socket);

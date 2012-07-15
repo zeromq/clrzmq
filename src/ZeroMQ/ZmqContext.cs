@@ -15,8 +15,6 @@
     /// </remarks>
     public class ZmqContext : IDisposable
     {
-        private const int DefaultThreadPoolSize = 1;
-
         private readonly ContextProxy _contextProxy;
 
         private bool _disposed;
@@ -50,11 +48,21 @@
         public static Encoding DefaultEncoding { get; set; }
 
         /// <summary>
-        /// Gets the size of the thread pool for the current context.
+        /// Gets or sets the size of the thread pool for the current context (default = 1).
         /// </summary>
         public int ThreadPoolSize
         {
-            get { return _contextProxy.ThreadPoolSize; }
+            get { return _contextProxy.GetContextOption((int)ContextOption.IO_THREADS); }
+            set { SetContextOption(ContextOption.IO_THREADS, value); }
+        }
+
+        /// <summary>
+        /// Gets or sets the maximum number of sockets for the current context (default = 1024).
+        /// </summary>
+        public int MaxSockets
+        {
+            get { return _contextProxy.GetContextOption((int)ContextOption.MAX_SOCKETS); }
+            set { SetContextOption(ContextOption.MAX_SOCKETS, value); }
         }
 
         /// <summary>
@@ -63,22 +71,7 @@
         /// <returns>A <see cref="ZmqContext"/> instance with the default thread pool size (1).</returns>
         public static ZmqContext Create()
         {
-            return Create(DefaultThreadPoolSize);
-        }
-
-        /// <summary>
-        /// Create a <see cref="ZmqContext"/> instance.
-        /// </summary>
-        /// <param name="threadPoolSize">Number of threads to use in the ZMQ thread pool.</param>
-        /// <returns>A <see cref="ZmqContext"/> instance with the specified thread pool size.</returns>
-        public static ZmqContext Create(int threadPoolSize)
-        {
-            if (threadPoolSize < 0)
-            {
-                throw new ArgumentOutOfRangeException("threadPoolSize", threadPoolSize, "Thread pool size must be non-negative.");
-            }
-
-            var contextProxy = new ContextProxy(threadPoolSize);
+            var contextProxy = new ContextProxy();
 
             if (contextProxy.Initialize() == -1)
             {
@@ -196,6 +189,14 @@
             }
 
             return constructor(new SocketProxy(socketHandle));
+        }
+
+        private void SetContextOption(ContextOption option, int value)
+        {
+            if (_contextProxy.SetContextOption((int)option, value) == -1)
+            {
+                throw new ZmqException(ErrorProxy.GetLastError());
+            }
         }
 
         private void EnsureNotDisposed()

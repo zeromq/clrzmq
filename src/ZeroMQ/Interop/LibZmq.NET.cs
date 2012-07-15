@@ -46,6 +46,9 @@ namespace ZeroMQ.Interop
                 zmq_msg_send = (msg, sck, flags) => zmq_msg_send_impl(msg, sck, flags);
                 zmq_msg_recv = (msg, sck, flags) => zmq_msg_recv_impl(msg, sck, flags);
 
+                zmq_ctx_get = NativeLib.GetUnmanagedFunction<ZmqCtxGetProc>("zmq_ctx_get");
+                zmq_ctx_set = NativeLib.GetUnmanagedFunction<ZmqCtxSetProc>("zmq_ctx_set");
+
                 PollTimeoutRatio = 1;
             }
             else if (MajorVersion == 2)
@@ -105,12 +108,20 @@ namespace ZeroMQ.Interop
         public delegate void FreeMessageDataCallback(IntPtr data, IntPtr hint);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        public delegate IntPtr ZmqCtxNewProc(int io_threads);
+        public delegate IntPtr ZmqCtxNewProc();
         public static ZmqCtxNewProc zmq_ctx_new;
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         public delegate int ZmqCtxDestroyProc(IntPtr context);
         public static ZmqCtxDestroyProc zmq_ctx_destroy;
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public delegate int ZmqCtxGetProc(IntPtr context, int option);
+        public static ZmqCtxGetProc zmq_ctx_get;
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public delegate int ZmqCtxSetProc(IntPtr context, int option, int optval);
+        public static ZmqCtxSetProc zmq_ctx_set;
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         public delegate int ZmqSetSockOptProc(IntPtr socket, int option, IntPtr optval, int optvallen);

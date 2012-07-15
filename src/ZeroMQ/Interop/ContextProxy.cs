@@ -6,11 +6,6 @@
     {
         private bool _disposed;
 
-        public ContextProxy(int threadPoolSize)
-        {
-            ThreadPoolSize = threadPoolSize;
-        }
-
         ~ContextProxy()
         {
             Dispose(false);
@@ -18,11 +13,9 @@
 
         public IntPtr ContextHandle { get; private set; }
 
-        public int ThreadPoolSize { get; private set; }
-
         public int Initialize()
         {
-            ContextHandle = LibZmq.zmq_ctx_new(ThreadPoolSize);
+            ContextHandle = LibZmq.zmq_ctx_new();
 
             return ContextHandle == IntPtr.Zero ? -1 : 0;
         }
@@ -55,6 +48,16 @@
             }
 
             ContextHandle = IntPtr.Zero;
+        }
+
+        public int GetContextOption(int option)
+        {
+            return LibZmq.zmq_ctx_get(ContextHandle, option);
+        }
+
+        public int SetContextOption(int option, int value)
+        {
+            return LibZmq.zmq_ctx_set(ContextHandle, option, value);
         }
 
         public virtual void Dispose()

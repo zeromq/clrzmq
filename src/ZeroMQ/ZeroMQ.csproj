@@ -38,6 +38,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ContextOption.cs" />
     <Compile Include="Devices\DeviceMode.cs" />
     <Compile Include="Devices\ThreadedDeviceRunner.cs" />
     <Compile Include="Devices\Device.cs" />
