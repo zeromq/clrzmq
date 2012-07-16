@@ -253,4 +253,40 @@
                 socket.SupportedProtocol.ShouldEqual(ProtocolType.Both);
         };
     }
+
+    [Subject("Socket options")]
+    class when_gettings_the_last_endpoint_socket_option : using_req
+    {
+        Because of = () =>
+            exception = Catch.Exception(() => socket.Bind("inproc://last_endpoint"));
+
+        It should_not_fail = () =>
+            exception.ShouldBeNull();
+
+        It should_return_the_given_value = () =>
+            socket.LastEndpoint.ShouldEqual("inproc://last_endpoint");
+    }
+
+    [Subject("Socket options")]
+    class when_setting_the_router_behavior_socket_option : using_req_rep
+    {
+        Because of = () =>
+            exception = Catch.Exception(() => rep.RouterBehavior = RouterBehavior.Report);
+
+        It should_not_fail = () =>
+            exception.ShouldBeNull();
+    }
+
+    [Subject("Socket options")]
+    class when_setting_the_delay_attach_on_connect_socket_option : using_req
+    {
+        Because of = () =>
+            exception = Catch.Exception(() => socket.DelayAttachOnConnect = true);
+
+        It should_not_fail = () =>
+            exception.ShouldBeNull();
+
+        It should_return_the_given_value = () =>
+            socket.DelayAttachOnConnect.ShouldEqual(true);
+    }
 }
