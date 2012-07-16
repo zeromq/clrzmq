@@ -132,11 +132,14 @@
     class when_binding_and_unbinding_to_a_tcp_ip_address_and_port : using_req
     {
         Because of = () =>
-            exception = Catch.Exception(() =>
-            {
-                socket.Bind("tcp://127.0.0.1:9000");
-                socket.Unbind("tcp://127.0.0.1:9000");
-            });
+        {
+            if (ZmqVersion.Current.IsAtLeast(3))
+                exception = Catch.Exception(() =>
+                {
+                    socket.Bind("tcp://127.0.0.1:9000");
+                    socket.Unbind("tcp://127.0.0.1:9000");
+                });
+        };
 
         It should_not_fail = () =>
             exception.ShouldBeNull();
@@ -146,11 +149,14 @@
     class when_binding_and_unbinding_different_addresses : using_req
     {
         Because of = () =>
-            exception = Catch.Exception(() =>
-            {
-                socket.Bind("tcp://127.0.0.1:9000");
-                socket.Unbind("tcp://127.0.0.1:9001");
-            });
+        {
+            if (ZmqVersion.Current.IsAtLeast(3))
+                exception = Catch.Exception(() =>
+                {
+                    socket.Bind("tcp://127.0.0.1:9000");
+                    socket.Unbind("tcp://127.0.0.1:9001");
+                });
+        };
 
         It should_silently_not_fail = () =>
             exception.ShouldBeNull();
@@ -160,12 +166,15 @@
     class when_connecting_to_an_unbound_tcp_ip_address_and_port : using_req_rep
     {
         Because of = () =>
-            exception = Catch.Exception(() =>
-            {
-                rep.Bind("tcp://127.0.0.1:9000");
-                req.Connect("tcp://127.0.0.1:9000");
-                rep.Unbind("tcp://127.0.0.1:9000");
-            });
+        {
+            if (ZmqVersion.Current.IsAtLeast(3))
+                exception = Catch.Exception(() =>
+                {
+                    rep.Bind("tcp://127.0.0.1:9000");
+                    req.Connect("tcp://127.0.0.1:9000");
+                    rep.Unbind("tcp://127.0.0.1:9000");
+                });
+        };
 
         It should_not_fail = () =>
             exception.ShouldBeNull();
@@ -175,12 +184,15 @@
     class when_connecting_and_disconnecting_to_a_tcp_ip_address_and_port : using_req_rep
     {
         Because of = () =>
-            exception = Catch.Exception(() =>
-            {
-                rep.Bind("tcp://127.0.0.1:9000");
-                req.Connect("tcp://127.0.0.1:9000");
-                req.Disconnect("tcp://127.0.0.1:9000");
-            });
+        {
+            if (ZmqVersion.Current.IsAtLeast(3))
+                exception = Catch.Exception(() =>
+                {
+                    rep.Bind("tcp://127.0.0.1:9000");
+                    req.Connect("tcp://127.0.0.1:9000");
+                    req.Disconnect("tcp://127.0.0.1:9000");
+                });
+        };
 
         It should_not_fail = () =>
             exception.ShouldBeNull();
@@ -190,12 +202,15 @@
     class when_connecting_and_disconnecting_to_a_different_address : using_req_rep
     {
         Because of = () =>
-            exception = Catch.Exception(() =>
-            {
-                rep.Bind("tcp://127.0.0.1:9000");
-                req.Connect("tcp://127.0.0.1:9000");
-                req.Disconnect("tcp://127.0.0.1:9001");
-            });
+        {
+            if (ZmqVersion.Current.IsAtLeast(3))
+                exception = Catch.Exception(() =>
+                {
+                    rep.Bind("tcp://127.0.0.1:9000");
+                    req.Connect("tcp://127.0.0.1:9000");
+                    req.Disconnect("tcp://127.0.0.1:9001");
+                });
+        };
 
         It should_silently_not_fail = () =>
             exception.ShouldBeNull();

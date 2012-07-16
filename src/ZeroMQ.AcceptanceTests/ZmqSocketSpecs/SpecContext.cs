@@ -19,6 +19,7 @@
 
         Cleanup resources = () =>
         {
+            exception = null;
             socket.Dispose();
             zmqContext.Dispose();
         };
@@ -40,6 +41,7 @@
 
         Cleanup resources = () =>
         {
+            exception = null;
             req.Dispose();
             rep.Dispose();
             zmqContext.Dispose();
@@ -62,6 +64,7 @@
 
         Cleanup resources = () =>
         {
+            exception = null;
             sub.Dispose();
             pub.Dispose();
             zmqContext.Dispose();

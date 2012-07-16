@@ -59,26 +59,38 @@
     class when_setting_the_max_message_size_socket_option : using_req
     {
         Because of = () =>
-            exception = Catch.Exception(() => socket.MaxMessageSize = 60000L);
+        {
+            if (ZmqVersion.Current.IsAtLeast(3))
+                exception = Catch.Exception(() => socket.MaxMessageSize = 60000L);
+        };
 
         It should_not_fail = () =>
             exception.ShouldBeNull();
 
         It should_return_the_given_value = () =>
-            socket.MaxMessageSize.ShouldEqual(60000L);
+        {
+            if (ZmqVersion.Current.IsAtLeast(3))
+                socket.MaxMessageSize.ShouldEqual(60000L);
+        };
     }
 
     [Subject("Socket options")]
     class when_setting_the_multicast_hops_socket_option : using_req
     {
         Because of = () =>
-            exception = Catch.Exception(() => socket.MulticastHops = 6);
+        {
+            if (ZmqVersion.Current.IsAtLeast(3))
+                exception = Catch.Exception(() => socket.MulticastHops = 6);
+        };
 
         It should_not_fail = () =>
             exception.ShouldBeNull();
 
         It should_return_the_given_value = () =>
-            socket.MulticastHops.ShouldEqual(6);
+        {
+            if (ZmqVersion.Current.IsAtLeast(3))
+                socket.MulticastHops.ShouldEqual(6);
+        };
     }
 
     [Subject("Socket options")]
@@ -137,13 +149,19 @@
     class when_setting_the_receive_timeout_socket_option : using_req
     {
         Because of = () =>
-            exception = Catch.Exception(() => socket.ReceiveTimeout = TimeSpan.FromMilliseconds(333));
+        {
+            if (ZmqVersion.Current.IsAtLeast(3))
+                exception = Catch.Exception(() => socket.ReceiveTimeout = TimeSpan.FromMilliseconds(333));
+        };
 
         It should_not_fail = () =>
             exception.ShouldBeNull();
 
         It should_return_the_given_value = () =>
-            socket.ReceiveTimeout.ShouldEqual(TimeSpan.FromMilliseconds(333));
+        {
+            if (ZmqVersion.Current.IsAtLeast(3))
+                socket.ReceiveTimeout.ShouldEqual(TimeSpan.FromMilliseconds(333));
+        };
     }
 
     [Subject("Socket options")]
@@ -202,25 +220,37 @@
     class when_setting_the_send_timeout_socket_option : using_req
     {
         Because of = () =>
-            exception = Catch.Exception(() => socket.SendTimeout = TimeSpan.FromMilliseconds(333));
+        {
+            if (ZmqVersion.Current.IsAtLeast(3))
+                exception = Catch.Exception(() => socket.SendTimeout = TimeSpan.FromMilliseconds(333));
+        };
 
         It should_not_fail = () =>
             exception.ShouldBeNull();
 
         It should_return_the_given_value = () =>
-            socket.SendTimeout.ShouldEqual(TimeSpan.FromMilliseconds(333));
+        {
+            if (ZmqVersion.Current.IsAtLeast(3))
+                socket.SendTimeout.ShouldEqual(TimeSpan.FromMilliseconds(333));
+        };
     }
 
     [Subject("Socket options")]
     class when_setting_the_supported_protocol_socket_option : using_req
     {
         Because of = () =>
-            exception = Catch.Exception(() => socket.SupportedProtocol = ProtocolType.Both);
+        {
+            if (ZmqVersion.Current.IsAtLeast(3))
+                exception = Catch.Exception(() => socket.SupportedProtocol = ProtocolType.Both);
+        };
 
         It should_not_fail = () =>
             exception.ShouldBeNull();
 
         It should_return_the_given_value = () =>
-            socket.SupportedProtocol.ShouldEqual(ProtocolType.Both);
+        {
+            if (ZmqVersion.Current.IsAtLeast(3))
+                socket.SupportedProtocol.ShouldEqual(ProtocolType.Both);
+        };
     }
 }

@@ -8,26 +8,38 @@
     class when_setting_the_thread_pool_size_context_option : using_ctx
     {
         Because of = () =>
-            exception = Catch.Exception(() => zmqContext.ThreadPoolSize = 42);
+        {
+            if (ZmqVersion.Current.IsAtLeast(3))
+                exception = Catch.Exception(() => zmqContext.ThreadPoolSize = 42);
+        };
 
         It should_not_fail = () =>
             exception.ShouldBeNull();
 
         It should_return_the_given_value = () =>
-            zmqContext.ThreadPoolSize.ShouldEqual(42);
+        {
+            if (ZmqVersion.Current.IsAtLeast(3))
+                zmqContext.ThreadPoolSize.ShouldEqual(42);
+        };
     }
 
     [Subject("Socket options")]
     class when_setting_the_max_sockets_context_option : using_ctx
     {
         Because of = () =>
-            exception = Catch.Exception(() => zmqContext.MaxSockets = 42);
+        {
+            if (ZmqVersion.Current.IsAtLeast(3))
+                exception = Catch.Exception(() => zmqContext.MaxSockets = 42);
+        };
 
         It should_not_fail = () =>
             exception.ShouldBeNull();
 
         It should_return_the_given_value = () =>
-            zmqContext.MaxSockets.ShouldEqual(42);
+        {
+            if (ZmqVersion.Current.IsAtLeast(3))
+                zmqContext.MaxSockets.ShouldEqual(42);
+        };
     }
 
     abstract class using_ctx
