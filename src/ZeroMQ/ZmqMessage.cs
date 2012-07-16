@@ -58,6 +58,22 @@
         }
 
         /// <summary>
+        /// Gets the first frame in the current message.
+        /// </summary>
+        public Frame First
+        {
+            get { return _frames[0]; }
+        }
+
+        /// <summary>
+        /// Gets the last frame in the current message.
+        /// </summary>
+        public Frame Last
+        {
+            get { return _frames[_frames.Count - 1]; }
+        }
+
+        /// <summary>
         /// Gets a value indicating whether the current message is complete
         /// (i.e. no more message parts follow the last part of this message).
         /// </summary>
@@ -142,9 +158,80 @@
         /// </remarks>
         public void AppendEmptyFrame()
         {
-            _frames.Add(new Frame(0));
+            _frames.Add(Frame.Empty);
 
             NormalizeFrames();
+        }
+
+        /// <summary>
+        /// Inserts <paramref name="frame"/> at the front of the message.
+        /// </summary>
+        /// <param name="frame">A <see cref="Frame"/> to insert.</param>
+        public void Push(Frame frame)
+        {
+            _frames.Insert(0, frame);
+
+            NormalizeFrames();
+        }
+
+        /// <summary>
+        /// Inserts a new <see cref="Frame"/> containing <paramref name="buffer"/>
+        /// at the front of the message.
+        /// </summary>
+        /// <param name="buffer">A <see cref="byte"/> array containing the frame data to push.</param>
+        public void Push(byte[] buffer)
+        {
+            _frames.Insert(0, new Frame(buffer));
+
+            NormalizeFrames();
+        }
+
+        /// <summary>
+        /// Inserts an empty <see cref="Frame"/> at the front of the message.
+        /// </summary>
+        public void PushEmptyFrame()
+        {
+            _frames.Insert(0, Frame.Empty);
+
+            NormalizeFrames();
+        }
+
+        /// <summary>
+        /// Pushes <paramref name="frame"/> plus an empty frame to the front
+        /// of the message.
+        /// </summary>
+        /// <param name="frame">A <see cref="Frame"/> to push to the front of the message.</param>
+        public void Wrap(Frame frame)
+        {
+            _frames.Insert(0, Frame.Empty);
+            _frames.Insert(0, frame);
+
+            NormalizeFrames();
+        }
+
+        /// <summary>
+        /// Pops a <see cref="Frame"/> off the front of the message.
+        /// If the next frame is empty, that empty frame is removed.
+        /// </summary>
+        /// <returns>The first <see cref="Frame"/> in the message or <c>null</c> if the message is empty.</returns>
+        public Frame Unwrap()
+        {
+            Frame result = null;
+
+            if (_frames.Count > 0)
+            {
+                result = _frames[0];
+                _frames.RemoveAt(0);
+            }
+
+            if (_frames.Count > 0 && _frames[0].MessageSize == 0)
+            {
+                _frames.RemoveAt(0);
+            }
+
+            NormalizeFrames();
+
+            return result;
         }
 
         /// <summary>
