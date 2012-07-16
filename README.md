@@ -106,7 +106,7 @@ clrzmq depends on `libzmq.dll`, which will be retrieved automatically via NuGet.
 
 If you want to use a custom build of `libzmq.dll`, perform the following steps:
 
-1. Delete or rename the `src/ZeroMQ/packages.config` file. This prevent the NuGet package from being retrieved.
+1. Delete or rename the `src/.nuget/packages.config` file. This prevent the NuGet package from being retrieved.
 2. Remove any folders matching `src/packages/libzmq-*` that may have been downloaded previously.
 3. Copy the 32-bit and 64-bit (if applicable) build of `libzmq.dll` to `lib/x86` and `lib/x64`, respectively.
 

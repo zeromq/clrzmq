@@ -1,6 +1,4 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build" ToolsVersion="4.0">
-  
-  <Import Project="$(SolutionDir)CustomTasks.targets" />
 
   <PropertyGroup>
     <SolutionDir Condition="'$(SolutionDir)' == ''">.</SolutionDir>
@@ -17,6 +15,9 @@
     <NetFramework Condition="'$(NetFramework)' == ''">NET</NetFramework>
     <SolutionSuffix Condition="'$(OperatingPlatform)' == 'Unix'">.Mono</SolutionSuffix>
   </PropertyGroup>
+  
+  <Import Project="$(SolutionDir)\.nuget\NuGet.targets" />
+  <Import Project="$(SolutionDir)\CustomTasks.targets" />
 
   <PropertyGroup>
     <DebugType Condition="'$(Configuration)' == 'Debug'">full</DebugType>
@@ -28,7 +29,7 @@
     <Constants Condition="'$(OperatingPlatform)' == 'Windows'"></Constants>
     <Constants Condition="'$(OperatingPlatform)' == 'Unix'">UNIX;MONO</Constants>
   </PropertyGroup>
-  
+
   <ItemGroup>
     <CleanFiles Include="$(BuildDir)" />
     <CleanFiles Include="$(SolutionDir)\**\bin\$(Configuration)\**" />
@@ -43,12 +44,12 @@
     <OutputFiles Include="$(SolutionDir)\**\bin\$(Configuration)\*.xml" />
     <OutputFiles Include="$(LibDir)\$(Platform)\*.dll" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <ZeroMQSources Include="ZeroMQ\**\*.cs;Shared\*.cs" Exclude="ZeroMQ\**\Platform.*.cs" />
     <ZeroMQSources Include="ZeroMQ\**\Platform.$(OperatingPlatform).cs" />
     <ZeroMQSources Include="ZeroMQ\**\Platform.$(NetFramework).cs" />
-      
+
     <Resources Include="$(LibDir)\x64\libzmq.dll">
       <Platform>x64</Platform>
     </Resources>
@@ -68,8 +69,8 @@
   <Target Name="Initialize" DependsOnTargets="Clean">
     <MakeDir Directories="$(BuildDir)" />
   </Target>
-  
-  <Target Name="Compile" DependsOnTargets="Initialize">
+
+  <Target Name="Compile" DependsOnTargets="Initialize;RestoreSolutionPackages">
     <MSBuild Projects="clrzmq$(SolutionSuffix).sln" Targets="Build" Properties="Configuration=$(Configuration);Platform=$(Platform);$(KeyFileProperty);RestorePackages=true" />
   </Target>
 
@@ -91,7 +92,7 @@
     <Exec Condition="'$(OperatingPlatform)' == 'Windows'" Command="$(MSpecExe) $(MSpecOptions) %(TestAssembly.Identity)" />
     <!--<Exec Condition="'$(OperatingPlatform)' == 'Unix'" Command="$(MSpecExe) $(MSpecOptions) %(TestAssembly.Identity)" />-->
   </Target>
-  
+
   <Target Name="Build" DependsOnTargets="Test">
     <Copy SourceFiles="@(OutputFiles)" DestinationFolder="$(BuildDir)" ContinueOnError="true" />
   </Target>

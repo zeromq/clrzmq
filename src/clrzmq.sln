@@ -47,7 +47,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{193968
 	ProjectSection(SolutionItems) = preProject
 		.nuget\clrzmq.nuspec = .nuget\clrzmq.nuspec
 		.nuget\libzmq.nuspec = .nuget\libzmq.nuspec
-		.nuget\nuget-bootstrap.exe = .nuget\nuget-bootstrap.exe
+		.nuget\NuGet.Config = .nuget\NuGet.Config
+		.nuget\NuGet.exe = .nuget\NuGet.exe
 		.nuget\NuGet.targets = .nuget\NuGet.targets
 	EndProjectSection
 EndProject
