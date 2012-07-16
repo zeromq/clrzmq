@@ -3,7 +3,7 @@
 
 This project aims to provide the full functionality of the underlying ZeroMQ API to CLR projects.
 
-The version of libzmq currently being targeted is **2.1 (stable)**.
+The version of libzmq currently being targeted is **2.2.0 (stable)**.
 
 ## Getting Started
 
