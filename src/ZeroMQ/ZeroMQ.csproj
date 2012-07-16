@@ -107,6 +107,6 @@
       <LibzmqFiles Include="$(LibzmqDir)\Content\lib\**\*" />
       <LibFiles Include="@(LibzmqFiles->'$(SolutionDir)..\lib\%(RecursiveDir)%(FileName)%(Extension)')" />
     </ItemGroup>
-    <Copy SourceFiles="@(LibzmqFiles)" DestinationFiles="@(LibFiles)" SkipUnchangedFiles="true" />
+    <Copy Condition="'$(UseCustomLibzmq)' != 'true'" SourceFiles="@(LibzmqFiles)" DestinationFiles="@(LibFiles)" SkipUnchangedFiles="true" />
   </Target>
 </Project>

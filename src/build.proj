@@ -70,8 +70,13 @@
     <MakeDir Directories="$(BuildDir)" />
   </Target>
 
-  <Target Name="Compile" DependsOnTargets="Initialize;RestoreSolutionPackages">
-    <MSBuild Projects="clrzmq$(SolutionSuffix).sln" Targets="Build" Properties="Configuration=$(Configuration);Platform=$(Platform);$(KeyFileProperty);RestorePackages=true" />
+  <PropertyGroup>
+    <CompileDependsOn Condition=" '$(UseCustomLibzmq)' == 'true' ">Initialize</CompileDependsOn>
+    <CompileDependsOn Condition=" '$(UseCustomLibzmq)' != 'true' ">Initialize;RestoreSolutionPackages</CompileDependsOn>
+  </PropertyGroup>
+
+  <Target Name="Compile" DependsOnTargets="$(CompileDependsOn)">
+    <MSBuild Projects="clrzmq$(SolutionSuffix).sln" Targets="Build" Properties="Configuration=$(Configuration);Platform=$(Platform);$(KeyFileProperty);RestorePackages=true;UseCustomLibzmq=$(UseCustomLibzmq)" />
   </Target>
 
   <Target Name="Test" DependsOnTargets="Compile">
