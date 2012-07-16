@@ -316,6 +316,57 @@
         }
 
         /// <summary>
+        /// Gets or sets the override value for the SO_KEEPALIVE TCP socket option. (where supported by OS). (Default = -1, OS default).
+        /// </summary>
+        /// <exception cref="ZmqVersionException">This socket option was used in ZeroMQ 2.1 or lower.</exception>
+        /// <exception cref="ZmqSocketException">An error occurred when getting or setting the socket option.</exception>
+        /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
+        /// <remarks>Not supported in 0MQ version 2.</remarks>
+        public TcpKeepaliveBehaviour TcpKeepalive
+        {
+            get { return ZmqVersion.OnlyIfAtLeast(LatestVersion, () => (TcpKeepaliveBehaviour)GetSocketOptionInt32(SocketOption.TCP_KEEPALIVE)); }
+            set { ZmqVersion.OnlyIfAtLeast(LatestVersion, () => SetSocketOption(SocketOption.TCP_KEEPALIVE, (int)value)); }
+        }
+
+        /// <summary>
+        /// Gets or sets the override value for the 'TCP_KEEPCNT' socket option(where supported by OS). (Default = -1, OS default).
+        /// The default value of `-1` means to skip any overrides and leave it to OS default.
+        /// </summary>
+        /// <exception cref="ZmqVersionException">This socket option was used in ZeroMQ 2.1 or lower.</exception>
+        /// <exception cref="ZmqSocketException">An error occurred when getting or setting the socket option.</exception>
+        /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
+        /// <remarks>Not supported in 0MQ version 2.</remarks>
+        public int TcpKeepAliveCnt
+        {
+            get { return ZmqVersion.OnlyIfAtLeast(LatestVersion, () => GetSocketOptionInt32(SocketOption.TCP_KEEPALIVE_CNT)); }
+            set { ZmqVersion.OnlyIfAtLeast(LatestVersion, () => SetSocketOption(SocketOption.TCP_KEEPALIVE_CNT, value)); }
+        }
+
+        /// <summary>
+        /// Gets or sets the override value for the TCP_KEEPCNT (or TCP_KEEPALIVE on some OS). (Default = -1, OS default).
+        /// </summary>
+        /// <exception cref="ZmqVersionException">This socket option was used in ZeroMQ 2.1 or lower.</exception>
+        /// <exception cref="ZmqSocketException">An error occurred when getting or setting the socket option.</exception>
+        /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
+        public int TcpKeepAliveIdle
+        {
+            get { return ZmqVersion.OnlyIfAtLeast(LatestVersion, () => GetSocketOptionInt32(SocketOption.TCP_KEEPALIVE_IDLE)); }
+            set { ZmqVersion.OnlyIfAtLeast(LatestVersion, () => SetSocketOption(SocketOption.TCP_KEEPALIVE_IDLE, value)); }
+        }
+
+        /// <summary>
+        /// Gets or sets the override value for the TCP_KEEPINTVL socket option(where supported by OS). (Default = -1, OS default).
+        /// </summary>
+        /// <exception cref="ZmqVersionException">This socket option was used in ZeroMQ 2.1 or lower.</exception>
+        /// <exception cref="ZmqSocketException">An error occurred when getting or setting the socket option.</exception>
+        /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
+        public int TcpKeepAliveIntvl
+        {
+            get { return ZmqVersion.OnlyIfAtLeast(LatestVersion, () => GetSocketOptionInt32(SocketOption.TCP_KEEPALIVE_INTVL)); }
+            set { ZmqVersion.OnlyIfAtLeast(LatestVersion, () => SetSocketOption(SocketOption.TCP_KEEPALIVE_INTVL, value)); }
+        }
+
+        /// <summary>
         /// Gets the status of the last Receive operation.
         /// </summary>
         public ReceiveStatus ReceiveStatus { get; private set; }
