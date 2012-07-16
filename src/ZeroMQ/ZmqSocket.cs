@@ -277,6 +277,45 @@
         }
 
         /// <summary>
+        /// Gets the last endpoint bound for TCP and IPC transports.
+        /// The returned value will be a string in the form of a ZMQ DSN.
+        /// <remarks>Note that if the TCP host is INADDR_ANY, indicated by a *, then the returned address will be 0.0.0.0 (for IPv4).</remarks>
+        /// </summary>
+        /// <exception cref="ZmqVersionException">This socket option was used in ZeroMQ 2.1 or lower.</exception>
+        /// <exception cref="ZmqSocketException">An error occurred when getting or setting the socket option.</exception>
+        /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
+        /// <remarks>Not supported in 0MQ version 2.</remarks>
+        public string LastEndpoint
+        {
+            get { return ZmqVersion.OnlyIfAtLeast(LatestVersion, () => this.GetSocketOptionString(SocketOption.LAST_ENDPOINT)); }
+        }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether behavior when an unroutable message is encountered. (Default = <see cref="RouterBehavior.Discard"/>).
+        /// </summary>
+        /// <exception cref="ZmqVersionException">This socket option was used in ZeroMQ 2.1 or lower.</exception>
+        /// <exception cref="ZmqSocketException">An error occurred when getting or setting the socket option.</exception>
+        /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
+        /// <remarks>Not supported in 0MQ version 2.</remarks>
+        public RouterBehavior RouterBehavior
+        {
+            set { ZmqVersion.OnlyIfAtLeast(LatestVersion, () => SetSocketOption(SocketOption.ROUTER_BEHAVIOR, (int)value)); }
+        }
+        
+        /// <summary>
+        /// Gets or sets a value indicating whether a will delay the attachment of a pipe on connect until the underlying connection has completed. (Default = false, no delay)
+        /// This will cause the socket to block if there are no other connections, but will prevent queues from filling on pipes awaiting connection.
+        /// </summary>
+        /// <exception cref="ZmqVersionException">This socket option was used in ZeroMQ 2.1 or lower.</exception>
+        /// <exception cref="ZmqSocketException">An error occurred when getting or setting the socket option.</exception>
+        /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
+        public bool DelayAttachOnConnect
+        {
+            get { return ZmqVersion.OnlyIfAtLeast(LatestVersion, () => GetSocketOptionInt32(SocketOption.DELAY_ATTACH_ON_CONNECT) == 1); }
+            set { ZmqVersion.OnlyIfAtLeast(LatestVersion, () => SetSocketOption(SocketOption.DELAY_ATTACH_ON_CONNECT, value ? 1 : 0)); }
+        }
+
+        /// <summary>
         /// Gets the status of the last Receive operation.
         /// </summary>
         public ReceiveStatus ReceiveStatus { get; private set; }
@@ -775,6 +814,17 @@
             EnsureNotDisposed();
 
             byte[] value;
+
+            HandleProxyResult(_socketProxy.GetSocketOption((int)option, out value));
+
+            return value;
+        }
+
+        internal string GetSocketOptionString(SocketOption option)
+        {
+            EnsureNotDisposed();
+
+            string value;
 
             HandleProxyResult(_socketProxy.GetSocketOption((int)option, out value));
 

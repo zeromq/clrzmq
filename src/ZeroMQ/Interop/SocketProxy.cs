@@ -252,6 +252,21 @@
             }
         }
 
+        public int GetSocketOption(int option, out string value)
+        {
+            using (var optionLength = new DisposableIntPtr(IntPtr.Size))
+            using (var optionValue = new DisposableIntPtr(MaxBinaryOptionSize))
+            {
+                Marshal.WriteInt32(optionLength, MaxBinaryOptionSize);
+
+                int rc = RetryIfInterrupted(() => LibZmq.zmq_getsockopt(SocketHandle, option, optionValue, optionLength));
+
+                value = rc == 0 ? Marshal.PtrToStringAnsi(optionValue) : string.Empty;
+
+                return rc;
+            }
+        }
+
         public int SetSocketOption(int option, int value)
         {
             using (var optionValue = new DisposableIntPtr(Marshal.SizeOf(typeof(int))))
