@@ -14,6 +14,8 @@
 
         public void RunTest()
         {
+            Console.WriteLine("ZeroMQ version: " + ZmqVersion.Current);
+
             var client = new Thread(ClientThread);
             var server = new Thread(ServerThread);
 
