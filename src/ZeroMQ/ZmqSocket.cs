@@ -277,6 +277,96 @@
         }
 
         /// <summary>
+        /// Gets the last endpoint bound for TCP and IPC transports.
+        /// The returned value will be a string in the form of a ZMQ DSN.
+        /// <remarks>Note that if the TCP host is INADDR_ANY, indicated by a *, then the returned address will be 0.0.0.0 (for IPv4).</remarks>
+        /// </summary>
+        /// <exception cref="ZmqVersionException">This socket option was used in ZeroMQ 2.1 or lower.</exception>
+        /// <exception cref="ZmqSocketException">An error occurred when getting or setting the socket option.</exception>
+        /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
+        /// <remarks>Not supported in 0MQ version 2.</remarks>
+        public string LastEndpoint
+        {
+            get { return ZmqVersion.OnlyIfAtLeast(LatestVersion, () => this.GetSocketOptionString(SocketOption.LAST_ENDPOINT)); }
+        }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether behavior when an unroutable message is encountered. (Default = <see cref="RouterBehavior.Discard"/>).
+        /// </summary>
+        /// <exception cref="ZmqVersionException">This socket option was used in ZeroMQ 2.1 or lower.</exception>
+        /// <exception cref="ZmqSocketException">An error occurred when getting or setting the socket option.</exception>
+        /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
+        /// <remarks>Not supported in 0MQ version 2.</remarks>
+        public RouterBehavior RouterBehavior
+        {
+            set { ZmqVersion.OnlyIfAtLeast(LatestVersion, () => SetSocketOption(SocketOption.ROUTER_BEHAVIOR, (int)value)); }
+        }
+        
+        /// <summary>
+        /// Gets or sets a value indicating whether a will delay the attachment of a pipe on connect until the underlying connection has completed. (Default = false, no delay)
+        /// This will cause the socket to block if there are no other connections, but will prevent queues from filling on pipes awaiting connection.
+        /// </summary>
+        /// <exception cref="ZmqVersionException">This socket option was used in ZeroMQ 2.1 or lower.</exception>
+        /// <exception cref="ZmqSocketException">An error occurred when getting or setting the socket option.</exception>
+        /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
+        public bool DelayAttachOnConnect
+        {
+            get { return ZmqVersion.OnlyIfAtLeast(LatestVersion, () => GetSocketOptionInt32(SocketOption.DELAY_ATTACH_ON_CONNECT) == 1); }
+            set { ZmqVersion.OnlyIfAtLeast(LatestVersion, () => SetSocketOption(SocketOption.DELAY_ATTACH_ON_CONNECT, value ? 1 : 0)); }
+        }
+
+        /// <summary>
+        /// Gets or sets the override value for the SO_KEEPALIVE TCP socket option. (where supported by OS). (Default = -1, OS default).
+        /// </summary>
+        /// <exception cref="ZmqVersionException">This socket option was used in ZeroMQ 2.1 or lower.</exception>
+        /// <exception cref="ZmqSocketException">An error occurred when getting or setting the socket option.</exception>
+        /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
+        /// <remarks>Not supported in 0MQ version 2.</remarks>
+        public TcpKeepaliveBehaviour TcpKeepalive
+        {
+            get { return ZmqVersion.OnlyIfAtLeast(LatestVersion, () => (TcpKeepaliveBehaviour)GetSocketOptionInt32(SocketOption.TCP_KEEPALIVE)); }
+            set { ZmqVersion.OnlyIfAtLeast(LatestVersion, () => SetSocketOption(SocketOption.TCP_KEEPALIVE, (int)value)); }
+        }
+
+        /// <summary>
+        /// Gets or sets the override value for the 'TCP_KEEPCNT' socket option(where supported by OS). (Default = -1, OS default).
+        /// The default value of `-1` means to skip any overrides and leave it to OS default.
+        /// </summary>
+        /// <exception cref="ZmqVersionException">This socket option was used in ZeroMQ 2.1 or lower.</exception>
+        /// <exception cref="ZmqSocketException">An error occurred when getting or setting the socket option.</exception>
+        /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
+        /// <remarks>Not supported in 0MQ version 2.</remarks>
+        public int TcpKeepAliveCnt
+        {
+            get { return ZmqVersion.OnlyIfAtLeast(LatestVersion, () => GetSocketOptionInt32(SocketOption.TCP_KEEPALIVE_CNT)); }
+            set { ZmqVersion.OnlyIfAtLeast(LatestVersion, () => SetSocketOption(SocketOption.TCP_KEEPALIVE_CNT, value)); }
+        }
+
+        /// <summary>
+        /// Gets or sets the override value for the TCP_KEEPCNT (or TCP_KEEPALIVE on some OS). (Default = -1, OS default).
+        /// </summary>
+        /// <exception cref="ZmqVersionException">This socket option was used in ZeroMQ 2.1 or lower.</exception>
+        /// <exception cref="ZmqSocketException">An error occurred when getting or setting the socket option.</exception>
+        /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
+        public int TcpKeepAliveIdle
+        {
+            get { return ZmqVersion.OnlyIfAtLeast(LatestVersion, () => GetSocketOptionInt32(SocketOption.TCP_KEEPALIVE_IDLE)); }
+            set { ZmqVersion.OnlyIfAtLeast(LatestVersion, () => SetSocketOption(SocketOption.TCP_KEEPALIVE_IDLE, value)); }
+        }
+
+        /// <summary>
+        /// Gets or sets the override value for the TCP_KEEPINTVL socket option(where supported by OS). (Default = -1, OS default).
+        /// </summary>
+        /// <exception cref="ZmqVersionException">This socket option was used in ZeroMQ 2.1 or lower.</exception>
+        /// <exception cref="ZmqSocketException">An error occurred when getting or setting the socket option.</exception>
+        /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
+        public int TcpKeepAliveIntvl
+        {
+            get { return ZmqVersion.OnlyIfAtLeast(LatestVersion, () => GetSocketOptionInt32(SocketOption.TCP_KEEPALIVE_INTVL)); }
+            set { ZmqVersion.OnlyIfAtLeast(LatestVersion, () => SetSocketOption(SocketOption.TCP_KEEPALIVE_INTVL, value)); }
+        }
+
+        /// <summary>
         /// Gets the status of the last Receive operation.
         /// </summary>
         public ReceiveStatus ReceiveStatus { get; private set; }
@@ -665,6 +755,39 @@
         }
 
         /// <summary>
+        /// Add an filter that will be applied for the each new TCP transport connection on a listening socket.
+        /// Example: "127.0.0.1", "mail.ru/24", "::1", "::1/128", "3ffe:1::", "3ffe:1::/56"
+        /// <seealso cref="ClearTcpAcceptFilter"/>
+        /// </summary>
+        /// <param name="filter">ipv6 or ipv4 CIDR filter.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="filter"/> is null.</exception>
+        /// <exception cref="ArgumentException"><paramref name="filter"/> is empty string.</exception>
+        /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
+        public virtual void AddTcpAcceptFilter(string filter)
+        {
+            if (filter == null)
+            {
+                throw new ArgumentNullException("filter");
+            }
+
+            if (filter == string.Empty)
+            {
+                throw new ArgumentException("Unable to add empty filter", "filter");
+            }
+
+            SetSocketOption(SocketOption.TCP_ACCEPT_FILTER, filter);
+        }
+
+        /// <summary>
+        /// Reset all TCP filters assigned by <see cref="AddTcpAcceptFilter"/> and allow TCP transport to accept connections from any ip.
+        /// </summary>
+        /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
+        public virtual void ClearTcpAcceptFilter()
+        {
+            SetSocketOption(SocketOption.TCP_ACCEPT_FILTER, (string)null);
+        }
+
+        /// <summary>
         /// Releases all resources used by the current instance of the <see cref="ZmqSocket"/> class.
         /// </summary>
         public virtual void Dispose()
@@ -779,6 +902,24 @@
             HandleProxyResult(_socketProxy.GetSocketOption((int)option, out value));
 
             return value;
+        }
+
+        internal string GetSocketOptionString(SocketOption option)
+        {
+            EnsureNotDisposed();
+
+            string value;
+
+            HandleProxyResult(_socketProxy.GetSocketOption((int)option, out value));
+
+            return value;
+        }
+
+        internal void SetSocketOption(SocketOption option, string value)
+        {
+            EnsureNotDisposed();
+
+            HandleProxyResult(_socketProxy.SetSocketOption((int)option, value));
         }
 
         internal void SetSocketOption(SocketOption option, int value)

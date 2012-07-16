@@ -35,5 +35,13 @@
         RCVTIMEO = 27,
         SNDTIMEO = 28,
         IPV4_ONLY = 31,
+        LAST_ENDPOINT = 32,
+        ROUTER_BEHAVIOR = 33,
+        TCP_KEEPALIVE = 34,
+        TCP_KEEPALIVE_CNT = 35,
+        TCP_KEEPALIVE_IDLE = 36,
+        TCP_KEEPALIVE_INTVL = 37,
+        TCP_ACCEPT_FILTER = 38,
+        DELAY_ATTACH_ON_CONNECT = 39,
     }
 }
