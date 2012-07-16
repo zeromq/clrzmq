@@ -38,14 +38,16 @@ namespace ZeroMQ.Interop
             if (MajorVersion >= 3)
             {
                 zmq_msg_get = NativeLib.GetUnmanagedFunction<ZmqMsgGetProc>("zmq_msg_get");
-                zmq_msg_recv_impl = NativeLib.GetUnmanagedFunction<ZmqMsgRecvProc>("zmq_msg_recv");
-                zmq_msg_send_impl = NativeLib.GetUnmanagedFunction<ZmqMsgSendProc>("zmq_msg_send");
                 zmq_msg_init_data = NativeLib.GetUnmanagedFunction<ZmqMsgInitDataProc>("zmq_msg_init_data");
                 zmq_msg_move = NativeLib.GetUnmanagedFunction<ZmqMsgMoveProc>("zmq_msg_move");
 
+                var zmq_msg_recv_impl = NativeLib.GetUnmanagedFunction<ZmqMsgRecvProc>("zmq_msg_recv");
+                var zmq_msg_send_impl = NativeLib.GetUnmanagedFunction<ZmqMsgSendProc>("zmq_msg_send");
                 zmq_msg_send = (msg, sck, flags) => zmq_msg_send_impl(msg, sck, flags);
                 zmq_msg_recv = (msg, sck, flags) => zmq_msg_recv_impl(msg, sck, flags);
 
+                zmq_ctx_new = NativeLib.GetUnmanagedFunction<ZmqCtxNewProc>("zmq_ctx_new");
+                zmq_ctx_destroy = NativeLib.GetUnmanagedFunction<ZmqCtxDestroyProc>("zmq_ctx_destroy");
                 zmq_ctx_get = NativeLib.GetUnmanagedFunction<ZmqCtxGetProc>("zmq_ctx_get");
                 zmq_ctx_set = NativeLib.GetUnmanagedFunction<ZmqCtxSetProc>("zmq_ctx_set");
 
@@ -56,11 +58,14 @@ namespace ZeroMQ.Interop
             }
             else if (MajorVersion == 2)
             {
-                zmq_msg_recv_impl = NativeLib.GetUnmanagedFunction<ZmqMsgRecvProc>("zmq_recv");
-                zmq_msg_send_impl = NativeLib.GetUnmanagedFunction<ZmqMsgSendProc>("zmq_send");
-
+                var zmq_msg_recv_impl = NativeLib.GetUnmanagedFunction<ZmqMsgRecvProc>("zmq_recv");
+                var zmq_msg_send_impl = NativeLib.GetUnmanagedFunction<ZmqMsgSendProc>("zmq_send");
                 zmq_msg_send = (msg, sck, flags) => zmq_msg_send_impl(sck, msg, flags);
                 zmq_msg_recv = (msg, sck, flags) => zmq_msg_recv_impl(sck, msg, flags);
+
+                var zmq_init = NativeLib.GetUnmanagedFunction<ZmqInitProc>("zmq_init");
+                zmq_ctx_new = () => zmq_init(1);
+                zmq_ctx_destroy = NativeLib.GetUnmanagedFunction<ZmqCtxDestroyProc>("zmq_term");
 
                 PollTimeoutRatio = 1000;
             }
@@ -68,8 +73,6 @@ namespace ZeroMQ.Interop
 
         private static void AssignCommonDelegates()
         {
-            zmq_ctx_new = NativeLib.GetUnmanagedFunction<ZmqCtxNewProc>("zmq_ctx_new");
-            zmq_ctx_destroy = NativeLib.GetUnmanagedFunction<ZmqCtxDestroyProc>("zmq_ctx_destroy");
             zmq_close = NativeLib.GetUnmanagedFunction<ZmqCloseProc>("zmq_close");
             zmq_setsockopt = NativeLib.GetUnmanagedFunction<ZmqSetSockOptProc>("zmq_setsockopt");
             zmq_getsockopt = NativeLib.GetUnmanagedFunction<ZmqGetSockOptProc>("zmq_getsockopt");
@@ -115,6 +118,9 @@ namespace ZeroMQ.Interop
         public static ZmqCtxNewProc zmq_ctx_new;
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public delegate IntPtr ZmqInitProc(int io_threads);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         public delegate int ZmqCtxDestroyProc(IntPtr context);
         public static ZmqCtxDestroyProc zmq_ctx_destroy;
 
@@ -155,13 +161,11 @@ namespace ZeroMQ.Interop
         // NOTE: For 2.x, this method signature is (socket, msg, flags)
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         public delegate int ZmqMsgRecvProc(IntPtr msg, IntPtr socket, int flags);
-        private static readonly ZmqMsgRecvProc zmq_msg_recv_impl;
         public static ZmqMsgRecvProc zmq_msg_recv;
 
         // NOTE: For 2.x, this method signature is (socket, msg, flags)
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         public delegate int ZmqMsgSendProc(IntPtr msg, IntPtr socket, int flags);
-        private static readonly ZmqMsgSendProc zmq_msg_send_impl;
         public static ZmqMsgSendProc zmq_msg_send;
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
