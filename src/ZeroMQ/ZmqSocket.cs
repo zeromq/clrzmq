@@ -755,6 +755,39 @@
         }
 
         /// <summary>
+        /// Add an filter that will be applied for the each new TCP transport connection on a listening socket.
+        /// Example: "127.0.0.1", "mail.ru/24", "::1", "::1/128", "3ffe:1::", "3ffe:1::/56"
+        /// <seealso cref="ClearTcpAcceptFilter"/>
+        /// </summary>
+        /// <param name="filter">ipv6 or ipv4 CIDR filter.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="filter"/> is null.</exception>
+        /// <exception cref="ArgumentException"><paramref name="filter"/> is empty string.</exception>
+        /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
+        public virtual void AddTcpAcceptFilter(string filter)
+        {
+            if (filter == null)
+            {
+                throw new ArgumentNullException("filter");
+            }
+
+            if (filter == string.Empty)
+            {
+                throw new ArgumentException("Unable to add empty filter", "filter");
+            }
+
+            SetSocketOption(SocketOption.TCP_ACCEPT_FILTER, filter);
+        }
+
+        /// <summary>
+        /// Reset all TCP filters assigned by <see cref="AddTcpAcceptFilter"/> and allow TCP transport to accept connections from any ip.
+        /// </summary>
+        /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
+        public virtual void ClearTcpAcceptFilter()
+        {
+            SetSocketOption(SocketOption.TCP_ACCEPT_FILTER, (string)null);
+        }
+
+        /// <summary>
         /// Releases all resources used by the current instance of the <see cref="ZmqSocket"/> class.
         /// </summary>
         public virtual void Dispose()
@@ -880,6 +913,13 @@
             HandleProxyResult(_socketProxy.GetSocketOption((int)option, out value));
 
             return value;
+        }
+
+        internal void SetSocketOption(SocketOption option, string value)
+        {
+            EnsureNotDisposed();
+
+            HandleProxyResult(_socketProxy.SetSocketOption((int)option, value));
         }
 
         internal void SetSocketOption(SocketOption option, int value)

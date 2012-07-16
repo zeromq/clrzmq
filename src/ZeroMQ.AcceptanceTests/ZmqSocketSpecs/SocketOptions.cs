@@ -289,4 +289,14 @@
         It should_return_the_given_value = () =>
             socket.DelayAttachOnConnect.ShouldEqual(true);
     }
+
+    [Subject("Socket options")]
+    class when_setting_the_tcp_acceapt_filter_socket_option : using_req
+    {
+        Because of = () =>
+            exception = Catch.Exception(() => socket.AddTcpAcceptFilter("localhost"));
+
+        It should_not_fail = () =>
+            exception.ShouldBeNull();
+    }
 }
