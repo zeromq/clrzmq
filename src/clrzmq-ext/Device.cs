@@ -115,7 +115,7 @@ namespace ZMQ.ZMQDevice {
         public Queue(Context context, string frontendAddr, string backendAddr)
             : base(context.Socket(SocketType.XREP), context.Socket(SocketType.XREQ)) {
             _frontend.Bind(frontendAddr);
-            _backend.Connect(backendAddr);
+            _backend.Bind(backendAddr);
         }
 
         [Obsolete("Use the constructor that accepts a Context. Will be removed in 3.x.")]
