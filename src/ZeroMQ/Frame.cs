@@ -60,6 +60,14 @@
         }
 
         /// <summary>
+        /// Gets an empty <see cref="Frame"/> that may be used as message separators.
+        /// </summary>
+        public static Frame Empty
+        {
+            get { return new Frame(0); }
+        }
+
+        /// <summary>
         /// Gets the underlying frame data buffer.
         /// </summary>
         public byte[] Buffer { get; internal set; }

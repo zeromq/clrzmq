@@ -271,7 +271,7 @@
 
             if (frame == null)
             {
-                frame = new Frame(0);
+                frame = Frame.Empty;
             }
 
             int size;
@@ -302,7 +302,7 @@
 
             if (frame == null)
             {
-                frame = new Frame(0);
+                frame = Frame.Empty;
             }
 
             int size;
