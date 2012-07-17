@@ -326,7 +326,7 @@
         /// <exception cref="ZmqSocketException">An error occurred when getting or setting the socket option.</exception>
         /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
         /// <remarks>Not supported in 0MQ version 2.</remarks>
-        public int TcpKeepAliveCnt
+        public int TcpKeepaliveCnt
         {
             get { return ZmqVersion.OnlyIfAtLeast(LatestVersion, () => GetSocketOptionInt32(SocketOption.TCP_KEEPALIVE_CNT)); }
             set { ZmqVersion.OnlyIfAtLeast(LatestVersion, () => SetSocketOption(SocketOption.TCP_KEEPALIVE_CNT, value)); }
@@ -339,7 +339,7 @@
         /// <exception cref="ZmqSocketException">An error occurred when getting or setting the socket option.</exception>
         /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
         /// <remarks>Not supported in 0MQ version 2.</remarks>
-        public int TcpKeepAliveIdle
+        public int TcpKeepaliveIdle
         {
             get { return ZmqVersion.OnlyIfAtLeast(LatestVersion, () => GetSocketOptionInt32(SocketOption.TCP_KEEPALIVE_IDLE)); }
             set { ZmqVersion.OnlyIfAtLeast(LatestVersion, () => SetSocketOption(SocketOption.TCP_KEEPALIVE_IDLE, value)); }
@@ -352,7 +352,7 @@
         /// <exception cref="ZmqSocketException">An error occurred when getting or setting the socket option.</exception>
         /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
         /// <remarks>Not supported in 0MQ version 2.</remarks>
-        public int TcpKeepAliveIntvl
+        public int TcpKeepaliveIntvl
         {
             get { return ZmqVersion.OnlyIfAtLeast(LatestVersion, () => GetSocketOptionInt32(SocketOption.TCP_KEEPALIVE_INTVL)); }
             set { ZmqVersion.OnlyIfAtLeast(LatestVersion, () => SetSocketOption(SocketOption.TCP_KEEPALIVE_INTVL, value)); }
