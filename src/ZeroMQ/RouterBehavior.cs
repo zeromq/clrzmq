@@ -1,17 +1,19 @@
 namespace ZeroMQ
 {
     /// <summary>
-    /// Behavior when an unroutable message is encountered
+    /// Specifies <see cref="SocketType.ROUTER"/> socket behavior when
+    /// an unroutable message is encountered.
     /// </summary>
     public enum RouterBehavior
     {
         /// <summary>
-        /// Silently discard message
+        /// Silently discard messages.
         /// </summary>
         Discard = 0,
 
         /// <summary>
-        /// Sending fail with an 'EAGAIN' error code
+        /// Force sending to fail with an 'EAGAIN' error code, effectively
+        /// enabling blocking sends.
         /// </summary>
         Report = 1,
     }
