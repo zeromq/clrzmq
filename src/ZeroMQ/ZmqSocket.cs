@@ -306,23 +306,6 @@
         }
         
         /// <summary>
-        /// Gets or sets a value indicating whether the attachment of a pipe on connect will delay until the 
-        /// underlying connection has completed. (Default = false, no delay).
-        /// </summary>
-        /// <remarks>
-        /// This will cause the socket to block if there are no other connections, but will prevent queues
-        /// from filling on pipes awaiting connection. Not supported in 0MQ version 2.
-        /// </remarks>
-        /// <exception cref="ZmqVersionException">This socket option was used in ZeroMQ 2.x or lower.</exception>
-        /// <exception cref="ZmqSocketException">An error occurred when getting or setting the socket option.</exception>
-        /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
-        public bool DelayAttachOnConnect
-        {
-            get { return ZmqVersion.OnlyIfAtLeast(LatestVersion, () => GetSocketOptionInt32(SocketOption.DELAY_ATTACH_ON_CONNECT) == 1); }
-            set { ZmqVersion.OnlyIfAtLeast(LatestVersion, () => SetSocketOption(SocketOption.DELAY_ATTACH_ON_CONNECT, value ? 1 : 0)); }
-        }
-
-        /// <summary>
         /// Gets or sets the override value for the SO_KEEPALIVE TCP socket option. (where supported by OS). (Default = -1, OS default).
         /// </summary>
         /// <exception cref="ZmqVersionException">This socket option was used in ZeroMQ 2.x or lower.</exception>

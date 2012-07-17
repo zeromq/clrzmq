@@ -42,6 +42,5 @@
         TCP_KEEPALIVE_IDLE = 36,
         TCP_KEEPALIVE_INTVL = 37,
         TCP_ACCEPT_FILTER = 38,
-        DELAY_ATTACH_ON_CONNECT = 39,
     }
 }

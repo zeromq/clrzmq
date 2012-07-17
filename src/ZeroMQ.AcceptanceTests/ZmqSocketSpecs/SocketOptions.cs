@@ -281,19 +281,6 @@
     }
 
     [Subject("Socket options")]
-    class when_setting_the_delay_attach_on_connect_socket_option : using_req
-    {
-        Because of = () =>
-            exception = Catch.Exception(() => socket.DelayAttachOnConnect = true);
-
-        It should_not_fail = () =>
-            exception.ShouldBeNull();
-
-        It should_return_the_given_value = () =>
-            socket.DelayAttachOnConnect.ShouldEqual(true);
-    }
-
-    [Subject("Socket options")]
     class when_setting_the_tcp_accept_filter_socket_option : using_req
     {
         Because of = () =>
