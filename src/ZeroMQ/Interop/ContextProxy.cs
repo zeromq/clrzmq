@@ -66,6 +66,16 @@
             GC.SuppressFinalize(this);
         }
 
+        public decimal RegisterMonitor(LibZmq.MonitorFuncCallback callback)
+        {
+            return LibZmq.zmq_ctx_set_monitor(ContextHandle, callback);
+        }
+
+        public decimal UnregisterMonitor()
+        {
+            return LibZmq.zmq_ctx_set_monitor(ContextHandle, null);
+        }
+
         protected virtual void Dispose(bool disposing)
         {
             if (!_disposed)

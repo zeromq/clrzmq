@@ -1,6 +1,7 @@
 ﻿namespace ZeroMQ
 {
     using System;
+    using System.Collections.Concurrent;
     using System.Text;
     using ZeroMQ.Interop;
 
@@ -16,8 +17,12 @@
     public class ZmqContext : IDisposable
     {
         private readonly ContextProxy _contextProxy;
+        
+        private readonly ConcurrentDictionary<IntPtr, ZmqSocket> knownSockets = new ConcurrentDictionary<IntPtr, ZmqSocket>();
 
         private bool _disposed;
+
+        private bool monitorRegistered;
 
         static ZmqContext()
         {
@@ -152,12 +157,56 @@
         }
 
         /// <summary>
+        /// Create a socket monitoring object.
+        /// </summary>
+        /// <remarks>
+        /// Only single instance per context is allowed.
+        /// Use <see cref="ZmqMonitor.Dispose"/> to unregister monitoring object.
+        /// </remarks>
+        /// <returns>A <see cref="ZmqSocket"/> instance with the monitoring object for the current context.</returns>
+        /// <exception cref="ZmqException">An error occurred while creating monitor object.</exception>
+        /// <exception cref="InvalidOperationException">The <see cref="ZmqMonitor"/> has already been created for the current context.</exception>
+        public ZmqMonitor CreateMonitor()
+        {
+            EnsureNotDisposed();
+
+            if (this.monitorRegistered)
+            {
+                throw new InvalidOperationException("The ZmqMonitor has been already registered.");
+            }
+
+            var monitor = new ZmqMonitor(this);
+
+            LibZmq.MonitorFuncCallback callbackWrapper = 
+                (IntPtr socketHandle, int eventFlags, ref EventData data) => 
+                    monitor.OnMonitor(this.GetSocketFromHandle(socketHandle), eventFlags, ref data);
+            
+            if (this._contextProxy.RegisterMonitor(callbackWrapper) == -1)
+            {
+                throw new ZmqException(ErrorProxy.GetLastError());
+            }
+            
+            this.monitorRegistered = true;
+            return monitor;
+        }
+
+        /// <summary>
         /// Releases all resources used by the current instance of the <see cref="ZmqContext"/> class.
         /// </summary>
         public virtual void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
+        }
+
+        internal void MonitorDisposed(ZmqMonitor monitor)
+        {
+            if (this._contextProxy.UnregisterMonitor() == -1)
+            {
+                throw new ZmqException(ErrorProxy.GetLastError());
+            }
+
+            this.monitorRegistered = false;
         }
 
         /// <summary>
@@ -177,7 +226,7 @@
             _disposed = true;
         }
 
-        private TSocket CreateSocket<TSocket>(Func<SocketProxy, TSocket> constructor, SocketType socketType)
+        private TSocket CreateSocket<TSocket>(Func<SocketProxy, TSocket> constructor, SocketType socketType) where TSocket : ZmqSocket
         {
             EnsureNotDisposed();
 
@@ -188,7 +237,28 @@
                 throw new ZmqException(ErrorProxy.GetLastError());
             }
 
-            return constructor(new SocketProxy(socketHandle));
+            var socket = constructor(new SocketProxy(socketHandle, this.OnSocketClosed));
+            this.OnSocketCreated(socketHandle, socket);
+            return socket;
+        }
+
+        private void OnSocketCreated(IntPtr socketHandle, ZmqSocket socket)
+        {
+            knownSockets.TryAdd(socketHandle, socket);
+        }
+
+        private void OnSocketClosed(IntPtr socketHandle)
+        {
+            ZmqSocket socket;
+            knownSockets.TryRemove(socketHandle, out socket);
+        }
+
+        private ZmqSocket GetSocketFromHandle(IntPtr socketHandle)
+        {
+            ZmqSocket socket;
+            return knownSockets.TryGetValue(socketHandle, out socket)
+                ? socket
+                : default(ZmqSocket);
         }
 
         private void SetContextOption(ContextOption option, int value)
