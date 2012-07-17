@@ -54,6 +54,7 @@
 
         <!-- Make the build depend on restore packages -->
         <BuildDependsOn Condition="$(RestorePackages) == 'true'">
+            RestoreSolutionPackages;
             RestorePackages;
             $(BuildDependsOn);
         </BuildDependsOn>
