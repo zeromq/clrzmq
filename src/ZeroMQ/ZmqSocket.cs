@@ -777,7 +777,7 @@
         /// <exception cref="ArgumentNullException"><paramref name="filter"/> is null.</exception>
         /// <exception cref="ArgumentException"><paramref name="filter"/> is empty string.</exception>
         /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
-        public virtual void AddTcpAcceptFilter(string filter)
+        public void AddTcpAcceptFilter(string filter)
         {
             if (filter == null)
             {
@@ -796,7 +796,7 @@
         /// Reset all TCP filters assigned by <see cref="AddTcpAcceptFilter"/> and allow TCP transport to accept connections from any IP.
         /// </summary>
         /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
-        public virtual void ClearTcpAcceptFilter()
+        public void ClearTcpAcceptFilter()
         {
             SetSocketOption(SocketOption.TCP_ACCEPT_FILTER, (string)null);
         }
