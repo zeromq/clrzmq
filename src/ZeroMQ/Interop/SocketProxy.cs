@@ -252,6 +252,37 @@
             }
         }
 
+        public int GetSocketOption(int option, out string value)
+        {
+            using (var optionLength = new DisposableIntPtr(IntPtr.Size))
+            using (var optionValue = new DisposableIntPtr(MaxBinaryOptionSize))
+            {
+                Marshal.WriteInt32(optionLength, MaxBinaryOptionSize);
+
+                int rc = RetryIfInterrupted(() => LibZmq.zmq_getsockopt(SocketHandle, option, optionValue, optionLength));
+
+                value = rc == 0 ? Marshal.PtrToStringAnsi(optionValue) : string.Empty;
+
+                return rc;
+            }
+        }
+
+        public int SetSocketOption(int option, string value)
+        {
+            if (value == null)
+            {
+                return RetryIfInterrupted(() => LibZmq.zmq_setsockopt(SocketHandle, option, IntPtr.Zero, 0));
+            }
+
+            var encoded = System.Text.Encoding.ASCII.GetBytes(value + "\x0");
+            using (var optionValue = new DisposableIntPtr(encoded.Length))
+            {
+                Marshal.Copy(encoded, 0, optionValue, encoded.Length);
+
+                return RetryIfInterrupted(() => LibZmq.zmq_setsockopt(SocketHandle, option, optionValue, value.Length));
+            }
+        }
+
         public int SetSocketOption(int option, int value)
         {
             using (var optionValue = new DisposableIntPtr(Marshal.SizeOf(typeof(int))))

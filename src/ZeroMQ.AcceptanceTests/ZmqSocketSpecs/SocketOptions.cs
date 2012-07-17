@@ -253,4 +253,151 @@
                 socket.SupportedProtocol.ShouldEqual(ProtocolType.Both);
         };
     }
+
+    [Subject("Socket options")]
+    class when_gettings_the_last_endpoint_socket_option : using_req
+    {
+        Because of = () =>
+            exception = Catch.Exception(() => socket.Bind("inproc://last_endpoint"));
+
+        It should_not_fail = () =>
+            exception.ShouldBeNull();
+
+        It should_return_the_given_value = () =>
+            socket.LastEndpoint.ShouldEqual("inproc://last_endpoint");
+    }
+
+    [Subject("Socket options")]
+    class when_setting_the_router_behavior_socket_option : using_router
+    {
+        Because of = () =>
+        {
+            if (ZmqVersion.Current.IsAtLeast(3))
+                exception = Catch.Exception(() => socket.RouterBehavior = RouterBehavior.Report);
+        };
+
+        It should_not_fail = () =>
+            exception.ShouldBeNull();
+    }
+
+    [Subject("Socket options")]
+    class when_setting_the_tcp_accept_filter_socket_option : using_req
+    {
+        Because of = () =>
+        {
+            if (ZmqVersion.Current.IsAtLeast(3))
+                exception = Catch.Exception(() => socket.AddTcpAcceptFilter("localhost"));
+        };
+
+        It should_not_fail = () =>
+            exception.ShouldBeNull();
+    }
+
+    [Subject("Socket options")]
+    class when_setting_the_tcp_keepalive_socket_option : using_req
+    {
+        Because of = () =>
+        {
+            if (ZmqVersion.Current.IsAtLeast(3))
+                exception = Catch.Exception(() => socket.TcpKeepalive = TcpKeepaliveBehaviour.Enable);
+        };
+
+        It should_not_fail = () =>
+            exception.ShouldBeNull();
+
+#if POSIX
+        It should_return_the_given_value = () =>
+        {
+            if (ZmqVersion.Current.IsAtLeast(3))
+                socket.TcpKeepalive.ShouldEqual(TcpKeepaliveBehaviour.Enable);
+        };
+#else
+        It should_return_the_default_value_on_windows = () =>
+        {
+            if (ZmqVersion.Current.IsAtLeast(3))
+                socket.TcpKeepalive.ShouldEqual(TcpKeepaliveBehaviour.Default);
+        };
+#endif
+    }
+
+    [Subject("Socket options")]
+    class when_setting_the_tcp_keepalive_cnt_socket_option : using_req
+    {
+        Because of = () =>
+        {
+            if (ZmqVersion.Current.IsAtLeast(3))
+                exception = Catch.Exception(() => socket.TcpKeepaliveCnt = 42);
+        };
+
+        It should_not_fail = () =>
+            exception.ShouldBeNull();
+
+#if POSIX
+        It should_return_the_given_value = () =>
+        {
+            if (ZmqVersion.Current.IsAtLeast(3))
+                socket.TcpKeepaliveCnt.ShouldEqual(42);
+        };
+#else
+        It should_return_the_default_value_on_windows = () =>
+        {
+            if (ZmqVersion.Current.IsAtLeast(3))
+                socket.TcpKeepaliveCnt.ShouldEqual(-1);
+        };
+#endif
+    }
+
+    [Subject("Socket options")]
+    class when_setting_the_tcp_keepalive_idle_socket_option : using_req
+    {
+        Because of = () =>
+        {
+            if (ZmqVersion.Current.IsAtLeast(3))
+                exception = Catch.Exception(() => socket.TcpKeepaliveIdle = 42);
+        };
+
+        It should_not_fail = () =>
+            exception.ShouldBeNull();
+
+#if POSIX
+        It should_return_the_given_value = () =>
+        {
+            if (ZmqVersion.Current.IsAtLeast(3))
+                socket.TcpKeepaliveIdle.ShouldEqual(42);
+        };
+#else
+        It should_return_the_default_value_on_windows = () =>
+        {
+            if (ZmqVersion.Current.IsAtLeast(3))
+                socket.TcpKeepaliveIdle.ShouldEqual(-1);
+        };
+#endif
+    }
+
+    [Subject("Socket options")]
+    class when_setting_the_tcp_keepalive_intvl_socket_option : using_req
+    {
+        Because of = () =>
+        {
+            if (ZmqVersion.Current.IsAtLeast(3))
+                exception = Catch.Exception(() => socket.TcpKeepaliveIntvl = 42);
+        };
+
+        It should_not_fail = () =>
+            exception.ShouldBeNull();
+
+#if POSIX
+        It should_return_the_given_value = () =>
+        {
+            if (ZmqVersion.Current.IsAtLeast(3))
+                socket.TcpKeepaliveIntvl.ShouldEqual(42);
+        };
+#else
+        It should_return_the_default_value_on_windows = () =>
+        {
+            if (ZmqVersion.Current.IsAtLeast(3))
+                socket.TcpKeepaliveIntvl.ShouldEqual(-1);
+        };
+#endif
+    }
 }
