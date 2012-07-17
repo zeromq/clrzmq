@@ -25,6 +25,26 @@
         };
     }
 
+    abstract class using_router
+    {
+        protected static ZmqSocket socket;
+        protected static ZmqContext zmqContext;
+        protected static Exception exception;
+
+        Establish context = () =>
+        {
+            zmqContext = ZmqContext.Create();
+            socket = zmqContext.CreateSocket(SocketType.ROUTER);
+        };
+
+        Cleanup resources = () =>
+        {
+            exception = null;
+            socket.Dispose();
+            zmqContext.Dispose();
+        };
+    }
+
     abstract class using_req_rep
     {
         protected static ZmqSocket req;

@@ -268,10 +268,13 @@
     }
 
     [Subject("Socket options")]
-    class when_setting_the_router_behavior_socket_option : using_req_rep
+    class when_setting_the_router_behavior_socket_option : using_router
     {
         Because of = () =>
-            exception = Catch.Exception(() => rep.RouterBehavior = RouterBehavior.Report);
+        {
+            if (ZmqVersion.Current.IsAtLeast(3))
+                exception = Catch.Exception(() => socket.RouterBehavior = RouterBehavior.Report);
+        };
 
         It should_not_fail = () =>
             exception.ShouldBeNull();
@@ -291,10 +294,13 @@
     }
 
     [Subject("Socket options")]
-    class when_setting_the_tcp_acceapt_filter_socket_option : using_req
+    class when_setting_the_tcp_accept_filter_socket_option : using_req
     {
         Because of = () =>
-            exception = Catch.Exception(() => socket.AddTcpAcceptFilter("localhost"));
+        {
+            if (ZmqVersion.Current.IsAtLeast(3))
+                exception = Catch.Exception(() => socket.AddTcpAcceptFilter("localhost"));
+        };
 
         It should_not_fail = () =>
             exception.ShouldBeNull();

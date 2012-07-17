@@ -293,7 +293,7 @@
         }
 
         /// <summary>
-        /// Gets or sets the behavior when an unroutable message is encountered. (Default = <see cref="ZeroMQ.RouterBehavior.Discard"/>).
+        /// Sets the behavior when an unroutable message is encountered. (Default = <see cref="ZeroMQ.RouterBehavior.Discard"/>).
         /// Only applicable to the <see cref="ZeroMQ.SocketType.ROUTER"/> socket type.
         /// </summary>
         /// <exception cref="ZmqVersionException">This socket option was used in ZeroMQ 2.x or lower.</exception>
@@ -302,7 +302,6 @@
         /// <remarks>Not supported in 0MQ version 2.</remarks>
         public RouterBehavior RouterBehavior
         {
-            get { return ZmqVersion.OnlyIfAtLeast(LatestVersion, () => (RouterBehavior)GetSocketOptionInt32(SocketOption.ROUTER_BEHAVIOR)); }
             set { ZmqVersion.OnlyIfAtLeast(LatestVersion, () => SetSocketOption(SocketOption.ROUTER_BEHAVIOR, (int)value)); }
         }
         
