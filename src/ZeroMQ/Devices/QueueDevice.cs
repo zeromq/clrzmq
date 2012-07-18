@@ -15,12 +15,12 @@
         /// <summary>
         /// The frontend <see cref="SocketType"/> for a queue device.
         /// </summary>
-        public const SocketType FrontendType = SocketType.XREP;
+        public const SocketType FrontendType = SocketType.ROUTER;
 
         /// <summary>
         /// The backend <see cref="SocketType"/> for a queue device.
         /// </summary>
-        public const SocketType BackendType = SocketType.XREQ;
+        public const SocketType BackendType = SocketType.DEALER;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="QueueDevice"/> class that will run in a
