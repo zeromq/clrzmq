@@ -133,7 +133,7 @@
         /// <exception cref="ZmqSocketException">An error occurred polling for socket events.</exception>
         public void Poll(TimeSpan timeout)
         {
-            if (timeout.TotalMilliseconds == Timeout.Infinite)
+            if ((int)timeout.TotalMilliseconds == Timeout.Infinite)
             {
                 PollBlocking();
             }
