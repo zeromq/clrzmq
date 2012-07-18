@@ -78,6 +78,8 @@
         /// Add a socket that will be polled for input/output events, depending on its capabilities.
         /// </summary>
         /// <param name="socket">The <see cref="ZmqSocket"/> to poll.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="socket"/> is null.</exception>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="socket"/> has no event handlers.</exception>
         public void AddSocket(ZmqSocket socket)
         {
             if (socket == null)
@@ -85,7 +87,14 @@
                 throw new ArgumentNullException("socket");
             }
 
-            _pollableSockets.Add(new PollItem(socket.SocketHandle, socket.GetPollEvents()), socket);
+            var pollEvents = socket.GetPollEvents();
+
+            if (pollEvents == PollEvents.None)
+            {
+                throw new ArgumentOutOfRangeException("Unable to add socket without at least one handler.", "socket");
+            }
+
+            _pollableSockets.Add(new PollItem(socket.SocketHandle, pollEvents), socket);
         }
 
         /// <summary>
