@@ -16,8 +16,10 @@
 
         private static readonly int ProcessorCount = Environment.ProcessorCount;
 
+#pragma warning disable 618
         private static readonly SocketOption ReceiveHwmOpt = ZmqVersion.Current.IsAtLeast(LatestVersion) ? SocketOption.RCVHWM : SocketOption.HWM;
         private static readonly SocketOption SendHwmOpt = ZmqVersion.Current.IsAtLeast(LatestVersion) ? SocketOption.SNDHWM : SocketOption.HWM;
+#pragma warning restore 618
 
         private readonly SocketProxy _socketProxy;
 
