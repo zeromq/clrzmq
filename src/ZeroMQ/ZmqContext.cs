@@ -4,6 +4,7 @@
     using System.Collections.Concurrent;
     using System.Text;
     using ZeroMQ.Interop;
+    using ZeroMQ.Monitoring;
 
     /// <summary>
     /// Creates <see cref="ZmqSocket"/> instances within a process boundary.
@@ -20,7 +21,6 @@
         private readonly ConcurrentDictionary<IntPtr, ZmqSocket> _knownSockets;
 
         private bool _disposed;
-        private bool _monitorRegistered;
 
         static ZmqContext()
         {
@@ -159,22 +159,22 @@
         /// Create a socket monitoring object.
         /// </summary>
         /// <remarks>
-        /// Only single instance per context is allowed.
-        /// Use <see cref="ZmqMonitor.Dispose"/> to unregister monitoring object.
+        /// Only a single instance per context is allowed.
+        /// Use <see cref="ZmqMonitor.Unregister"/> to unregister the monitoring object or dispose it.
         /// </remarks>
         /// <returns>A <see cref="ZmqSocket"/> instance with the monitoring object for the current context.</returns>
-        /// <exception cref="ZmqException">An error occurred while creating monitor object.</exception>
+        /// <exception cref="ZmqException">An error occurred while creating the monitor object.</exception>
         /// <exception cref="InvalidOperationException">The <see cref="ZmqMonitor"/> has already been created for the current context.</exception>
         public ZmqMonitor CreateMonitor()
         {
             EnsureNotDisposed();
 
-            if (_monitorRegistered)
+            if (_contextProxy.MonitorRegistered)
             {
-                throw new InvalidOperationException("The ZmqMonitor has been already registered.");
+                throw new InvalidOperationException("A ZmqMonitor has been already registered in this context.");
             }
 
-            var monitor = new ZmqMonitor(this);
+            var monitor = new ZmqMonitor(_contextProxy);
 
             LibZmq.MonitorFuncCallback callbackWrapper =
                 (IntPtr socketHandle, int eventFlags, ref EventData data) =>
@@ -185,7 +185,6 @@
                 throw new ZmqException(ErrorProxy.GetLastError());
             }
 
-            _monitorRegistered = true;
             return monitor;
         }
 
@@ -196,16 +195,6 @@
         {
             Dispose(true);
             GC.SuppressFinalize(this);
-        }
-
-        internal void MonitorDisposed(ZmqMonitor monitor)
-        {
-            if (_contextProxy.UnregisterMonitor() == -1)
-            {
-                throw new ZmqException(ErrorProxy.GetLastError());
-            }
-
-            _monitorRegistered = false;
         }
 
         /// <summary>

@@ -1,4 +1,4 @@
-namespace ZeroMQ
+namespace ZeroMQ.Monitoring
 {
     /// <summary>
     /// Provides data for <see cref="ZmqMonitor.ConnectDelayed"/>, <see cref="ZmqMonitor.AcceptFailed"/>,

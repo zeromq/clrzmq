@@ -1,7 +1,8 @@
-namespace ZeroMQ
+namespace ZeroMQ.Monitoring
 {
     using System;
     using System.Collections.Generic;
+
     using ZeroMQ.Interop;
 
     /// <summary>
@@ -21,14 +22,14 @@ namespace ZeroMQ
     /// </remarks>
     public class ZmqMonitor : IDisposable
     {
-        private readonly ZmqContext _context;
+        private readonly ContextProxy _contextProxy;
         private readonly Dictionary<MonitorEvent, Action<ZmqSocket, EventData>> _eventHandler;
 
         private bool _disposed;
 
-        internal ZmqMonitor(ZmqContext context)
+        internal ZmqMonitor(ContextProxy contextProxy)
         {
-            _context = context;
+            _contextProxy = contextProxy;
             _eventHandler = new Dictionary<MonitorEvent, Action<ZmqSocket, EventData>>
             {
                 { MonitorEvent.CONNECTED, (socket, data) => InvokeEvent(Connected, () => data.Connected.CreateEventArgs(socket)) },
@@ -95,6 +96,18 @@ namespace ZeroMQ
         public event EventHandler<ZmqMonitorFileDescriptorEventArgs> Disconnected;
 
         /// <summary>
+        /// Unregisters the <see cref="ZmqMonitor"/> from its <see cref="ZmqContext"/>. After calling this
+        /// method, no more events will be invoked.
+        /// </summary>
+        public void Unregister()
+        {
+            if (_contextProxy.UnregisterMonitor() == -1)
+            {
+                throw new ZmqException(ErrorProxy.GetLastError());
+            }
+        }
+
+        /// <summary>
         /// Releases all resources used by the current instance of the <see cref="ZmqMonitor"/> class.
         /// </summary>
         public void Dispose()
@@ -118,7 +131,7 @@ namespace ZeroMQ
             {
                 if (disposing)
                 {
-                    _context.MonitorDisposed(this);
+                    Unregister();
                 }
             }
 
@@ -129,7 +142,7 @@ namespace ZeroMQ
         {
             if (handler != null)
             {
-                handler(_context, create());
+                handler(this, create());
             }
         }
     }

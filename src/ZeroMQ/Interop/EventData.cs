@@ -2,6 +2,8 @@ namespace ZeroMQ.Interop
 {
     using System.Runtime.InteropServices;
 
+    using ZeroMQ.Monitoring;
+
     [StructLayout(LayoutKind.Explicit, Pack = 4)]
     internal struct EventData
     {

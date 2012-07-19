@@ -1,4 +1,4 @@
-namespace ZeroMQ
+namespace ZeroMQ.Monitoring
 {
     using System;
 
