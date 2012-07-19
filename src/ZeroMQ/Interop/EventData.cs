@@ -26,4 +26,22 @@ namespace ZeroMQ.Interop
         [FieldOffset(0)]
         public EventDataFileDescriptorEntry Disconnected;
     }
+
+    internal static class EventDataExtensions
+    {
+        public static ZmqMonitorFileDescriptorEventArgs CreateEventArgs(this EventDataFileDescriptorEntry data, ZmqSocket socket)
+        {
+            return new ZmqMonitorFileDescriptorEventArgs(socket, data.Address, data.FileDescriptor);
+        }
+
+        public static ZmqMonitorErrorEventArgs CreateEventArgs(this EventDataErrorEntry data, ZmqSocket socket)
+        {
+            return new ZmqMonitorErrorEventArgs(socket, data.Address, data.ErrorCode);
+        }
+
+        public static ZmqMonitorIntervalEventArgs CreateEventArgs(this EventDataIntervalEntry data, ZmqSocket socket)
+        {
+            return new ZmqMonitorIntervalEventArgs(socket, data.Address, data.Interval);
+        }
+    }
 }
