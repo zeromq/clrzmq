@@ -7,6 +7,12 @@ namespace ZeroMQ
     /// </summary>
     public class ZmqMonitorFileDescriptorEventArgs : ZmqMonitorEventArgs
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ZmqMonitorFileDescriptorEventArgs"/> class.
+        /// </summary>
+        /// <param name="socket">The <see cref="ZmqSocket"/> that triggered the event.</param>
+        /// <param name="address">The peer address.</param>
+        /// <param name="fileDescriptor">The socket descriptor associated with the event.</param>
 #if UNIX
         public ZmqMonitorFileDescriptorEventArgs(ZmqSocket socket, string address, int fileDescriptor)
 #else
@@ -14,11 +20,11 @@ namespace ZeroMQ
 #endif
             : base(socket, address)
         {
-            this.FileDescriptor = fileDescriptor;
+            FileDescriptor = fileDescriptor;
         }
 
         /// <summary>
-        /// Gets socket descriptor.
+        /// Gets the socket descriptor.
         /// </summary>
 #if UNIX
         public int FileDescriptor { get; private set; }

@@ -8,7 +8,7 @@ namespace ZeroMQ
     /// A socket monitoring object.
     /// </summary>
     /// <remarks>
-    /// CAUTION: ZmqMonitor is intended for monitoring infrastructure /
+    /// CAUTION: <see cref="ZmqMonitor"/> is intended for monitoring infrastructure /
     /// operations concerns only - NOT BUSINESS LOGIC. An event is a representation of
     /// something that happened - you cannot change the past, but only react to them.
     /// The implementation is also only concerned with a single session. No state of
@@ -16,53 +16,51 @@ namespace ZeroMQ
     /// is the responsibility of application authors to either implement or correlate
     /// in another datastore. Monitor events are exceptional conditions and are thus
     /// not directly in the messaging critical path. However, still be careful with
-    /// what you're doing in the callback function as excess time spent in the handler
+    /// what you're doing in the event handlers as excess time spent in the handler
     /// will block the socket's application thread.
     /// </remarks>
     public class ZmqMonitor : IDisposable
     {
-        private readonly ZmqContext context;
-
-        private readonly Dictionary<MonitorEvent, Action<ZmqSocket, EventData>> eventHandler = new Dictionary<MonitorEvent, Action<ZmqSocket, EventData>>();
+        private readonly ZmqContext _context;
+        private readonly Dictionary<MonitorEvent, Action<ZmqSocket, EventData>> _eventHandler;
 
         private bool _disposed;
 
         internal ZmqMonitor(ZmqContext context)
         {
-            this.context = context;
-
-            this.eventHandler.Add(MonitorEvent.CONNECTED, (socket, data) => this.InvokeEvent(this.Connected, () => this.CreateEventArgs(socket, data.Conencted)));
-            this.eventHandler.Add(MonitorEvent.CONNECT_DELAYED, (socket, data) => this.InvokeEvent(this.ConnectDelayed, () => this.CreateEventArgs(socket, data.ConenctDelayed)));
-            this.eventHandler.Add(MonitorEvent.CONNECT_RETRIED, (socket, data) => this.InvokeEvent(this.ConnectRetried, () => this.CreateEventArgs(socket, data.ConenctRetried)));
-
-            this.eventHandler.Add(MonitorEvent.LISTENING, (socket, data) => this.InvokeEvent(this.Listening, () => this.CreateEventArgs(socket, data.Listening)));
-            this.eventHandler.Add(MonitorEvent.BIND_FAILED, (socket, data) => this.InvokeEvent(this.BindFailed, () => this.CreateEventArgs(socket, data.BindFailed)));
-
-            this.eventHandler.Add(MonitorEvent.ACCEPTED, (socket, data) => this.InvokeEvent(this.Accepted, () => this.CreateEventArgs(socket, data.Accepted)));
-            this.eventHandler.Add(MonitorEvent.ACCEPT_FAILED, (socket, data) => this.InvokeEvent(this.AcceptFailed, () => this.CreateEventArgs(socket, data.AcceptFailed)));
-
-            this.eventHandler.Add(MonitorEvent.CLOSED, (socket, data) => this.InvokeEvent(this.Closed, () => this.CreateEventArgs(socket, data.Closed)));
-            this.eventHandler.Add(MonitorEvent.CLOSE_FAILED, (socket, data) => this.InvokeEvent(this.CloseFailed, () => this.CreateEventArgs(socket, data.CloseFailed)));
-            this.eventHandler.Add(MonitorEvent.DISCONNECTED, (socket, data) => this.InvokeEvent(this.Disconnected, () => this.CreateEventArgs(socket, data.Disconnected)));
+            _context = context;
+            _eventHandler = new Dictionary<MonitorEvent, Action<ZmqSocket, EventData>>
+            {
+                { MonitorEvent.CONNECTED,       (socket, data) => InvokeEvent(Connected, () => CreateEventArgs(socket, data.Connected)) },
+                { MonitorEvent.CONNECT_DELAYED, (socket, data) => InvokeEvent(ConnectDelayed, () => CreateEventArgs(socket, data.ConnectDelayed)) },
+                { MonitorEvent.CONNECT_RETRIED, (socket, data) => InvokeEvent(ConnectRetried, () => CreateEventArgs(socket, data.ConnectRetried)) },
+                { MonitorEvent.LISTENING,       (socket, data) => InvokeEvent(Listening, () => CreateEventArgs(socket, data.Listening)) },
+                { MonitorEvent.BIND_FAILED,     (socket, data) => InvokeEvent(BindFailed, () => CreateEventArgs(socket, data.BindFailed)) },
+                { MonitorEvent.ACCEPTED,        (socket, data) => InvokeEvent(Accepted, () => CreateEventArgs(socket, data.Accepted)) },
+                { MonitorEvent.ACCEPT_FAILED,   (socket, data) => InvokeEvent(AcceptFailed, () => CreateEventArgs(socket, data.AcceptFailed)) },
+                { MonitorEvent.CLOSED,          (socket, data) => InvokeEvent(Closed, () => CreateEventArgs(socket, data.Closed)) },
+                { MonitorEvent.CLOSE_FAILED,    (socket, data) => InvokeEvent(CloseFailed, () => CreateEventArgs(socket, data.CloseFailed)) },
+                { MonitorEvent.DISCONNECTED,    (socket, data) => InvokeEvent(Disconnected, () => CreateEventArgs(socket, data.Disconnected)) }
+            };
         }
 
         /// <summary>
-        /// Occurs when a new connection established.
+        /// Occurs when a new connection is established.
         /// </summary>
         public event EventHandler<ZmqMonitorFileDescriptorEventArgs> Connected;
 
         /// <summary>
-        /// Occurs when a synchronous connect failed, and it's being polled.
+        /// Occurs when a synchronous connection attempt failed, and its completion is being polled for.
         /// </summary>
         public event EventHandler<ZmqMonitorErrorEventArgs> ConnectDelayed;
 
         /// <summary>
-        /// Occurs when a asynchronous connect / reconnection attempt.
+        /// Occurs when an asynchronous connect / reconnection attempt is being handled by a reconnect timer.
         /// </summary>
         public event EventHandler<ZmqMonitorIntervalEventArgs> ConnectRetried;
 
         /// <summary>
-        /// Occurs when a socket bound to an address, ready to accept connections.
+        /// Occurs when a socket is bound to an address and is ready to accept connections.
         /// </summary>
         public event EventHandler<ZmqMonitorFileDescriptorEventArgs> Listening;
 
@@ -72,12 +70,12 @@ namespace ZeroMQ
         public event EventHandler<ZmqMonitorErrorEventArgs> BindFailed;
 
         /// <summary>
-        /// Occurs when connection accepted to bound interface.
+        /// Occurs when a connection from a remote peer has been established with a socket's listen address.
         /// </summary>
         public event EventHandler<ZmqMonitorFileDescriptorEventArgs> Accepted;
 
         /// <summary>
-        /// Occurs when a socket could not accept client connection.
+        /// Occurs when a connection attempt to a socket's bound address fails.
         /// </summary>
         public event EventHandler<ZmqMonitorErrorEventArgs> AcceptFailed;
 
@@ -92,45 +90,52 @@ namespace ZeroMQ
         public event EventHandler<ZmqMonitorErrorEventArgs> CloseFailed;
 
         /// <summary>
-        /// Occurs when a session is broken.
+        /// Occurs when the stream engine (tcp and ipc specific) detects a corrupted / broken session.
         /// </summary>
         public event EventHandler<ZmqMonitorFileDescriptorEventArgs> Disconnected;
 
+        /// <summary>
+        /// Releases all resources used by the current instance of the <see cref="ZmqMonitor"/> class.
+        /// </summary>
         public void Dispose()
         {
-            this.Dispose(true);
+            Dispose(true);
             GC.SuppressFinalize(this);
         }
 
         internal void OnMonitor(ZmqSocket socket, int ev, ref EventData data)
         {
-            this.eventHandler[(MonitorEvent)ev](socket, data);
+            _eventHandler[(MonitorEvent)ev](socket, data);
         }
 
+        /// <summary>
+        /// Releases the unmanaged resources used by the <see cref="ZmqMonitor"/>, and optionally disposes of the managed resources.
+        /// </summary>
+        /// <param name="disposing">true to release both managed and unmanaged resources; false to release only unmanaged resources.</param>
         protected virtual void Dispose(bool disposing)
         {
             if (!_disposed)
             {
                 if (disposing)
                 {
-                    this.context.MonitorDisposed(this);
+                    _context.MonitorDisposed(this);
                 }
             }
 
             _disposed = true;
         }
 
-        private ZmqMonitorFileDescriptorEventArgs CreateEventArgs(ZmqSocket socket, EventDataFileDescriptorEntry data)
+        private static ZmqMonitorFileDescriptorEventArgs CreateEventArgs(ZmqSocket socket, EventDataFileDescriptorEntry data)
         {
             return new ZmqMonitorFileDescriptorEventArgs(socket, data.Address, data.FileDescriptor);
         }
 
-        private ZmqMonitorErrorEventArgs CreateEventArgs(ZmqSocket socket, EventDataErrorEntry data)
+        private static ZmqMonitorErrorEventArgs CreateEventArgs(ZmqSocket socket, EventDataErrorEntry data)
         {
             return new ZmqMonitorErrorEventArgs(socket, data.Address, data.ErrorCode);
         }
 
-        private ZmqMonitorIntervalEventArgs CreateEventArgs(ZmqSocket socket, EventDataIntervalEntry data)
+        private static ZmqMonitorIntervalEventArgs CreateEventArgs(ZmqSocket socket, EventDataIntervalEntry data)
         {
             return new ZmqMonitorIntervalEventArgs(socket, data.Address, data.Interval);
         }
@@ -139,7 +144,7 @@ namespace ZeroMQ
         {
             if (handler != null)
             {
-                handler(this.context, create());
+                handler(_context, create());
             }
         }
     }

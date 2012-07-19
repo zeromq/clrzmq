@@ -17,12 +17,10 @@
     public class ZmqContext : IDisposable
     {
         private readonly ContextProxy _contextProxy;
-        
-        private readonly ConcurrentDictionary<IntPtr, ZmqSocket> knownSockets = new ConcurrentDictionary<IntPtr, ZmqSocket>();
+        private readonly ConcurrentDictionary<IntPtr, ZmqSocket> _knownSockets;
 
         private bool _disposed;
-
-        private bool monitorRegistered;
+        private bool _monitorRegistered;
 
         static ZmqContext()
         {
@@ -37,6 +35,7 @@
             }
 
             _contextProxy = contextProxy;
+            _knownSockets = new ConcurrentDictionary<IntPtr, ZmqSocket>();
         }
 
         /// <summary>
@@ -170,23 +169,23 @@
         {
             EnsureNotDisposed();
 
-            if (this.monitorRegistered)
+            if (_monitorRegistered)
             {
                 throw new InvalidOperationException("The ZmqMonitor has been already registered.");
             }
 
             var monitor = new ZmqMonitor(this);
 
-            LibZmq.MonitorFuncCallback callbackWrapper = 
-                (IntPtr socketHandle, int eventFlags, ref EventData data) => 
-                    monitor.OnMonitor(this.GetSocketFromHandle(socketHandle), eventFlags, ref data);
-            
-            if (this._contextProxy.RegisterMonitor(callbackWrapper) == -1)
+            LibZmq.MonitorFuncCallback callbackWrapper =
+                (IntPtr socketHandle, int eventFlags, ref EventData data) =>
+                    monitor.OnMonitor(GetSocketFromHandle(socketHandle), eventFlags, ref data);
+
+            if (_contextProxy.RegisterMonitor(callbackWrapper) == -1)
             {
                 throw new ZmqException(ErrorProxy.GetLastError());
             }
-            
-            this.monitorRegistered = true;
+
+            _monitorRegistered = true;
             return monitor;
         }
 
@@ -201,12 +200,12 @@
 
         internal void MonitorDisposed(ZmqMonitor monitor)
         {
-            if (this._contextProxy.UnregisterMonitor() == -1)
+            if (_contextProxy.UnregisterMonitor() == -1)
             {
                 throw new ZmqException(ErrorProxy.GetLastError());
             }
 
-            this.monitorRegistered = false;
+            _monitorRegistered = false;
         }
 
         /// <summary>
@@ -237,26 +236,27 @@
                 throw new ZmqException(ErrorProxy.GetLastError());
             }
 
-            var socket = constructor(new SocketProxy(socketHandle, this.OnSocketClosed));
-            this.OnSocketCreated(socketHandle, socket);
+            var socket = constructor(new SocketProxy(socketHandle, OnSocketClosed));
+            OnSocketCreated(socketHandle, socket);
+
             return socket;
         }
 
         private void OnSocketCreated(IntPtr socketHandle, ZmqSocket socket)
         {
-            knownSockets.TryAdd(socketHandle, socket);
+            _knownSockets.TryAdd(socketHandle, socket);
         }
 
         private void OnSocketClosed(IntPtr socketHandle)
         {
             ZmqSocket socket;
-            knownSockets.TryRemove(socketHandle, out socket);
+            _knownSockets.TryRemove(socketHandle, out socket);
         }
 
         private ZmqSocket GetSocketFromHandle(IntPtr socketHandle)
         {
             ZmqSocket socket;
-            return knownSockets.TryGetValue(socketHandle, out socket)
+            return _knownSockets.TryGetValue(socketHandle, out socket)
                 ? socket
                 : default(ZmqSocket);
         }
