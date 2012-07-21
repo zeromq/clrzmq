@@ -18,7 +18,10 @@
 
         public IntPtr ContextHandle { get; private set; }
 
-        public bool MonitorRegistered { get; private set; }
+        public bool MonitorRegistered
+        {
+            get { return _callback != null; }
+        }
 
         public int Initialize()
         {
@@ -69,14 +72,14 @@
 
         public int RegisterMonitor(LibZmq.MonitorFuncCallback callback)
         {
-            MonitorRegistered = true;
             _callback = callback;
+
             return LibZmq.zmq_ctx_set_monitor(ContextHandle, _callback);
         }
 
         public int UnregisterMonitor()
         {
-            MonitorRegistered = false;
+            _callback = null;
 
             return LibZmq.zmq_ctx_set_monitor(ContextHandle, null);
         }
