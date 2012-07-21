@@ -1031,34 +1031,22 @@
         {
             TResult receiveResult;
 
-            int iterations = 0;
             var timeoutMilliseconds = (int)timeout.TotalMilliseconds;
             var timer = Stopwatch.StartNew();
+            var spin = new SpinWait();
 
             do
             {
                 receiveResult = method();
 
-                if (ReceiveStatus != ReceiveStatus.TryAgain || timeoutMilliseconds <= 1)
+                if (ReceiveStatus != ReceiveStatus.TryAgain || timeoutMilliseconds < 1)
                 {
                     break;
                 }
 
-                if (iterations < 20 && ProcessorCount > 1)
-                {
-                    // If we have a short wait (< 20 iterations) we SpinWait to allow other threads
-                    // on HyperThreaded CPUs to use the CPU. The more CPUs we have, the longer it's
-                    // acceptable to SpinWait since we stall the overall system less.
-                    Thread.SpinWait(100 * ProcessorCount);
-                }
-                else
-                {
-                    Thread.Yield();
-                }
-
-                ++iterations;
+                spin.SpinOnce();
             }
-            while (timer.Elapsed < timeout);
+            while (timer.Elapsed <= timeout);
 
             return receiveResult;
         }
