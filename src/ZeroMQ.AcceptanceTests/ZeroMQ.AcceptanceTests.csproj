@@ -107,6 +107,8 @@
     <Compile Include="DeviceSpecs\Streamer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ZmqContextSpecs\ContextOptions.cs" />
+    <Compile Include="ZmqMonitorSpecs\MonitorEvents.cs" />
+    <Compile Include="ZmqMonitorSpecs\SpecContext.cs" />
     <Compile Include="ZmqSocketSpecs\Bind_Connect.cs" />
     <Compile Include="ZmqSocketSpecs\SendMessage_ReceiveMessage.cs" />
     <Compile Include="ZmqSocketSpecs\Send_Receive.cs" />
@@ -123,6 +125,7 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>xcopy /y /c $(SolutionDir)..\lib\$(PlatformName)\libzmq.dll $(TargetDir)</PostBuildEvent>

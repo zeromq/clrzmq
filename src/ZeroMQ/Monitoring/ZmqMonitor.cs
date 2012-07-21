@@ -138,11 +138,11 @@ namespace ZeroMQ.Monitoring
             _disposed = true;
         }
 
-        private void InvokeEvent<T>(EventHandler<T> handler, Func<T> create) where T : EventArgs
+        private void InvokeEvent<T>(EventHandler<T> handler, Func<T> createEventArgs) where T : EventArgs
         {
             if (handler != null)
             {
-                handler(this, create());
+                handler(this, createEventArgs());
             }
         }
     }
