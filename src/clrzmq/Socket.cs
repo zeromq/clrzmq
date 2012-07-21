@@ -561,43 +561,24 @@ namespace ZMQ {
         /// <exception cref="ZMQ.Exception">ZMQ Exception</exception>
         public byte[] Recv(int timeout) {
             byte[] data = null;
-            int iterations = 0;
+#if NET_4 && !PocketPC
+            var spinWait = new SpinWait();
+#endif
             var timer = Stopwatch.StartNew();
 
             while (timer.ElapsedMilliseconds <= timeout) {
                 data = Recv(SendRecvOpt.NOBLOCK);
 
-                if (data == null) 
-                {
-                    if (timeout > 1) 
-                    {
-#if !PocketPC
-                        if (iterations < 20 && _processorCount > 1) {
-                            // If we have a short wait (< 20 iterations) we
-                            // SpinWait to allow other threads on HT CPUs
-                            // to use the CPU, the more CPUs we have
-                            // the longer it's "ok" to spin wait since
-                            // we stall the overall system less
-                            Thread.SpinWait(100 * _processorCount);
-                        }
-                        else {
-#endif
-                            // Yield my remaining time slice to another thread
-#if NET_4
-                            Thread.Yield();
+                if (data == null && timeout > 1) {
+#if NET_4 && !PocketPC
+                    spinWait.SpinOnce();
 #else
-                            Thread.Sleep(1);
+                    Thread.Sleep(1);
 #endif
-#if !PocketPC
-                        }
-#endif
-                    }
                 }
                 else {
                     break;
                 }
-
-                ++iterations;
             }
             return data;
         }
