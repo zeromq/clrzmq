@@ -16,9 +16,24 @@ namespace ZeroMQ.Interop
     {
         public const string LibraryName = "libzmq";
 
-        // From zmq.h:
+        // From zmq.h (v3):
         // typedef struct {unsigned char _ [32];} zmq_msg_t;
-        public const int ZmqMsgTSize = 32;
+        private static readonly int Zmq3MsgTSize = 32 * Marshal.SizeOf(typeof(byte));
+
+        // From zmq.h (v2):
+        // #define ZMQ_MAX_VSM_SIZE 30
+        //
+        // typedef struct
+        // {
+        //     void *content;
+        //     unsigned char flags;
+        //     unsigned char vsm_size;
+        //     unsigned char vsm_data [ZMQ_MAX_VSM_SIZE];
+        // } zmq_msg_t;
+        private static readonly int ZmqMaxVsmSize = 30 * Marshal.SizeOf(typeof(byte));
+        private static readonly int Zmq2MsgTSize = IntPtr.Size + (Marshal.SizeOf(typeof(byte)) * 2) + ZmqMaxVsmSize;
+
+        public static readonly int ZmqMsgTSize;
 
         public static readonly int MajorVersion;
         public static readonly int MinorVersion;
@@ -56,6 +71,7 @@ namespace ZeroMQ.Interop
                 zmq_disconnect = NativeLib.GetUnmanagedFunction<ZmqConnectProc>("zmq_disconnect");
 
                 PollTimeoutRatio = 1;
+                ZmqMsgTSize = Zmq3MsgTSize;
             }
             else if (MajorVersion == 2)
             {
@@ -69,6 +85,7 @@ namespace ZeroMQ.Interop
                 zmq_ctx_destroy = NativeLib.GetUnmanagedFunction<ZmqCtxDestroyProc>("zmq_term");
 
                 PollTimeoutRatio = 1000;
+                ZmqMsgTSize = Zmq2MsgTSize;
             }
         }
 
