@@ -3,12 +3,12 @@
     using System;
     using System.Runtime.InteropServices;
 
+    // ReSharper disable AccessToDisposedClosure
     internal class SocketProxy : IDisposable
     {
         // From options.hpp: unsigned char identity [256];
         private const int MaxBinaryOptionSize = 255;
 
-        private IntPtr _message;
         private bool _disposed;
 
         public SocketProxy(IntPtr socketHandle)
@@ -19,7 +19,6 @@
             }
 
             SocketHandle = socketHandle;
-            _message = Marshal.AllocHGlobal(LibZmq.ZmqMsgTSize);
         }
 
         ~SocketProxy()
@@ -66,132 +65,144 @@
 
         public int Receive(byte[] buffer, int flags)
         {
-            if (LibZmq.zmq_msg_init_size(_message, buffer.Length) == -1)
+            using (var message = new ZmqMsgT())
             {
-                return -1;
+                if (message.Init(buffer.Length) == -1)
+                {
+                    return -1;
+                }
+
+                int bytesReceived = RetryIfInterrupted(() => LibZmq.zmq_msg_recv(message, SocketHandle, flags));
+
+                if (bytesReceived == 0 && LibZmq.MajorVersion < 3)
+                {
+                    // 0MQ 2.x does not return number of bytes received
+                    bytesReceived = message.Size();
+                }
+
+                if (bytesReceived > 0)
+                {
+                    Marshal.Copy(message.Data(), buffer, 0, bytesReceived);
+                }
+
+                if (message.Close() == -1)
+                {
+                    return -1;
+                }
+
+                return bytesReceived;
             }
-
-            int bytesReceived = RetryIfInterrupted(() => LibZmq.zmq_msg_recv(_message, SocketHandle, flags));
-
-            if (bytesReceived == 0 && LibZmq.MajorVersion < 3)
-            {
-                // 0MQ 2.x does not return number of bytes received
-                bytesReceived = LibZmq.zmq_msg_size(_message);
-            }
-
-            if (bytesReceived > 0)
-            {
-                Marshal.Copy(LibZmq.zmq_msg_data(_message), buffer, 0, bytesReceived);
-            }
-
-            if (LibZmq.zmq_msg_close(_message) == -1)
-            {
-                return -1;
-            }
-
-            return bytesReceived;
         }
 
         public byte[] Receive(byte[] buffer, int flags, out int size)
         {
             size = -1;
 
-            if (LibZmq.zmq_msg_init(_message) == -1)
+            using (var message = new ZmqMsgT())
             {
+                if (message.Init() == -1)
+                {
+                    return buffer;
+                }
+
+                int bytesReceived = RetryIfInterrupted(() => LibZmq.zmq_msg_recv(message, SocketHandle, flags));
+
+                if (bytesReceived >= 0)
+                {
+                    if (bytesReceived == 0 && LibZmq.MajorVersion < 3)
+                    {
+                        // 0MQ 2.x does not return number of bytes received
+                        bytesReceived = message.Size();
+                    }
+
+                    size = bytesReceived;
+
+                    if (buffer == null || size > buffer.Length)
+                    {
+                        buffer = new byte[size];
+                    }
+
+                    Marshal.Copy(message.Data(), buffer, 0, size);
+                }
+
+                if (message.Close() == -1)
+                {
+                    size = -1;
+                }
+
                 return buffer;
             }
-
-            int bytesReceived = RetryIfInterrupted(() => LibZmq.zmq_msg_recv(_message, SocketHandle, flags));
-
-            if (bytesReceived >= 0)
-            {
-                if (bytesReceived == 0 && LibZmq.MajorVersion < 3)
-                {
-                    // 0MQ 2.x does not return number of bytes received
-                    bytesReceived = LibZmq.zmq_msg_size(_message);
-                }
-
-                size = bytesReceived;
-
-                if (buffer == null || size > buffer.Length)
-                {
-                    buffer = new byte[size];
-                }
-
-                Marshal.Copy(LibZmq.zmq_msg_data(_message), buffer, 0, size);
-            }
-
-            if (LibZmq.zmq_msg_close(_message) == -1)
-            {
-                size = -1;
-            }
-
-            return buffer;
         }
 
         public int Send(byte[] buffer, int size, int flags)
         {
-            if (LibZmq.zmq_msg_init_size(_message, size) == -1)
+            using (var message = new ZmqMsgT())
             {
-                return -1;
+                if (message.Init(size) == -1)
+                {
+                    return -1;
+                }
+
+                if (size > 0)
+                {
+                    Marshal.Copy(buffer, 0, message.Data(), size);
+                }
+
+                int bytesSent = RetryIfInterrupted(() => LibZmq.zmq_msg_send(message, SocketHandle, flags));
+
+                if (bytesSent == 0 && LibZmq.MajorVersion < 3)
+                {
+                    // 0MQ 2.x does not report number of bytes sent, so this may be inaccurate/misleading
+                    bytesSent = size;
+                }
+
+                if (message.Close() == -1)
+                {
+                    return -1;
+                }
+
+                return bytesSent;
             }
-
-            if (size > 0)
-            {
-                Marshal.Copy(buffer, 0, LibZmq.zmq_msg_data(_message), size);
-            }
-
-            int bytesSent = RetryIfInterrupted(() => LibZmq.zmq_msg_send(_message, SocketHandle, flags));
-
-            if (bytesSent == 0 && LibZmq.MajorVersion < 3)
-            {
-                // 0MQ 2.x does not report number of bytes sent, so this may be inaccurate/misleading
-                bytesSent = size;
-            }
-
-            if (LibZmq.zmq_msg_close(_message) == -1)
-            {
-                return -1;
-            }
-
-            return bytesSent;
         }
 
         public int Forward(IntPtr destinationHandle)
         {
-            if (LibZmq.zmq_msg_init(_message) == -1)
+            using (var message = new ZmqMsgT())
             {
-                return -1;
-            }
-
-            int receiveMore;
-            int bytesSent;
-
-            do
-            {
-                if (LibZmq.zmq_msg_recv(_message, SocketHandle, 0) == -1)
+                if (message.Init() == -1)
                 {
                     return -1;
                 }
 
-                if (GetReceiveMore(out receiveMore) == -1)
+                int receiveMore;
+                int bytesSent;
+
+                do
+                {
+                    if (LibZmq.zmq_msg_recv(message, SocketHandle, 0) == -1)
+                    {
+                        return -1;
+                    }
+
+                    if (GetReceiveMore(out receiveMore) == -1)
+                    {
+                        return -1;
+                    }
+
+                    if ((bytesSent = LibZmq.zmq_msg_send(message, destinationHandle, receiveMore == 1 ? (int)SocketFlags.SendMore : 0)) == -1)
+                    {
+                        return -1;
+                    }
+                }
+                while (receiveMore == 1);
+
+                if (message.Close() == -1)
                 {
                     return -1;
                 }
 
-                if ((bytesSent = LibZmq.zmq_msg_send(_message, destinationHandle, receiveMore == 1 ? (int)SocketFlags.SendMore : 0)) == -1)
-                {
-                    return -1;
-                }
+                return bytesSent;
             }
-            while (receiveMore == 1);
-
-            if (LibZmq.zmq_msg_close(_message) == -1)
-            {
-                return -1;
-            }
-
-            return bytesSent;
         }
 
         public int GetSocketOption(int option, out int value)
@@ -333,12 +344,6 @@
         {
             if (!_disposed)
             {
-                if (_message != IntPtr.Zero)
-                {
-                    Marshal.FreeHGlobal(_message);
-                    _message = IntPtr.Zero;
-                }
-
                 Close();
             }
 
@@ -372,4 +377,5 @@
             return rc;
         }
     }
+    // ReSharper restore AccessToDisposedClosure
 }

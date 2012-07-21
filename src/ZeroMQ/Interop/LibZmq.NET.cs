@@ -43,8 +43,8 @@ namespace ZeroMQ.Interop
 
                 var zmq_msg_recv_impl = NativeLib.GetUnmanagedFunction<ZmqMsgRecvProc>("zmq_msg_recv");
                 var zmq_msg_send_impl = NativeLib.GetUnmanagedFunction<ZmqMsgSendProc>("zmq_msg_send");
-                zmq_msg_send = (msg, sck, flags) => zmq_msg_send_impl(msg, sck, flags);
-                zmq_msg_recv = (msg, sck, flags) => zmq_msg_recv_impl(msg, sck, flags);
+                zmq_msg_send = zmq_msg_send_impl;
+                zmq_msg_recv = zmq_msg_recv_impl;
 
                 zmq_ctx_new = NativeLib.GetUnmanagedFunction<ZmqCtxNewProc>("zmq_ctx_new");
                 zmq_ctx_destroy = NativeLib.GetUnmanagedFunction<ZmqCtxDestroyProc>("zmq_ctx_destroy");
