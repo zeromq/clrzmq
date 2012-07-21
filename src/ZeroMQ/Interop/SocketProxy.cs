@@ -6,19 +6,27 @@
     // ReSharper disable AccessToDisposedClosure
     internal class SocketProxy : IDisposable
     {
+        private readonly Action<IntPtr> _socketClosed;
+
         // From options.hpp: unsigned char identity [256];
         private const int MaxBinaryOptionSize = 255;
 
         private bool _disposed;
 
-        public SocketProxy(IntPtr socketHandle)
+        public SocketProxy(IntPtr socketHandle, Action<IntPtr> socketClosed)
         {
             if (socketHandle == IntPtr.Zero)
             {
                 throw new ArgumentException("Socket handle must be a valid pointer.", "socketHandle");
             }
 
+            if (socketClosed == null)
+            {
+                throw new ArgumentNullException("socketClosed");
+            }
+
             SocketHandle = socketHandle;
+            _socketClosed = socketClosed;
         }
 
         ~SocketProxy()
@@ -57,7 +65,8 @@
             }
 
             int rc = LibZmq.zmq_close(SocketHandle);
-
+            _socketClosed(SocketHandle);
+            
             SocketHandle = IntPtr.Zero;
 
             return rc;

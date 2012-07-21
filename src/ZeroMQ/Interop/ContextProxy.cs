@@ -13,6 +13,8 @@
 
         public IntPtr ContextHandle { get; private set; }
 
+        public bool MonitorRegistered { get; private set; }
+
         public int Initialize()
         {
             ContextHandle = LibZmq.zmq_ctx_new();
@@ -58,6 +60,20 @@
         public int SetContextOption(int option, int value)
         {
             return LibZmq.zmq_ctx_set(ContextHandle, option, value);
+        }
+
+        public int RegisterMonitor(LibZmq.MonitorFuncCallback callback)
+        {
+            MonitorRegistered = true;
+
+            return LibZmq.zmq_ctx_set_monitor(ContextHandle, callback);
+        }
+
+        public int UnregisterMonitor()
+        {
+            MonitorRegistered = false;
+
+            return LibZmq.zmq_ctx_set_monitor(ContextHandle, null);
         }
 
         public virtual void Dispose()
