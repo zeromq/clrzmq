@@ -44,13 +44,7 @@ namespace ZMQ {
 
         private PollItem _pollItem;
         private bool _localSocket;
-        private IntPtr _msg;
         private string _address;
-
-        //  Figure out size of zmq_msg_t structure.
-        //  It's size of pointer + 2 bytes + VSM buffer size.
-        private const int ZMQ_MAX_VSM_SIZE = 30;
-        private readonly int ZMQ_MSG_T_SIZE = IntPtr.Size + 2 + ZMQ_MAX_VSM_SIZE;
 
         /// <summary>
         /// This constructor should not be called directly, use the Context
@@ -82,8 +76,8 @@ namespace ZMQ {
             CommonInit(true);
         }
 
-        private void CommonInit(bool local) {
-            _msg = Marshal.AllocHGlobal(ZMQ_MSG_T_SIZE);
+        private void CommonInit(bool local) 
+        {
             _localSocket = local;
             _pollItem = new PollItem(new ZMQPollItem(Ptr, 0, 0), this);
         }
@@ -139,12 +133,8 @@ namespace ZMQ {
             get { return _pollItem; }
         }
 
-        protected virtual void Dispose(bool disposing) {
-            if (_msg != IntPtr.Zero) {
-                Marshal.FreeHGlobal(_msg);
-                _msg = IntPtr.Zero;
-            }
-
+        protected virtual void Dispose(bool disposing)
+        {
             if (Ptr != IntPtr.Zero) {
                 int rc = C.zmq_close(Ptr);
                 Ptr = IntPtr.Zero;
@@ -478,19 +468,23 @@ namespace ZMQ {
                 throw new ArgumentNullException("destination");
             }
 
-            SendRecvOpt opt = SendRecvOpt.SNDMORE;
-            while (opt == SendRecvOpt.SNDMORE) {
-                if (C.zmq_msg_init(_msg) != 0)
-                    throw new Exception();
-                if (C.zmq_recv(Ptr, _msg, 0) == 0) {
-                    opt = RcvMore ? SendRecvOpt.SNDMORE : SendRecvOpt.NONE;
-                    if (C.zmq_send(destination.Ptr, _msg, (int)opt) != 0)
-                        throw new Exception();
-                    C.zmq_msg_close(_msg);
-                }
-                else {
-                    if (C.zmq_errno() != (int)ERRNOS.EAGAIN)
-                        throw new Exception();
+            using (var msg = new ZmqMsgT()) {
+                SendRecvOpt opt = SendRecvOpt.SNDMORE;
+                while (opt == SendRecvOpt.SNDMORE) {
+                    msg.Init();
+
+                    if (C.zmq_recv(Ptr, msg, 0) == 0) {
+                        opt = RcvMore ? SendRecvOpt.SNDMORE : SendRecvOpt.NONE;
+                        if (C.zmq_send(destination.Ptr, msg, (int)opt) != 0) {
+                            throw new Exception();
+                        }
+                        msg.Close();
+                    }
+                    else {
+                        if (C.zmq_errno() != (int)ERRNOS.EAGAIN) {
+                            throw new Exception();
+                        }
+                    }
                 }
             }
         }
@@ -503,34 +497,39 @@ namespace ZMQ {
         /// <param name="flags">Receive Options</param>
         /// <returns>Message</returns>
         /// <exception cref="ZMQ.Exception">ZMQ Exception</exception>
-        public byte[] Recv(byte[] message, out int size, params SendRecvOpt[] flags) {
+        public byte[] Recv(byte[] message, out int size, params SendRecvOpt[] flags)
+        {
             size = -1;
             int flagsVal = 0;
             foreach (SendRecvOpt opt in flags) {
                 flagsVal += (int)opt;
             }
-            if (C.zmq_msg_init(_msg) != 0)
-                throw new Exception();
-            while (true) {
-                if (C.zmq_recv(Ptr, _msg, flagsVal) == 0) {
-                    size = C.zmq_msg_size(_msg);
 
-                    if (message == null || size > message.Length) {
-                        message = new byte[size];
+            using (var msg = new ZmqMsgT()) {
+                msg.Init();
+
+                while (true) {
+                    if (C.zmq_recv(Ptr, msg, flagsVal) == 0) {
+                        size = msg.Size();
+
+                        if (message == null || size > message.Length) {
+                            message = new byte[size];
+                        }
+
+                        Marshal.Copy(msg.Data(), message, 0, size);
+                        msg.Close();
+                        break;
                     }
-
-                    Marshal.Copy(C.zmq_msg_data(_msg), message, 0, size);
-                    C.zmq_msg_close(_msg);
+                    if (C.zmq_errno() == (int)ERRNOS.EINTR) {
+                        continue;
+                    }
+                    if (C.zmq_errno() != (int)ERRNOS.EAGAIN) {
+                        throw new Exception();
+                    }
                     break;
                 }
-                if (C.zmq_errno() == (int)ERRNOS.EINTR) {
-                    continue;
-                }
-                if (C.zmq_errno() != (int)ERRNOS.EAGAIN) {
-                    throw new Exception();
-                }
-                break;
             }
+
             return message;
         }
 
@@ -568,8 +567,10 @@ namespace ZMQ {
             while (timer.ElapsedMilliseconds <= timeout) {
                 data = Recv(SendRecvOpt.NOBLOCK);
 
-                if (data == null) {
-                    if (timeout > 1) {
+                if (data == null) 
+                {
+                    if (timeout > 1) 
+                    {
 #if !PocketPC
                         if (iterations < 20 && _processorCount > 1) {
                             // If we have a short wait (< 20 iterations) we
@@ -747,7 +748,8 @@ namespace ZMQ {
         /// <param name="length">Length of data to send from message, starting at startIndex</param>
         /// <param name="flags">Send Options</param>
         /// <returns>A <see cref="SendStatus"/> value indicating the outcome of the Send operation.</returns>
-        public SendStatus Send(byte[] message, int startIndex, int length, params SendRecvOpt[] flags) {
+        public SendStatus Send(byte[] message, int startIndex, int length, params SendRecvOpt[] flags)
+        {
             if (message == null) {
                 throw new ArgumentNullException("message");
             }
@@ -758,24 +760,23 @@ namespace ZMQ {
 
             int flagsVal = 0;
 
-            foreach (SendRecvOpt opt in flags) {
+            foreach (SendRecvOpt opt in flags)
+            {
                 flagsVal |= (int)opt;
             }
 
-            if (C.zmq_msg_init_size(_msg, length) != 0) {
-                throw new Exception();
-            }
+            using (var msg = new ZmqMsgT()) {
+                msg.Init(length);
 
-            Marshal.Copy(message, startIndex, C.zmq_msg_data(_msg), length);
+                Marshal.Copy(message, startIndex, msg.Data(), length);
 
-            int rc = C.zmq_send(Ptr, _msg, flagsVal);
+                int rc = C.zmq_send(Ptr, msg, flagsVal);
 
-            if (C.zmq_msg_close(_msg) != 0) {
-                throw new Exception();
-            }
+                msg.Close();
 
-            if (rc >= 0) {
-                return SendStatus.Sent;
+                if (rc >= 0) {
+                    return SendStatus.Sent;
+                }
             }
 
             int errno = C.zmq_errno();

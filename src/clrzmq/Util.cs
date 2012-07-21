@@ -185,15 +185,11 @@ namespace ZMQ {
     }
 
     internal class DisposableIntPtr : IDisposable {
-        IntPtr ptr;
-
         public DisposableIntPtr(int size) {
-            ptr = Marshal.AllocHGlobal(size);
+            Ptr = Marshal.AllocHGlobal(size);
         }
 
-        public IntPtr Ptr {
-            get { return ptr; }
-        }
+        public IntPtr Ptr { get; private set; }
 
         ~DisposableIntPtr() {
             Dispose(false);
@@ -205,10 +201,67 @@ namespace ZMQ {
         }
 
         protected virtual void Dispose(bool disposing) {
-            if (ptr != IntPtr.Zero) {
-                Marshal.FreeHGlobal(ptr);
-                ptr = IntPtr.Zero;
+            if (Ptr != IntPtr.Zero) {
+                Marshal.FreeHGlobal(Ptr);
+                Ptr = IntPtr.Zero;
             }
+        }
+    }
+
+    internal class ZmqMsgT : DisposableIntPtr {
+        //  Figure out size of zmq_msg_t structure.
+        //  It's size of pointer + 2 bytes + VSM buffer size.
+        private const int ZMQ_MAX_VSM_SIZE = 30;
+        private static readonly int ZMQ_MSG_T_SIZE = IntPtr.Size + 2 + ZMQ_MAX_VSM_SIZE;
+
+        private bool initialized;
+
+        public ZmqMsgT()
+            : base(ZMQ_MSG_T_SIZE) {
+        }
+
+        public static implicit operator IntPtr(ZmqMsgT msg) {
+            return msg.Ptr;
+        }
+
+        public void Init() {
+            if (C.zmq_msg_init(Ptr) != 0) {
+                throw new Exception();
+            }
+            initialized = true;
+        }
+
+        public void Init(int size) {
+            if (C.zmq_msg_init_size(Ptr, size) != 0) {
+                throw new Exception();
+            }
+            initialized = true;
+        }
+
+        public void Close() {
+            if (C.zmq_msg_close(Ptr) != 0) {
+                throw new Exception();
+            }
+            initialized = false;
+        }
+
+        public int Size() {
+            return C.zmq_msg_size(Ptr);
+        }
+
+        public IntPtr Data() {
+            return C.zmq_msg_data(Ptr);
+        }
+
+        protected override void Dispose(bool disposing) {
+            if (disposing && initialized) {
+                // Call the native method directly to avoid
+                // throwing an exception during disposal
+                C.zmq_msg_close(Ptr);
+                initialized = false;
+            }
+
+            base.Dispose(disposing);
         }
     }
 }
