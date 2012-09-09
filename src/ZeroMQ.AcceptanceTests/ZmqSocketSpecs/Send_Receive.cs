@@ -1,6 +1,7 @@
 ﻿namespace ZeroMQ.AcceptanceTests.ZmqSocketSpecs
 {
     using System;
+    using System.Text;
     using System.Threading;
 
     using Machine.Specifications;
@@ -59,6 +60,28 @@
         Because of = StartThreads;
 
         Behaves_like<SingleMessageNotReceived> receiver_must_try_again;
+    }
+
+    [Subject("Send/Receive")]
+    class when_transferring_a_string_with_an_insufficient_receive_timeout : using_threaded_req_rep
+    {
+        protected static string message;
+
+        Establish context = () =>
+        {
+            receiverAction = rep => message = rep.Receive(Encoding.ASCII, TimeSpan.FromMilliseconds(5));
+        };
+
+        Because of = StartThreads;
+
+        It should_not_have_been_received = () =>
+            receiver.ReceiveStatus.ShouldEqual(ReceiveStatus.TryAgain);
+
+        It should_not_have_more_parts = () =>
+            receiver.ReceiveMore.ShouldBeFalse();
+
+        It should_return_a_null_string = () =>
+            message.ShouldBeNull();
     }
 
     [Subject("Send/Receive")]

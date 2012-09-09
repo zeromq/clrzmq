@@ -203,7 +203,10 @@
         /// <param name="socket">A <see cref="ZmqSocket"/> object.</param>
         /// <param name="encoding">The <see cref="Encoding"/> to use when converting the received buffer to a string.</param>
         /// <param name="timeout">A <see cref="TimeSpan"/> specifying the receive timeout.</param>
-        /// <returns>A <see cref="string"/> containing the message received from the remote endpoint.</returns>
+        /// <returns>
+        /// A <see cref="string"/> containing the message received from the remote endpoint or <c>null</c>
+        /// if the timeout expired before a message was received.
+        /// </returns>
         /// <exception cref="ArgumentNullException"><paramref name="encoding"/> is null.</exception>
         /// <exception cref="ZmqSocketException">An error occurred receiving data from a remote endpoint.</exception>
         /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
@@ -216,7 +219,9 @@
             int messageSize;
             byte[] buffer = socket.Receive(null, timeout, out messageSize);
 
-            return encoding.GetString(buffer, 0, messageSize);
+            return socket.ReceiveStatus == ReceiveStatus.Received
+                ? encoding.GetString(buffer, 0, messageSize)
+                : null;
         }
 
         /// <summary>
