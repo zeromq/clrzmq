@@ -3,7 +3,6 @@
 namespace ZeroMQ.Interop
 {
     using System;
-    using System.Diagnostics.CodeAnalysis;
     using System.Runtime.InteropServices;
 
     internal static class LibZmq
@@ -44,6 +43,9 @@ namespace ZeroMQ.Interop
                 zmq_msg_recv = zmq_msg_recv_v3;
                 zmq_msg_send = zmq_msg_send_v3;
 
+                zmq_buffer_recv = zmq_recvbuf_v3;
+                zmq_buffer_send = zmq_sendbuf_v3;
+
                 zmq_msg_get = zmq_msg_get_v3;
                 zmq_msg_init_data = zmq_msg_init_data_v3;
                 zmq_msg_move = zmq_msg_move_v3;
@@ -62,6 +64,9 @@ namespace ZeroMQ.Interop
             {
                 zmq_msg_recv = (msg, sck, flags) => zmq_recvmsg(sck, msg, flags);
                 zmq_msg_send = (msg, sck, flags) => zmq_sendmsg(sck, msg, flags);
+
+                zmq_buffer_recv = null;
+                zmq_buffer_send = null;
 
                 zmq_msg_get = (message, option, optval, optvallen) => { throw new ZmqVersionException(MajorVersion, MinorVersion, 3, 1); };
                 zmq_msg_init_data = (msg, data, size, ffn, hint) => { throw new ZmqVersionException(MajorVersion, MinorVersion, 3, 1); };
@@ -133,8 +138,16 @@ namespace ZeroMQ.Interop
         public static readonly ZmqRecvMsgProc zmq_msg_recv;
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public delegate int ZmqBufferRecvProc(IntPtr socket, IntPtr buf, int size, int flags);
+        public static ZmqBufferRecvProc zmq_buffer_recv;
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         public delegate int ZmqSendMsgProc(IntPtr msg, IntPtr socket, int flags);
         public static readonly ZmqSendMsgProc zmq_msg_send;
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public delegate int ZmqBufferSendProc(IntPtr socket, IntPtr buf, int size, int flags);
+        public static ZmqBufferSendProc zmq_buffer_send;
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         public delegate int ZmqMsgInitDataProc(IntPtr msg, IntPtr data, int size, FreeMessageDataCallback ffn, IntPtr hint);
@@ -194,6 +207,12 @@ namespace ZeroMQ.Interop
 
         [DllImport(LibraryName, EntryPoint = "zmq_msg_send", CallingConvention = CallingConvention.Cdecl)]
         public static extern int zmq_msg_send_v3(IntPtr msg, IntPtr socket, int flags);
+
+        [DllImport(LibraryName, EntryPoint = "zmq_recv", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int zmq_recvbuf_v3(IntPtr socket, IntPtr buf, int size, int flags);
+
+        [DllImport(LibraryName, EntryPoint = "zmq_send", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int zmq_sendbuf_v3(IntPtr socket, IntPtr buf, int size, int flags);
 
         [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr zmq_socket(IntPtr context, int type);

@@ -6,10 +6,15 @@
     // ReSharper disable AccessToDisposedClosure
     internal class SocketProxy : IDisposable
     {
-        private readonly Action<IntPtr> _socketClosed;
+        public const int MaxBufferSize = 8192;
 
         // From options.hpp: unsigned char identity [256];
         private const int MaxBinaryOptionSize = 255;
+
+        private readonly IntPtr _receiveIntPtrBuffer;
+        private readonly IntPtr _sendIntPtrBuffer;
+
+        private readonly Action<IntPtr> _socketClosed;
 
         private bool _disposed;
 
@@ -27,6 +32,9 @@
 
             SocketHandle = socketHandle;
             _socketClosed = socketClosed;
+
+            _receiveIntPtrBuffer = Marshal.AllocHGlobal(MaxBufferSize);
+            _sendIntPtrBuffer = Marshal.AllocHGlobal(MaxBufferSize);
         }
 
         ~SocketProxy()
@@ -66,7 +74,7 @@
 
             int rc = LibZmq.zmq_close(SocketHandle);
             _socketClosed(SocketHandle);
-            
+
             SocketHandle = IntPtr.Zero;
 
             return rc;
@@ -74,6 +82,17 @@
 
         public int Receive(byte[] buffer, int flags)
         {
+            // Use zmq_buffer_recv method if appropriate -> results in fewer P/Invoke calls
+            if (buffer.Length <= MaxBufferSize && LibZmq.zmq_buffer_recv != null)
+            {
+                int bytesReceived = RetryIfInterrupted(() => LibZmq.zmq_buffer_recv(SocketHandle, _receiveIntPtrBuffer, MaxBufferSize, flags));
+                int size = Math.Min(buffer.Length, bytesReceived);
+
+                Marshal.Copy(_receiveIntPtrBuffer, buffer, 0, size);
+
+                return size;
+            }
+
             using (var message = new ZmqMsgT())
             {
                 if (message.Init(buffer.Length) == -1)
@@ -145,6 +164,15 @@
 
         public int Send(byte[] buffer, int size, int flags)
         {
+            // Use zmq_buffer_send method if appropriate -> results in fewer P/Invoke calls
+            if (buffer.Length <= MaxBufferSize && LibZmq.zmq_buffer_send != null)
+            {
+                int sizeToSend = Math.Min(size, MaxBufferSize);
+                Marshal.Copy(buffer, 0, _sendIntPtrBuffer, sizeToSend);
+
+                return RetryIfInterrupted(() => LibZmq.zmq_buffer_send(SocketHandle, _sendIntPtrBuffer, sizeToSend, flags));
+            }
+
             using (var message = new ZmqMsgT())
             {
                 if (message.Init(size) == -1)
@@ -351,8 +379,11 @@
 
         protected virtual void Dispose(bool disposing)
         {
-            if (!_disposed)
+            if (!_disposed && disposing)
             {
+                Marshal.FreeHGlobal(_receiveIntPtrBuffer);
+                Marshal.FreeHGlobal(_sendIntPtrBuffer);
+
                 Close();
             }
 
@@ -386,5 +417,6 @@
             return rc;
         }
     }
+
     // ReSharper restore AccessToDisposedClosure
 }

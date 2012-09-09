@@ -12,9 +12,12 @@
     /// </summary>
     public class ZmqSocket : IDisposable
     {
-        private const int LatestVersion = 3;
+        /// <summary>
+        /// The maximum buffer length when using the high performance Send/Receive methods (8192).
+        /// </summary>
+        public const int MaxBufferSize = SocketProxy.MaxBufferSize;
 
-        private static readonly int ProcessorCount = Environment.ProcessorCount;
+        private const int LatestVersion = 3;
 
 #pragma warning disable 618
         private static readonly SocketOption ReceiveHwmOpt = ZmqVersion.Current.IsAtLeast(LatestVersion) ? SocketOption.RCVHWM : SocketOption.HWM;
@@ -501,10 +504,11 @@
         }
 
         /// <summary>
-        /// Receive a single message-part from a remote socket in blocking mode.
+        /// Receive a single message-part from a remote socket in blocking mode (high performance).
         /// </summary>
         /// <remarks>
-        /// Warning: This overload will only receive as much data as can fit in the supplied <paramref name="buffer"/>.
+        /// Warning: This overload will only receive as much data as can fit in the supplied <paramref name="buffer"/>
+        /// Up to <see cref="MaxMessageSize"/>. Any message data beyond the maximum length will be discarded.
         /// It is intended to be used when the maximum messaging performance is required; it will not allocate a new
         /// buffer (or copy received data) if the received message exceeds the current buffer size.
         /// If the maximum message size is not known in advance, use the <see cref="Receive(byte[],out int)"/> overload.
@@ -521,10 +525,11 @@
         }
 
         /// <summary>
-        /// Receive a single message-part from a remote socket in non-blocking mode with a specified timeout.
+        /// Receive a single message-part from a remote socket in non-blocking mode with a specified timeout (high performance).
         /// </summary>
         /// <remarks>
-        /// Warning: This overload will only receive as much data as can fit in the supplied <paramref name="buffer"/>.
+        /// Warning: This overload will only receive as much data as can fit in the supplied <paramref name="buffer"/>
+        /// Up to <see cref="MaxMessageSize"/>. Any message data beyond the maximum length will be discarded.
         /// It is intended to be used when the maximum messaging performance is required, as it does not perform
         /// any unnecessary memory allocation, copying or marshalling.
         /// If the maximum message size is not known in advance, use the <see cref="Receive(byte[],System.TimeSpan,out int)"/> overload.
@@ -544,6 +549,55 @@
             return timeout == TimeSpan.MaxValue
                        ? Receive(buffer)
                        : ExecuteWithTimeout(() => Receive(buffer, SocketFlags.DontWait), timeout);
+        }
+
+        /// <summary>
+        /// Receive a single message-part from a remote socket (high performance).
+        /// </summary>
+        /// <remarks>
+        /// Warning: This overload will only receive as much data as can fit in the supplied <paramref name="buffer"/>
+        /// Up to <see cref="MaxMessageSize"/>. Any message data beyond the maximum length will be discarded.
+        /// It is intended to be used when the maximum messaging performance is required; it will not allocate a new
+        /// buffer (or copy received data) if the received message exceeds the current buffer size.
+        /// If the maximum message size is not known in advance, use the <see cref="Receive(byte[],out int)"/> overload.
+        /// </remarks>
+        /// <param name="buffer">A <see cref="byte"/> array that will store the received data.</param>
+        /// <param name="flags">A combination of <see cref="SocketFlags"/> values to use when receiving.</param>
+        /// <returns>The number of bytes contained in the resulting message.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="buffer"/> is null.</exception>
+        /// <exception cref="ZmqSocketException">An error occurred receiving data from a remote endpoint.</exception>
+        /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
+        /// <exception cref="NotSupportedException">The current socket type does not support Receive operations.</exception>
+        public virtual int Receive(byte[] buffer, SocketFlags flags)
+        {
+            EnsureNotDisposed();
+
+            if (buffer == null)
+            {
+                throw new ArgumentNullException("buffer");
+            }
+
+            int receivedBytes = _socketProxy.Receive(buffer, (int)flags);
+
+            if (receivedBytes >= 0)
+            {
+                ReceiveStatus = ReceiveStatus.Received;
+                return receivedBytes;
+            }
+
+            if (ErrorProxy.ShouldTryAgain)
+            {
+                ReceiveStatus = ReceiveStatus.TryAgain;
+                return -1;
+            }
+
+            if (ErrorProxy.ContextWasTerminated)
+            {
+                ReceiveStatus = ReceiveStatus.Interrupted;
+                return -1;
+            }
+
+            throw new ZmqSocketException(ErrorProxy.GetLastError());
         }
 
         /// <summary>
@@ -600,8 +654,62 @@
         }
 
         /// <summary>
+        /// Receive a single message-part from a remote socket.
+        /// </summary>
+        /// <remarks>
+        /// This overload will receive all available data in the message-part. If the size of <paramref name="buffer"/>
+        /// is insufficient, a new buffer will be allocated.
+        /// </remarks>
+        /// <param name="buffer">A <see cref="byte"/> array that may store the received data.</param>
+        /// <param name="flags">A combination of <see cref="SocketFlags"/> values to use when sending.</param>
+        /// <param name="size">An <see cref="int"/> that will contain the number of bytes in the received data.</param>
+        /// <returns>
+        /// A <see cref="byte"/> array containing the data received from the remote endpoint, which may or may
+        /// not be the supplied <paramref name="buffer"/>.
+        /// </returns>
+        /// <exception cref="ZmqSocketException">An error occurred receiving data from a remote endpoint.</exception>
+        /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
+        /// <exception cref="NotSupportedException">The current socket type does not support Receive operations.</exception>
+        public virtual byte[] Receive(byte[] buffer, SocketFlags flags, out int size)
+        {
+            EnsureNotDisposed();
+
+            if (buffer == null)
+            {
+                buffer = new byte[0];
+            }
+
+            buffer = _socketProxy.Receive(buffer, (int)flags, out size);
+
+            if (size >= 0)
+            {
+                ReceiveStatus = ReceiveStatus.Received;
+                return buffer;
+            }
+
+            if (ErrorProxy.ShouldTryAgain)
+            {
+                ReceiveStatus = ReceiveStatus.TryAgain;
+                return buffer;
+            }
+
+            if (ErrorProxy.ContextWasTerminated)
+            {
+                ReceiveStatus = ReceiveStatus.Interrupted;
+                return buffer;
+            }
+
+            throw new ZmqSocketException(ErrorProxy.GetLastError());
+        }
+
+        /// <summary>
         /// Queue a message buffer to be sent by the socket in blocking mode.
         /// </summary>
+        /// <remarks>
+        /// Performance tip: To increase send performance, especially on low-powered devices, restrict the
+        /// size of <paramref name="buffer"/> to <see cref="MaxBufferSize"/>. This will reduce the number of
+        /// P/Invoke calls required to send the message buffer.
+        /// </remarks>
         /// <param name="buffer">A <see cref="byte"/> array that contains the message to be sent.</param>
         /// <param name="size">The size of the message to send.</param>
         /// <param name="flags">A combination of <see cref="SocketFlags"/> values to use when sending.</param>
@@ -651,6 +759,11 @@
         /// <summary>
         /// Queue a message buffer to be sent by the socket in non-blocking mode with a specified timeout.
         /// </summary>
+        /// <remarks>
+        /// Performance tip: To increase send performance, especially on low-powered devices, restrict the
+        /// size of <paramref name="buffer"/> to <see cref="MaxBufferSize"/>. This will reduce the number of
+        /// P/Invoke calls required to send the message buffer.
+        /// </remarks>
         /// <param name="buffer">A <see cref="byte"/> array that contains the message to be sent.</param>
         /// <param name="size">The size of the message to send.</param>
         /// <param name="flags">A combination of <see cref="SocketFlags"/> values to use when sending.</param>
@@ -792,70 +905,6 @@
         {
             Dispose(true);
             GC.SuppressFinalize(this);
-        }
-
-        internal virtual int Receive(byte[] buffer, SocketFlags flags)
-        {
-            EnsureNotDisposed();
-
-            if (buffer == null)
-            {
-                throw new ArgumentNullException("buffer");
-            }
-
-            int receivedBytes = _socketProxy.Receive(buffer, (int)flags);
-
-            if (receivedBytes >= 0)
-            {
-                ReceiveStatus = ReceiveStatus.Received;
-                return receivedBytes;
-            }
-
-            if (ErrorProxy.ShouldTryAgain)
-            {
-                ReceiveStatus = ReceiveStatus.TryAgain;
-                return -1;
-            }
-
-            if (ErrorProxy.ContextWasTerminated)
-            {
-                ReceiveStatus = ReceiveStatus.Interrupted;
-                return -1;
-            }
-
-            throw new ZmqSocketException(ErrorProxy.GetLastError());
-        }
-
-        internal virtual byte[] Receive(byte[] buffer, SocketFlags flags, out int size)
-        {
-            EnsureNotDisposed();
-
-            if (buffer == null)
-            {
-                buffer = new byte[0];
-            }
-
-            buffer = _socketProxy.Receive(buffer, (int)flags, out size);
-
-            if (size >= 0)
-            {
-                ReceiveStatus = ReceiveStatus.Received;
-                return buffer;
-            }
-
-            if (ErrorProxy.ShouldTryAgain)
-            {
-                ReceiveStatus = ReceiveStatus.TryAgain;
-                return buffer;
-            }
-
-            if (ErrorProxy.ContextWasTerminated)
-            {
-                ReceiveStatus = ReceiveStatus.Interrupted;
-                return buffer;
-            }
-
-            throw new ZmqSocketException(ErrorProxy.GetLastError());
         }
 
         internal int GetSocketOptionInt32(SocketOption option)
@@ -1000,7 +1049,8 @@
             _disposed = true;
         }
 
-        private static void HandleProxyResult(int result)
+        // ReSharper disable UnusedParameter.Local
+        private static void HandleProxyResult(int result) // ReSharper restore UnusedParameter.Local
         {
             // Context termination (ETERM) is an allowable error state, occurring when the
             // ZmqContext was terminated during a socket method.
@@ -1029,9 +1079,13 @@
 
         private TResult ExecuteWithTimeout<TResult>(Func<TResult> method, TimeSpan timeout)
         {
+            if ((int)timeout.TotalMilliseconds < 1)
+            {
+                return method();
+            }
+
             TResult receiveResult;
 
-            var timeoutMilliseconds = (int)timeout.TotalMilliseconds;
             var timer = Stopwatch.StartNew();
             var spin = new SpinWait();
 
@@ -1039,7 +1093,7 @@
             {
                 receiveResult = method();
 
-                if (ReceiveStatus != ReceiveStatus.TryAgain || timeoutMilliseconds < 1)
+                if (ReceiveStatus != ReceiveStatus.TryAgain)
                 {
                     break;
                 }

@@ -56,10 +56,11 @@ namespace ZeroMQ.Interop
                 zmq_msg_init_data = NativeLib.GetUnmanagedFunction<ZmqMsgInitDataProc>("zmq_msg_init_data");
                 zmq_msg_move = NativeLib.GetUnmanagedFunction<ZmqMsgMoveProc>("zmq_msg_move");
 
-                var zmq_msg_recv_impl = NativeLib.GetUnmanagedFunction<ZmqMsgRecvProc>("zmq_msg_recv");
-                var zmq_msg_send_impl = NativeLib.GetUnmanagedFunction<ZmqMsgSendProc>("zmq_msg_send");
-                zmq_msg_send = zmq_msg_send_impl;
-                zmq_msg_recv = zmq_msg_recv_impl;
+                zmq_msg_recv = NativeLib.GetUnmanagedFunction<ZmqMsgRecvProc>("zmq_msg_recv");
+                zmq_msg_send = NativeLib.GetUnmanagedFunction<ZmqMsgSendProc>("zmq_msg_send");
+
+                zmq_buffer_recv = NativeLib.GetUnmanagedFunction<ZmqBufferRecvProc>("zmq_recv");
+                zmq_buffer_send = NativeLib.GetUnmanagedFunction<ZmqBufferSendProc>("zmq_send");
 
                 zmq_ctx_new = NativeLib.GetUnmanagedFunction<ZmqCtxNewProc>("zmq_ctx_new");
                 zmq_ctx_destroy = NativeLib.GetUnmanagedFunction<ZmqCtxDestroyProc>("zmq_ctx_destroy");
@@ -77,8 +78,11 @@ namespace ZeroMQ.Interop
             {
                 var zmq_msg_recv_impl = NativeLib.GetUnmanagedFunction<ZmqMsgRecvProc>("zmq_recv");
                 var zmq_msg_send_impl = NativeLib.GetUnmanagedFunction<ZmqMsgSendProc>("zmq_send");
-                zmq_msg_send = (msg, sck, flags) => zmq_msg_send_impl(sck, msg, flags);
                 zmq_msg_recv = (msg, sck, flags) => zmq_msg_recv_impl(sck, msg, flags);
+                zmq_msg_send = (msg, sck, flags) => zmq_msg_send_impl(sck, msg, flags);
+
+                zmq_buffer_recv = null;
+                zmq_buffer_send = null;
 
                 var zmq_init = NativeLib.GetUnmanagedFunction<ZmqInitProc>("zmq_init");
                 zmq_ctx_new = () => zmq_init(1);
@@ -188,10 +192,18 @@ namespace ZeroMQ.Interop
         public delegate int ZmqMsgRecvProc(IntPtr msg, IntPtr socket, int flags);
         public static ZmqMsgRecvProc zmq_msg_recv;
 
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public delegate int ZmqBufferRecvProc(IntPtr socket, IntPtr buf, int size, int flags);
+        public static ZmqBufferRecvProc zmq_buffer_recv;
+
         // NOTE: For 2.x, this method signature is (socket, msg, flags)
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         public delegate int ZmqMsgSendProc(IntPtr msg, IntPtr socket, int flags);
         public static ZmqMsgSendProc zmq_msg_send;
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public delegate int ZmqBufferSendProc(IntPtr socket, IntPtr buf, int size, int flags);
+        public static ZmqBufferSendProc zmq_buffer_send;
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         public delegate IntPtr ZmqSocketProc(IntPtr context, int type);
