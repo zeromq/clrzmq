@@ -91,7 +91,7 @@
 
             if (pollEvents == PollEvents.None)
             {
-                throw new ArgumentOutOfRangeException("Unable to add socket without at least one handler.", "socket");
+                throw new ArgumentOutOfRangeException("socket", "Unable to add socket without at least one handler.");
             }
 
             _pollableSockets.Add(new PollItem(socket.SocketHandle, pollEvents), socket);
@@ -126,10 +126,11 @@
         /// Multiplex input/output events over the contained set of sockets in blocking mode, firing
         /// <see cref="ZmqSocket.ReceiveReady" /> or <see cref="ZmqSocket.SendReady" /> as appropriate.
         /// </summary>
+        /// <returns>The number of ready events that were signaled.</returns>
         /// <exception cref="ZmqSocketException">An error occurred polling for socket events.</exception>
-        public void Poll()
+        public int Poll()
         {
-            PollBlocking();
+            return PollBlocking();
         }
 
         /// <summary>
@@ -138,18 +139,14 @@
         /// Returns when one or more events are ready to fire or when the specified timeout elapses, whichever
         /// comes first.
         /// </summary>
+        /// <returns>The number of ready events that were signaled.</returns>
         /// <param name="timeout">A <see cref="TimeSpan"/> indicating the timeout value.</param>
         /// <exception cref="ZmqSocketException">An error occurred polling for socket events.</exception>
-        public void Poll(TimeSpan timeout)
+        public int Poll(TimeSpan timeout)
         {
-            if ((int)timeout.TotalMilliseconds == Timeout.Infinite)
-            {
-                PollBlocking();
-            }
-            else
-            {
-                PollNonBlocking(timeout);
-            }
+            return (int)timeout.TotalMilliseconds == Timeout.Infinite
+                ? PollBlocking()
+                : PollNonBlocking(timeout);
         }
 
         /// <summary>
@@ -175,28 +172,33 @@
             }
         }
 
-        private void PollBlocking()
+        private int PollBlocking()
         {
             CreatePollItems();
 
-            while (Poll(Timeout.Infinite) == -1 && !ErrorProxy.ContextWasTerminated)
+            int readyCount;
+
+            while ((readyCount = Poll(Timeout.Infinite)) == -1 && !ErrorProxy.ContextWasTerminated)
             {
                 ContinueIfInterrupted();
             }
+
+            return readyCount;
         }
 
-        private void PollNonBlocking(TimeSpan timeout)
+        private int PollNonBlocking(TimeSpan timeout)
         {
             CreatePollItems();
 
             var remainingTimeout = (int)timeout.TotalMilliseconds;
             var elapsed = Stopwatch.StartNew();
+            int readyCount;
 
             do
             {
-                int result = Poll(remainingTimeout);
+                readyCount = Poll(remainingTimeout);
 
-                if (result >= 0 || ErrorProxy.ContextWasTerminated)
+                if (readyCount >= 0 || ErrorProxy.ContextWasTerminated)
                 {
                     break;
                 }
@@ -205,6 +207,8 @@
                 remainingTimeout -= (int)elapsed.ElapsedMilliseconds;
             }
             while (remainingTimeout >= 0);
+
+            return readyCount;
         }
 
         private void CreatePollItems()
