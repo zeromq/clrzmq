@@ -89,13 +89,13 @@
         /// <summary>
         /// Alias for <see cref="ROUTER"/>.
         /// </summary>
-        [Obsolete("This socket type will be removed in a future release.")]
+        [Obsolete("This socket type will be removed in a future release. Use ROUTER instead.")]
         XREP = ROUTER,
 
         /// <summary>
         /// Alias for <see cref="DEALER"/>.
         /// </summary>
-        [Obsolete("This socket type will be removed in a future release.")]
+        [Obsolete("This socket type will be removed in a future release. Use DEALER instead.")]
         XREQ = DEALER,
     }
 }
