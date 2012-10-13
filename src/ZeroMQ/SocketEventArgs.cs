@@ -2,7 +2,7 @@
 {
     using System;
 
-    using ZeroMQ.Interop;
+    using Interop;
 
     /// <summary>
     /// Provides data for <see cref="ZmqSocket.ReceiveReady"/> and <see cref="ZmqSocket.SendReady"/> events.
@@ -16,9 +16,9 @@
                 throw new ArgumentNullException("socket");
             }
 
-            Socket = socket;
-            ReceiveReady = readyEvents.HasFlag(PollEvents.PollIn);
-            SendReady = readyEvents.HasFlag(PollEvents.PollOut);
+            this.Socket = socket;
+            this.ReceiveReady = readyEvents.HasFlag(PollEvents.PollIn);
+            this.SendReady = readyEvents.HasFlag(PollEvents.PollOut);
         }
 
         /// <summary>

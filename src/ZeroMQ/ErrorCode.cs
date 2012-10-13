@@ -7,7 +7,7 @@ namespace ZeroMQ
     using System.Linq;
     using System.Reflection;
 
-    using ZeroMQ.Interop;
+    using Interop;
 
     /// <summary>
     /// Contains cross-platform error code definitions.
@@ -16,6 +16,7 @@ namespace ZeroMQ
         Justification = "Errno values can be looked up easily.")]
     public static class ErrorCode
     {
+        // ReSharper disable InconsistentNaming
         public static readonly int EPERM = Platform.Errno.EPERM;
         public static readonly int ENOENT = Platform.Errno.ENOENT;
         public static readonly int ESRCH = Platform.Errno.ESRCH;
@@ -80,6 +81,8 @@ namespace ZeroMQ
                 .Where(f => f.FieldType == typeof(int))
                 .ToDictionary(f => (int)f.GetValue(null), f => f.Name);
         }
+
+        // ReSharper restore InconsistentNaming
     }
 }
 

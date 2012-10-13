@@ -2,7 +2,7 @@
 {
     using System;
 
-    using ZeroMQ.Interop;
+    using Interop;
 
     /// <summary>
     /// Provides ZeroMQ version information.

@@ -4,7 +4,7 @@
     using System.Diagnostics;
     using System.Threading;
 
-    using ZeroMQ.Interop;
+    using Interop;
 
     /// <summary>
     /// Sends and receives messages across various transports to potentially multiple endpoints
@@ -1017,7 +1017,7 @@
 
         internal PollEvents GetPollEvents()
         {
-            PollEvents events = PollEvents.None;
+            var events = PollEvents.None;
 
             if (ReceiveReady != null)
             {

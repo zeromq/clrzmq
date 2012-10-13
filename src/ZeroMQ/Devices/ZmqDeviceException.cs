@@ -3,7 +3,7 @@
     using System;
     using System.Runtime.Serialization;
 
-    using ZeroMQ.Interop;
+    using Interop;
 
     /// <summary>
     /// The exception that is thrown when a ZeroMQ device error occurs.

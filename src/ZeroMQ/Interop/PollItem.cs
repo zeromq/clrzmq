@@ -39,7 +39,9 @@
 
         public override int GetHashCode()
         {
+// ReSharper disable NonReadonlyFieldInGetHashCode -- 'Socket' will be modified by unmanaged code
             return Socket.GetHashCode();
+// ReSharper restore NonReadonlyFieldInGetHashCode
         }
     }
 }

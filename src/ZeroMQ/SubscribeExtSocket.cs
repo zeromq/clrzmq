@@ -1,7 +1,7 @@
 ﻿namespace ZeroMQ
 {
     using System;
-    using ZeroMQ.Interop;
+    using Interop;
 
     internal class SubscribeExtSocket : ZmqSocket
     {
@@ -20,7 +20,7 @@
                 throw new ArgumentNullException("prefix");
             }
 
-            SendWithPrefix(prefix, SubscribePrefix);
+            this.SendWithPrefix(prefix, SubscribePrefix);
         }
 
         public override void Unsubscribe(byte[] prefix)
@@ -30,7 +30,7 @@
                 throw new ArgumentNullException("prefix");
             }
 
-            SendWithPrefix(prefix, UnsubscribePrefix);
+            this.SendWithPrefix(prefix, UnsubscribePrefix);
         }
 
         private void SendWithPrefix(byte[] buffer, byte prefix)
@@ -40,7 +40,7 @@
             prefixedBuffer[0] = prefix;
             buffer.CopyTo(prefixedBuffer, 1);
 
-            Send(prefixedBuffer, prefixedBuffer.Length, SocketFlags.None);
+            this.Send(prefixedBuffer, prefixedBuffer.Length, SocketFlags.None);
         }
     }
 }

@@ -6,7 +6,7 @@
     using System.Linq;
     using System.Threading;
 
-    using ZeroMQ.Interop;
+    using Interop;
 
     /// <summary>
     /// Multiplexes input/output events in a level-triggered fashion over a set of sockets.

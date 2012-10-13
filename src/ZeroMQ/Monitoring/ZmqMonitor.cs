@@ -3,7 +3,7 @@ namespace ZeroMQ.Monitoring
     using System;
     using System.Collections.Generic;
 
-    using ZeroMQ.Interop;
+    using Interop;
 
     /// <summary>
     /// A socket monitoring object.

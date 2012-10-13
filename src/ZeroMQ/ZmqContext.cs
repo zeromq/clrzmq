@@ -3,8 +3,8 @@
     using System;
     using System.Collections.Concurrent;
     using System.Text;
-    using ZeroMQ.Interop;
-    using ZeroMQ.Monitoring;
+    using Interop;
+    using Monitoring;
 
     /// <summary>
     /// Creates <see cref="ZmqSocket"/> instances within a process boundary.

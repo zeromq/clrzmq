@@ -3,7 +3,7 @@
     using System;
     using System.Runtime.Serialization;
 
-    using ZeroMQ.Interop;
+    using Interop;
 
     /// <summary>
     /// An exception thrown by the result of a ZeroMQ library call.
@@ -17,8 +17,8 @@
         /// <param name="errorCode">The error code returned by the ZeroMQ library call.</param>
         public ZmqException(int errorCode)
         {
-            ErrorCode = errorCode;
-            ErrorName = GetErrorName(errorCode);
+            this.ErrorCode = errorCode;
+            this.ErrorName = GetErrorName(errorCode);
         }
 
         /// <summary>
@@ -29,8 +29,8 @@
         public ZmqException(int errorCode, string message)
             : base(message)
         {
-            ErrorCode = errorCode;
-            ErrorName = GetErrorName(errorCode);
+            this.ErrorCode = errorCode;
+            this.ErrorName = GetErrorName(errorCode);
         }
 
         /// <summary>
@@ -42,8 +42,8 @@
         public ZmqException(int errorCode, string message, Exception inner)
             : base(message, inner)
         {
-            ErrorCode = errorCode;
-            ErrorName = GetErrorName(errorCode);
+            this.ErrorCode = errorCode;
+            this.ErrorName = GetErrorName(errorCode);
         }
 
         internal ZmqException(ErrorDetails errorDetails)

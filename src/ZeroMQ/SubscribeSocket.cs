@@ -1,7 +1,7 @@
 ﻿namespace ZeroMQ
 {
     using System;
-    using ZeroMQ.Interop;
+    using Interop;
 
     internal class SubscribeSocket : ZmqSocket
     {
