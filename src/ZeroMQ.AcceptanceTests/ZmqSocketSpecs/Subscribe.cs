@@ -3,10 +3,11 @@
     using System;
     using System.Threading;
 
+    using AcceptanceTests;
+
     using Machine.Specifications;
 
     using ZeroMQ;
-    using ZeroMQ.AcceptanceTests;
 
     [Subject("Subscribe")]
     class when_subscribing_to_a_specific_prefix : using_threaded_pub_sub

@@ -4,9 +4,9 @@
     using System.Text;
     using System.Threading;
 
-    using Machine.Specifications;
+    using AcceptanceTests;
 
-    using ZeroMQ.AcceptanceTests;
+    using Machine.Specifications;
 
     [Subject("Send/Receive")]
     class when_transferring_in_blocking_mode : using_threaded_req_rep

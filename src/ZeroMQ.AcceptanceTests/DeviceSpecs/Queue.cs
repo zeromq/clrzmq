@@ -2,9 +2,9 @@
 {
     using System;
 
-    using Machine.Specifications;
+    using Devices;
 
-    using ZeroMQ.Devices;
+    using Machine.Specifications;
 
     [Subject("Queue")]
     class when_using_queue_device_to_send_a_single_message_in_blocking_mode : using_queue_device

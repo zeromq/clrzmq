@@ -3,9 +3,9 @@
     using System;
     using System.Threading;
 
-    using Machine.Specifications;
+    using Devices;
 
-    using ZeroMQ.Devices;
+    using Machine.Specifications;
 
     abstract class using_threaded_device<TDevice> where TDevice : Device
     {

@@ -5,7 +5,7 @@
 
     using Machine.Specifications;
 
-    using ZeroMQ.Monitoring;
+    using Monitoring;
 
     abstract class using_monitor
     {
@@ -73,7 +73,6 @@
 
     abstract class using_monitor_error : using_monitor
     {
-        protected static string address;
         protected static int errorCode;
 
         protected static void RecordEvent(object sender, ZmqMonitorErrorEventArgs args)

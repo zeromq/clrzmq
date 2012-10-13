@@ -1,8 +1,8 @@
 ﻿namespace ZeroMQ.AcceptanceTests.ZmqSocketSpecs
 {
-    using Machine.Specifications;
+    using AcceptanceTests;
 
-    using ZeroMQ.AcceptanceTests;
+    using Machine.Specifications;
 
     [Subject("SendMessage/ReceiveMessage")]
     class when_transferring_multipart_messages : using_threaded_req_rep

@@ -2,9 +2,9 @@
 {
     using System;
 
-    using Machine.Specifications;
+    using Devices;
 
-    using ZeroMQ.Devices;
+    using Machine.Specifications;
 
     [Subject("Forwarder")]
     class when_using_forwarder_device_with_full_subscription : using_forwarder_device
