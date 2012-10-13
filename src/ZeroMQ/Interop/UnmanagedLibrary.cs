@@ -14,6 +14,8 @@
     /// </remarks>
     internal sealed class UnmanagedLibrary : IDisposable
     {
+        private const string TraceCategory = "clrzmq[UnmanagedLibrary]";
+
         private static readonly string CurrentArch = Environment.Is64BitProcess ? "x64" : "x86";
 
         private readonly string _systemFileName;
@@ -40,7 +42,9 @@
 
             _systemFileName = fileName + Platform.LibSuffix;
             _handle = LoadFromSystemPath();
-            
+
+            Tracer.InfoIf(_handle != null, "Loading " + _systemFileName + " from LoadLibrary system path.", TraceCategory);
+
             if (_handle == null)
             {
                 // Ensure the correct manifest resource will always be used, even if it has already been extracted
@@ -52,7 +56,7 @@
             if (_handle == null || _handle.IsInvalid)
             {
                 throw new FileNotFoundException(
-                    "Unable to find " + _systemFileName + " on system path or the file found was not the expected file.",
+                    "Unable to find " + _systemFileName + " on system path or extract it from assembly manifest resources. Inspect Trace output for more details.",
                     _systemFileName,
                     Platform.GetLastLibraryError());
             }
@@ -115,7 +119,11 @@
 
         private SafeLibraryHandle LoadFromAssemblyPath()
         {
-            return ExtractAndLoadFromPath(GetFullAssemblyPath());
+            var assemblyPath = GetFullAssemblyPath();
+
+            Tracer.WarningIf(assemblyPath == null, "Unable to determine full assembly path.", TraceCategory);
+
+            return assemblyPath != null ? ExtractAndLoadFromPath(assemblyPath) : null;
         }
 
         private SafeLibraryHandle LoadFromExecutingPath()
@@ -139,9 +147,11 @@
 
             if (!ManifestResource.Extract(_systemFileName + platformSuffix, libPath))
             {
+                Tracer.Warning("Unable to extract native library to " + libPath, TraceCategory);
                 return null;
             }
 
+            Tracer.Info("Extracted and loading " + libPath, TraceCategory);
             return NullifyInvalidHandle(Platform.OpenHandle(libPath));
         }
     }

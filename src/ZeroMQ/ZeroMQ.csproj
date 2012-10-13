@@ -65,6 +65,7 @@
     <Compile Include="Interop\PollItem.cs" />
     <Compile Include="Interop\ManifestResource.cs" />
     <Compile Include="Interop\SafeLibraryHandle.cs" />
+    <Compile Include="Interop\Tracer.cs" />
     <Compile Include="Interop\UnmanagedLibrary.cs" />
     <Compile Include="Interop\ZmqMsgT.cs" />
     <Compile Include="Monitoring\MonitorEvent.cs" />
