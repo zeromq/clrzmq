@@ -70,6 +70,14 @@
         }
 
         /// <summary>
+        /// Gets the native 0MQ context.
+        /// </summary>
+        public IntPtr ContextHandle
+        {
+            get { return _contextProxy.ContextHandle; }
+        }
+
+        /// <summary>
         /// Create a <see cref="ZmqContext"/> instance.
         /// </summary>
         /// <returns>A <see cref="ZmqContext"/> instance with the default thread pool size (1).</returns>
