@@ -46,7 +46,7 @@
                 // Ensure the correct manifest resource will always be used, even if it has already been extracted
                 _extractedFileName = fileName + "-" + CurrentArch + "-" + Assembly.GetExecutingAssembly().GetName().Version + Platform.LibSuffix;
 
-                _handle = LoadFromLocalBinPath() ?? LoadFromExecutingPath() ?? LoadFromTempPath();
+                _handle = LoadFromAssemblyPath() ?? LoadFromExecutingPath() ?? LoadFromTempPath();
             }
 
             if (_handle == null || _handle.IsInvalid)
@@ -101,14 +101,21 @@
             return handle.IsInvalid ? null : handle;
         }
 
+        private static string GetFullAssemblyPath()
+        {
+            var dir = new Uri(Assembly.GetExecutingAssembly().CodeBase);
+            var fi = new FileInfo(Uri.UnescapeDataString(dir.AbsolutePath));
+            return fi.Directory != null ? fi.Directory.FullName : null;
+        }
+
         private SafeLibraryHandle LoadFromSystemPath()
         {
             return NullifyInvalidHandle(Platform.OpenHandle(_systemFileName));
         }
 
-        private SafeLibraryHandle LoadFromLocalBinPath()
+        private SafeLibraryHandle LoadFromAssemblyPath()
         {
-            return Directory.Exists("bin") ? ExtractAndLoadFromPath("bin") : null;
+            return ExtractAndLoadFromPath(GetFullAssemblyPath());
         }
 
         private SafeLibraryHandle LoadFromExecutingPath()
@@ -118,7 +125,8 @@
 
         private SafeLibraryHandle LoadFromTempPath()
         {
-            string dir = Path.Combine(Path.GetTempPath(), Assembly.GetExecutingAssembly().FullName, CurrentArch);
+            var assemblyName = Assembly.GetExecutingAssembly().GetName();
+            string dir = Path.Combine(Path.GetTempPath(), assemblyName.Name + "-" + assemblyName.Version);
             Directory.CreateDirectory(dir);
 
             return ExtractAndLoadFromPath(dir);
