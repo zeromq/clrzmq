@@ -88,6 +88,50 @@ namespace ZMQGuide
 
 More C# examples can be found in the [0MQ Guide][zmq-guide] or in the [examples repository][zmq-example-repo]. Tutorials and API documentation specific to clrzmq are on the way.
 
+## Deployment Notes
+
+When using a packaged (NuGet/zip) release on Windows, clrzmq comes bundled with 32- and 64-bit versions of libzmq.dll that have been fully tested with the binding package.
+The DLLs are embedded as manifest resources in the assembly and are extracted when initially loading the assembly.
+To accommodate different deployment needs, several output paths may be used.
+
+The libzmq.dll search/extract order is as follows:
+
+1. libzmq.dll on System Path
+   - Allows loading a custom libzmq.dll into system32, %PATH%, etc. (see [LoadLibrary][load-library] for search order)
+2. Extract to assembly path
+   - Full path to the currently executing clrzmq.dll
+3. Extract to execution path
+   - Full path to the executable calling clrzmq
+4. Extract to temporary path
+   - Current user's `%TEMP%\clrzmq-x.x.x.x`
+   - Last ditch fallback: only severly restricted accounts will fail to extract to this path
+
+### Tracing
+
+If you run into problems related to loading the native library, you can enable tracing in your application as follows:
+
+1. Add a trace listener to your application (see [TraceListener](http://msdn.microsoft.com/en-us/library/system.diagnostics.tracelistener.aspx) for an example)
+2. Configure the `clrzmq` trace switch to use the `Info` level (3):
+
+```xml
+<configuration>
+  <system.diagnostics>
+    <switches>
+      <add name="clrzmq" value="3" /><!-- Info -->
+    </switches>
+  </system.diagnostics>
+</configuration>
+```
+
+### IIS Deployments
+
+IIS deployments can be complicated due to the many possible identities and privilege levels that may be executing your application.
+There are a few steps you can take to ensure the bundled native libraries can be properly extracted and used:
+
+1. At the bare minimum, ensure the Application Pool identity has write access to its `%TEMP%` folder
+2. Allow write access to your application's `bin` directory (i.e., the directory containing clrzmq.dll and your application assemblies)
+3. If none of those options are suitable, you will need to obtain a compiled version of libzmq.dll for your platform and extract it to a system path (see [LoadLibrary][load-library] for candidates)
+
 ## Development Environment
 
 On Windows/.NET, clrzmq is developed with Visual Studio 2010. Mono development is done with MonoDevelop 2.8+.
@@ -177,6 +221,7 @@ This project is released under the [LGPL][lgpl] license, as is the native libzmq
 [clrzmq-old]: https://github.com/zeromq/clrzmq-old
 [clrzmq-nuget]: http://packages.nuget.org/Packages/clrzmq
 [libzmq]: https://github.com/zeromq/libzmq
+[load-library]: http://msdn.microsoft.com/en-us/library/windows/desktop/ms684175(v=vs.85).aspx
 [zmq-guide]: http://zguide.zeromq.org/page:all
 [zmq-example-repo]: https://github.com/imatix/zguide/tree/master/examples/C%23
 [zmq-dl]: http://www.zeromq.org/intro:get-the-software
