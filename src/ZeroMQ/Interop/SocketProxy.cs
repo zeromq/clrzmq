@@ -3,7 +3,6 @@
     using System;
     using System.Runtime.InteropServices;
 
-    // ReSharper disable AccessToDisposedClosure
     internal class SocketProxy : IDisposable
     {
         public const int MaxBufferSize = 8192;
@@ -85,7 +84,7 @@
             // Use zmq_buffer_recv method if appropriate -> results in fewer P/Invoke calls
             if (buffer.Length <= MaxBufferSize && LibZmq.zmq_buffer_recv != null)
             {
-                int bytesReceived = RetryIfInterrupted(() => LibZmq.zmq_buffer_recv(SocketHandle, _receiveIntPtrBuffer, MaxBufferSize, flags));
+                int bytesReceived = MethodHelper.RetryIfInterrupted(LibZmq.zmq_buffer_recv.Invoke, SocketHandle, _receiveIntPtrBuffer, MaxBufferSize, flags);
                 int size = Math.Min(buffer.Length, bytesReceived);
 
                 Marshal.Copy(_receiveIntPtrBuffer, buffer, 0, size);
@@ -100,7 +99,7 @@
                     return -1;
                 }
 
-                int bytesReceived = RetryIfInterrupted(() => LibZmq.zmq_msg_recv(message, SocketHandle, flags));
+                int bytesReceived = MethodHelper.RetryIfInterrupted(LibZmq.zmq_msg_recv.Invoke, message.Ptr, SocketHandle, flags);
 
                 if (bytesReceived == 0 && LibZmq.MajorVersion < 3)
                 {
@@ -133,7 +132,7 @@
                     return buffer;
                 }
 
-                int bytesReceived = RetryIfInterrupted(() => LibZmq.zmq_msg_recv(message, SocketHandle, flags));
+                int bytesReceived = MethodHelper.RetryIfInterrupted(LibZmq.zmq_msg_recv.Invoke, message.Ptr, SocketHandle, flags);
 
                 if (bytesReceived >= 0)
                 {
@@ -170,7 +169,7 @@
                 int sizeToSend = Math.Min(size, MaxBufferSize);
                 Marshal.Copy(buffer, 0, _sendIntPtrBuffer, sizeToSend);
 
-                return RetryIfInterrupted(() => LibZmq.zmq_buffer_send(SocketHandle, _sendIntPtrBuffer, sizeToSend, flags));
+                return MethodHelper.RetryIfInterrupted(LibZmq.zmq_buffer_send.Invoke, SocketHandle, _sendIntPtrBuffer, sizeToSend, flags);
             }
 
             using (var message = new ZmqMsgT())
@@ -185,7 +184,7 @@
                     Marshal.Copy(buffer, 0, message.Data(), size);
                 }
 
-                int bytesSent = RetryIfInterrupted(() => LibZmq.zmq_msg_send(message, SocketHandle, flags));
+                int bytesSent = MethodHelper.RetryIfInterrupted(LibZmq.zmq_msg_send.Invoke, message.Ptr, SocketHandle, flags);
 
                 if (bytesSent == 0 && LibZmq.MajorVersion < 3)
                 {
@@ -249,7 +248,7 @@
             {
                 Marshal.WriteInt32(optionLength, sizeof(int));
 
-                int rc = RetryIfInterrupted(() => LibZmq.zmq_getsockopt(SocketHandle, option, optionValue, optionLength));
+                int rc = MethodHelper.RetryIfInterrupted(LibZmq.zmq_getsockopt.Invoke, SocketHandle, option, optionValue.Ptr, optionLength.Ptr);
                 value = Marshal.ReadInt32(optionValue);
 
                 return rc;
@@ -263,7 +262,7 @@
             {
                 Marshal.WriteInt32(optionLength, sizeof(long));
 
-                int rc = RetryIfInterrupted(() => LibZmq.zmq_getsockopt(SocketHandle, option, optionValue, optionLength));
+                int rc = MethodHelper.RetryIfInterrupted(LibZmq.zmq_getsockopt.Invoke, SocketHandle, option, optionValue.Ptr, optionLength.Ptr);
                 value = Marshal.ReadInt64(optionValue);
 
                 return rc;
@@ -277,7 +276,7 @@
             {
                 Marshal.WriteInt32(optionLength, sizeof(ulong));
 
-                int rc = RetryIfInterrupted(() => LibZmq.zmq_getsockopt(SocketHandle, option, optionValue, optionLength));
+                int rc = MethodHelper.RetryIfInterrupted(LibZmq.zmq_getsockopt.Invoke, SocketHandle, option, optionValue.Ptr, optionLength.Ptr);
                 value = unchecked(Convert.ToUInt64(Marshal.ReadInt64(optionValue)));
 
                 return rc;
@@ -291,7 +290,7 @@
             {
                 Marshal.WriteInt32(optionLength, MaxBinaryOptionSize);
 
-                int rc = RetryIfInterrupted(() => LibZmq.zmq_getsockopt(SocketHandle, option, optionValue, optionLength));
+                int rc = MethodHelper.RetryIfInterrupted(LibZmq.zmq_getsockopt.Invoke, SocketHandle, option, optionValue.Ptr, optionLength.Ptr);
 
                 value = new byte[Marshal.ReadInt32(optionLength)];
                 Marshal.Copy(optionValue, value, 0, value.Length);
@@ -307,7 +306,7 @@
             {
                 Marshal.WriteInt32(optionLength, MaxBinaryOptionSize);
 
-                int rc = RetryIfInterrupted(() => LibZmq.zmq_getsockopt(SocketHandle, option, optionValue, optionLength));
+                int rc = MethodHelper.RetryIfInterrupted(LibZmq.zmq_getsockopt.Invoke, SocketHandle, option, optionValue.Ptr, optionLength.Ptr);
 
                 value = rc == 0 ? Marshal.PtrToStringAnsi(optionValue) : string.Empty;
 
@@ -319,7 +318,7 @@
         {
             if (value == null)
             {
-                return RetryIfInterrupted(() => LibZmq.zmq_setsockopt(SocketHandle, option, IntPtr.Zero, 0));
+                return MethodHelper.RetryIfInterrupted(LibZmq.zmq_setsockopt.Invoke, SocketHandle, option, IntPtr.Zero, 0);
             }
 
             var encoded = System.Text.Encoding.ASCII.GetBytes(value + "\x0");
@@ -327,7 +326,7 @@
             {
                 Marshal.Copy(encoded, 0, optionValue, encoded.Length);
 
-                return RetryIfInterrupted(() => LibZmq.zmq_setsockopt(SocketHandle, option, optionValue, value.Length));
+                return MethodHelper.RetryIfInterrupted(LibZmq.zmq_setsockopt.Invoke, SocketHandle, option, optionValue.Ptr, value.Length);
             }
         }
 
@@ -337,7 +336,7 @@
             {
                 Marshal.WriteInt32(optionValue, value);
 
-                return RetryIfInterrupted(() => LibZmq.zmq_setsockopt(SocketHandle, option, optionValue, sizeof(int)));
+                return MethodHelper.RetryIfInterrupted(LibZmq.zmq_setsockopt.Invoke, SocketHandle, option, optionValue.Ptr, sizeof(int));
             }
         }
 
@@ -347,7 +346,7 @@
             {
                 Marshal.WriteInt64(optionValue, value);
 
-                return RetryIfInterrupted(() => LibZmq.zmq_setsockopt(SocketHandle, option, optionValue, sizeof(long)));
+                return MethodHelper.RetryIfInterrupted(LibZmq.zmq_setsockopt.Invoke, SocketHandle, option, optionValue.Ptr, sizeof(long));
             }
         }
 
@@ -357,7 +356,7 @@
             {
                 Marshal.WriteInt64(optionValue, unchecked(Convert.ToInt64(value)));
 
-                return RetryIfInterrupted(() => LibZmq.zmq_setsockopt(SocketHandle, option, optionValue, sizeof(ulong)));
+                return MethodHelper.RetryIfInterrupted(LibZmq.zmq_setsockopt.Invoke, SocketHandle, option, optionValue.Ptr, sizeof(ulong));
             }
         }
 
@@ -367,7 +366,7 @@
             {
                 Marshal.Copy(value, 0, optionValue, value.Length);
 
-                return RetryIfInterrupted(() => LibZmq.zmq_setsockopt(SocketHandle, option, optionValue, value.Length));
+                return MethodHelper.RetryIfInterrupted(LibZmq.zmq_setsockopt.Invoke, SocketHandle, option, optionValue.Ptr, value.Length);
             }
         }
 
@@ -390,19 +389,6 @@
             _disposed = true;
         }
 
-        private static int RetryIfInterrupted(Func<int> func)
-        {
-            int rc;
-
-            do
-            {
-                rc = func();
-            }
-            while (rc == -1 && LibZmq.zmq_errno() == ErrorCode.EINTR);
-
-            return rc;
-        }
-
         private int GetReceiveMore(out int receiveMore)
         {
             if (LibZmq.MajorVersion >= 3)
@@ -417,6 +403,4 @@
             return rc;
         }
     }
-
-    // ReSharper restore AccessToDisposedClosure
 }

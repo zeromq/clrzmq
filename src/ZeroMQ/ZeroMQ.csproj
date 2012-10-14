@@ -56,6 +56,7 @@
     <Compile Include="Interop\EventDataFileDescriptorEntry.cs" />
     <Compile Include="Interop\EventDataIntervalEntry.cs" />
     <Compile Include="Interop\LibZmq.Mono.cs" />
+    <Compile Include="Interop\MethodHelper.cs" />
     <Compile Include="Interop\Platform.Mono.cs" />
     <Compile Include="Interop\Platform.NET.cs" />
     <Compile Include="Interop\Platform.Unix.cs" />
