@@ -52,6 +52,19 @@
         public static Encoding DefaultEncoding { get; set; }
 
         /// <summary>
+        /// Gets a handle to the native 0MQ context.
+        /// </summary>
+        /// <remarks>
+        /// May be used to share a single ZmqContext with native libraries that use the
+        /// 0MQ API directly. Allows the inproc transport to be used if a single process
+        /// has a heterogeneous codebase.
+        /// </remarks>
+        public IntPtr ContextHandle
+        {
+            get { return _contextProxy.ContextHandle; }
+        }
+
+        /// <summary>
         /// Gets or sets the size of the thread pool for the current context (default = 1).
         /// </summary>
         public int ThreadPoolSize
