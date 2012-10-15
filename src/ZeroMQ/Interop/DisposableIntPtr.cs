@@ -3,19 +3,14 @@
     using System;
     using System.Runtime.InteropServices;
 
-    internal class DisposableIntPtr : IDisposable
+    internal struct DisposableIntPtr : IDisposable
     {
+        public IntPtr Ptr;
+
         public DisposableIntPtr(int size)
         {
             Ptr = Marshal.AllocHGlobal(size);
         }
-
-        ~DisposableIntPtr()
-        {
-            Dispose(false);
-        }
-
-        public IntPtr Ptr { get; private set; }
 
         public static implicit operator IntPtr(DisposableIntPtr disposablePtr)
         {
@@ -23,12 +18,6 @@
         }
 
         public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        protected virtual void Dispose(bool disposing)
         {
             if (Ptr != IntPtr.Zero)
             {

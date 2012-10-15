@@ -10,8 +10,8 @@
         // From options.hpp: unsigned char identity [256];
         private const int MaxBinaryOptionSize = 255;
 
-        private readonly IntPtr _receiveIntPtrBuffer;
-        private readonly IntPtr _sendIntPtrBuffer;
+        private readonly ZmqMsgT _msg;
+        private readonly IntPtr _buffer;
 
         private readonly Action<IntPtr> _socketClosed;
 
@@ -32,8 +32,8 @@
             SocketHandle = socketHandle;
             _socketClosed = socketClosed;
 
-            _receiveIntPtrBuffer = Marshal.AllocHGlobal(MaxBufferSize);
-            _sendIntPtrBuffer = Marshal.AllocHGlobal(MaxBufferSize);
+            _msg = new ZmqMsgT();
+            _buffer = Marshal.AllocHGlobal(MaxBufferSize);
         }
 
         ~SocketProxy()
@@ -81,84 +81,80 @@
 
         public int Receive(byte[] buffer, int flags)
         {
+            int bytesReceived;
+
             // Use zmq_buffer_recv method if appropriate -> results in fewer P/Invoke calls
             if (buffer.Length <= MaxBufferSize && LibZmq.zmq_buffer_recv != null)
             {
-                int bytesReceived = MethodHelper.RetryIfInterrupted(LibZmq.zmq_buffer_recv.Invoke, SocketHandle, _receiveIntPtrBuffer, MaxBufferSize, flags);
+                bytesReceived = MethodHelper.RetryIfInterrupted(LibZmq.zmq_buffer_recv.Invoke, SocketHandle, _buffer, MaxBufferSize, flags);
                 int size = Math.Min(buffer.Length, bytesReceived);
 
-                Marshal.Copy(_receiveIntPtrBuffer, buffer, 0, size);
+                Marshal.Copy(_buffer, buffer, 0, size);
 
                 return size;
             }
 
-            using (var message = new ZmqMsgT())
+            if (_msg.Init(buffer.Length) == -1)
             {
-                if (message.Init(buffer.Length) == -1)
-                {
-                    return -1;
-                }
-
-                int bytesReceived = MethodHelper.RetryIfInterrupted(LibZmq.zmq_msg_recv.Invoke, message.Ptr, SocketHandle, flags);
-
-                if (bytesReceived == 0 && LibZmq.MajorVersion < 3)
-                {
-                    // 0MQ 2.x does not return number of bytes received
-                    bytesReceived = message.Size();
-                }
-
-                if (bytesReceived > 0)
-                {
-                    Marshal.Copy(message.Data(), buffer, 0, bytesReceived);
-                }
-
-                if (message.Close() == -1)
-                {
-                    return -1;
-                }
-
-                return bytesReceived;
+                return -1;
             }
+
+            bytesReceived = MethodHelper.RetryIfInterrupted(LibZmq.zmq_msg_recv.Invoke, _msg.Ptr, SocketHandle, flags);
+
+            if (bytesReceived == 0 && LibZmq.MajorVersion < 3)
+            {
+                // 0MQ 2.x does not return number of bytes received
+                bytesReceived = _msg.Size();
+            }
+
+            if (bytesReceived > 0)
+            {
+                Marshal.Copy(_msg.Data(), buffer, 0, bytesReceived);
+            }
+
+            if (_msg.Close() == -1)
+            {
+                return -1;
+            }
+
+            return bytesReceived;
         }
 
         public byte[] Receive(byte[] buffer, int flags, out int size)
         {
             size = -1;
 
-            using (var message = new ZmqMsgT())
+            if (_msg.Init() == -1)
             {
-                if (message.Init() == -1)
-                {
-                    return buffer;
-                }
-
-                int bytesReceived = MethodHelper.RetryIfInterrupted(LibZmq.zmq_msg_recv.Invoke, message.Ptr, SocketHandle, flags);
-
-                if (bytesReceived >= 0)
-                {
-                    if (bytesReceived == 0 && LibZmq.MajorVersion < 3)
-                    {
-                        // 0MQ 2.x does not return number of bytes received
-                        bytesReceived = message.Size();
-                    }
-
-                    size = bytesReceived;
-
-                    if (buffer == null || size > buffer.Length)
-                    {
-                        buffer = new byte[size];
-                    }
-
-                    Marshal.Copy(message.Data(), buffer, 0, size);
-                }
-
-                if (message.Close() == -1)
-                {
-                    size = -1;
-                }
-
                 return buffer;
             }
+
+            int bytesReceived = MethodHelper.RetryIfInterrupted(LibZmq.zmq_msg_recv.Invoke, _msg.Ptr, SocketHandle, flags);
+
+            if (bytesReceived >= 0)
+            {
+                if (bytesReceived == 0 && LibZmq.MajorVersion < 3)
+                {
+                    // 0MQ 2.x does not return number of bytes received
+                    bytesReceived = _msg.Size();
+                }
+
+                size = bytesReceived;
+
+                if (buffer == null || size > buffer.Length)
+                {
+                    buffer = new byte[size];
+                }
+
+                Marshal.Copy(_msg.Data(), buffer, 0, size);
+            }
+
+            if (_msg.Close() == -1)
+            {
+                size = -1;
+            }
+
+            return buffer;
         }
 
         public int Send(byte[] buffer, int size, int flags)
@@ -167,78 +163,72 @@
             if (buffer.Length <= MaxBufferSize && LibZmq.zmq_buffer_send != null)
             {
                 int sizeToSend = Math.Min(size, MaxBufferSize);
-                Marshal.Copy(buffer, 0, _sendIntPtrBuffer, sizeToSend);
+                Marshal.Copy(buffer, 0, _buffer, sizeToSend);
 
-                return MethodHelper.RetryIfInterrupted(LibZmq.zmq_buffer_send.Invoke, SocketHandle, _sendIntPtrBuffer, sizeToSend, flags);
+                return MethodHelper.RetryIfInterrupted(LibZmq.zmq_buffer_send.Invoke, SocketHandle, _buffer, sizeToSend, flags);
             }
 
-            using (var message = new ZmqMsgT())
+            if (_msg.Init(size) == -1)
             {
-                if (message.Init(size) == -1)
-                {
-                    return -1;
-                }
-
-                if (size > 0)
-                {
-                    Marshal.Copy(buffer, 0, message.Data(), size);
-                }
-
-                int bytesSent = MethodHelper.RetryIfInterrupted(LibZmq.zmq_msg_send.Invoke, message.Ptr, SocketHandle, flags);
-
-                if (bytesSent == 0 && LibZmq.MajorVersion < 3)
-                {
-                    // 0MQ 2.x does not report number of bytes sent, so this may be inaccurate/misleading
-                    bytesSent = size;
-                }
-
-                if (message.Close() == -1)
-                {
-                    return -1;
-                }
-
-                return bytesSent;
+                return -1;
             }
+
+            if (size > 0)
+            {
+                Marshal.Copy(buffer, 0, _msg.Data(), size);
+            }
+
+            int bytesSent = MethodHelper.RetryIfInterrupted(LibZmq.zmq_msg_send.Invoke, _msg.Ptr, SocketHandle, flags);
+
+            if (bytesSent == 0 && LibZmq.MajorVersion < 3)
+            {
+                // 0MQ 2.x does not report number of bytes sent, so this may be inaccurate/misleading
+                bytesSent = size;
+            }
+
+            if (_msg.Close() == -1)
+            {
+                return -1;
+            }
+
+            return bytesSent;
         }
 
         public int Forward(IntPtr destinationHandle)
         {
-            using (var message = new ZmqMsgT())
+            if (_msg.Init() == -1)
             {
-                if (message.Init() == -1)
-                {
-                    return -1;
-                }
-
-                int receiveMore;
-                int bytesSent;
-
-                do
-                {
-                    if (LibZmq.zmq_msg_recv(message, SocketHandle, 0) == -1)
-                    {
-                        return -1;
-                    }
-
-                    if (GetReceiveMore(out receiveMore) == -1)
-                    {
-                        return -1;
-                    }
-
-                    if ((bytesSent = LibZmq.zmq_msg_send(message, destinationHandle, receiveMore == 1 ? (int)SocketFlags.SendMore : 0)) == -1)
-                    {
-                        return -1;
-                    }
-                }
-                while (receiveMore == 1);
-
-                if (message.Close() == -1)
-                {
-                    return -1;
-                }
-
-                return bytesSent;
+                return -1;
             }
+
+            int receiveMore;
+            int bytesSent;
+
+            do
+            {
+                if (LibZmq.zmq_msg_recv(_msg, SocketHandle, 0) == -1)
+                {
+                    return -1;
+                }
+
+                if (GetReceiveMore(out receiveMore) == -1)
+                {
+                    return -1;
+                }
+
+                if ((bytesSent = LibZmq.zmq_msg_send(_msg, destinationHandle, receiveMore == 1 ? (int)SocketFlags.SendMore : 0)) == -1)
+                {
+                    return -1;
+                }
+            }
+            while (receiveMore == 1);
+
+            if (_msg.Close() == -1)
+            {
+                return -1;
+            }
+
+            return bytesSent;
         }
 
         public int GetSocketOption(int option, out int value)
@@ -378,10 +368,11 @@
 
         protected virtual void Dispose(bool disposing)
         {
+            _msg.Dispose(disposing);
+
             if (!_disposed && disposing)
             {
-                Marshal.FreeHGlobal(_receiveIntPtrBuffer);
-                Marshal.FreeHGlobal(_sendIntPtrBuffer);
+                Marshal.FreeHGlobal(_buffer);
 
                 Close();
             }
