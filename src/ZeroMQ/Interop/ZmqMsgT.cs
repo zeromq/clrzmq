@@ -2,23 +2,34 @@
 {
     using System;
 
-    internal class ZmqMsgT : DisposableIntPtr
+    internal sealed class ZmqMsgT : IDisposable
     {
+        private DisposableIntPtr _ptr;
         private bool _initialized;
 
         public ZmqMsgT()
-            : base(LibZmq.ZmqMsgTSize)
         {
+            _ptr = new DisposableIntPtr(LibZmq.ZmqMsgTSize);
+        }
+
+        ~ZmqMsgT()
+        {
+            Dispose(false);
+        }
+
+        public IntPtr Ptr
+        {
+            get { return _ptr.Ptr; }
         }
 
         public static implicit operator IntPtr(ZmqMsgT msg)
         {
-            return msg.Ptr;
+            return msg._ptr;
         }
 
         public int Init()
         {
-            int rc = LibZmq.zmq_msg_init(Ptr);
+            int rc = LibZmq.zmq_msg_init(_ptr);
 
             _initialized = true;
 
@@ -27,7 +38,7 @@
 
         public int Init(int size)
         {
-            int rc = LibZmq.zmq_msg_init_size(Ptr, size);
+            int rc = LibZmq.zmq_msg_init_size(_ptr, size);
 
             _initialized = true;
 
@@ -36,7 +47,7 @@
 
         public int Close()
         {
-            int rc = LibZmq.zmq_msg_close(Ptr);
+            int rc = LibZmq.zmq_msg_close(_ptr);
 
             _initialized = false;
 
@@ -45,22 +56,28 @@
 
         public int Size()
         {
-            return LibZmq.zmq_msg_size(Ptr);
+            return LibZmq.zmq_msg_size(_ptr);
         }
 
         public IntPtr Data()
         {
-            return LibZmq.zmq_msg_data(Ptr);
+            return LibZmq.zmq_msg_data(_ptr);
         }
 
-        protected override void Dispose(bool disposing)
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        internal void Dispose(bool disposing)
         {
             if (disposing && _initialized)
             {
                 Close();
             }
 
-            base.Dispose(disposing);
+            _ptr.Dispose();
         }
     }
 }
