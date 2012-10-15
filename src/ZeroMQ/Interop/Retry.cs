@@ -2,9 +2,9 @@
 {
     using System;
 
-    internal static class MethodHelper
+    internal static class Retry
     {
-        public static int RetryIfInterrupted<T1, T2, T3>(Func<T1, T2, T3, int> operation, T1 arg1, T2 arg2, T3 arg3)
+        public static int IfInterrupted<T1, T2, T3>(Func<T1, T2, T3, int> operation, T1 arg1, T2 arg2, T3 arg3)
         {
             int rc;
 
@@ -17,7 +17,7 @@
             return rc;
         }
 
-        public static int RetryIfInterrupted<T1, T2, T3, T4>(Func<T1, T2, T3, T4, int> operation, T1 arg1, T2 arg2, T3 arg3, T4 arg4)
+        public static int IfInterrupted<T1, T2, T3, T4>(Func<T1, T2, T3, T4, int> operation, T1 arg1, T2 arg2, T3 arg3, T4 arg4)
         {
             int rc;
 
