@@ -3,7 +3,7 @@
 
 This project aims to provide the full functionality of the underlying ZeroMQ API to CLR projects.
 
-Bundled libzmq version: **3.2.1-beta2**  
+Bundled libzmq version: **3.2.1-beta3**  
 Legacy libzmq version supported: **2.2.0 (stable)**
 
 ## Getting Started
