@@ -1,7 +1,7 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build" ToolsVersion="4.0">
 
   <PropertyGroup>
-    <SolutionDir Condition="'$(SolutionDir)' == ''">.</SolutionDir>
+    <SolutionDir Condition="'$(SolutionDir)' == ''">$(MSBuildProjectDirectory)</SolutionDir>
     <LibDir Condition="'$(LibDir)' == ''">..\lib</LibDir>
     <BuildDir>..\build</BuildDir>
     <PackageDir>..\publish</PackageDir>
@@ -32,10 +32,8 @@
 
   <ItemGroup>
     <CleanFiles Include="$(BuildDir)" />
-    <CleanFiles Include="$(SolutionDir)\**\bin\$(Configuration)\**" />
-    <CleanFiles Include="$(SolutionDir)\**\bin\**\*.*" />
-    <CleanFiles Include="$(SolutionDir)\**\obj\$(Configuration)\**" />
-    <CleanFiles Include="$(SolutionDir)\**\obj\**\*.*" />
+    <CleanFiles Include="$(SolutionDir)\*\bin\$(Configuration)\**" />
+    <CleanFiles Include="$(SolutionDir)\*\obj\$(Configuration)\**" />
   </ItemGroup>
 
   <ItemGroup>
