@@ -53,6 +53,9 @@
     <Compile Include="ZmqSocketSpecs\SocketOptions.cs" />
     <Compile Include="ZmqSocketSpecs\SpecContext.cs" />
     <Compile Include="ZmqSocketSpecs\Subscribe.cs" />
+    <Compile Include="ZmqContextSpecs\ContextOptions.cs" />
+    <Compile Include="ZmqMonitorSpecs\MonitorEvents.cs" />
+    <Compile Include="ZmqMonitorSpecs\SpecContext.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
