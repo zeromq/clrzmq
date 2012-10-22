@@ -37,7 +37,7 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
     <Reference Include="Machine.Specifications">
-      <HintPath>..\packages\Machine.Specifications.0.5.3.0\lib\Machine.Specifications.dll</HintPath>
+      <HintPath>..\packages\Machine.Specifications.0.5.9\lib\net40\Machine.Specifications.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
