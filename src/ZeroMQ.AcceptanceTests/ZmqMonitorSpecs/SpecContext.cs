@@ -50,7 +50,11 @@
 
     abstract class using_monitor_fd : using_monitor
     {
+#if UNIX
+        protected static int socketPtr;
+#else
         protected static IntPtr socketPtr;
+#endif
 
         protected static void RecordEvent(object sender, ZmqMonitorFileDescriptorEventArgs args)
         {
@@ -63,7 +67,11 @@
 
         Establish context = () =>
         {
+#if UNIX
+            socketPtr = 0;
+#else
             socketPtr = IntPtr.Zero;
+#endif
         };
 
         Cleanup resources = () =>
