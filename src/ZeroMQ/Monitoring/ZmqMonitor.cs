@@ -22,14 +22,16 @@ namespace ZeroMQ.Monitoring
     /// </remarks>
     public class ZmqMonitor : IDisposable
     {
-        private readonly ContextProxy _contextProxy;
+        private readonly ZmqSocket _socket;
+        private readonly string _endpoint;
         private readonly Dictionary<MonitorEvents, Action<ZmqSocket, EventData>> _eventHandler;
 
         private bool _disposed;
 
-        internal ZmqMonitor(ContextProxy contextProxy)
+        internal ZmqMonitor(ZmqSocket pairSocket, string endpoint)
         {
-            _contextProxy = contextProxy;
+            _socket = pairSocket;
+            _endpoint = endpoint;
             _eventHandler = new Dictionary<MonitorEvents, Action<ZmqSocket, EventData>>
             {
                 { MonitorEvents.Connected, (socket, data) => InvokeEvent(Connected, () => data.Connected.CreateEventArgs(socket)) },
@@ -96,18 +98,6 @@ namespace ZeroMQ.Monitoring
         public event EventHandler<ZmqMonitorFileDescriptorEventArgs> Disconnected;
 
         /// <summary>
-        /// Unregisters the <see cref="ZmqMonitor"/> from its <see cref="ZmqContext"/>. After calling this
-        /// method, no more events will be invoked.
-        /// </summary>
-        public void Unregister()
-        {
-            if (_contextProxy.UnregisterMonitor() == -1)
-            {
-                throw new ZmqException(ErrorProxy.GetLastError());
-            }
-        }
-
-        /// <summary>
         /// Releases all resources used by the current instance of the <see cref="ZmqMonitor"/> class.
         /// </summary>
         public void Dispose()
@@ -131,7 +121,6 @@ namespace ZeroMQ.Monitoring
             {
                 if (disposing)
                 {
-                    Unregister();
                 }
             }
 

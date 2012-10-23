@@ -69,6 +69,7 @@
     <Compile Include="Interop\Tracer.cs" />
     <Compile Include="Interop\UnmanagedLibrary.cs" />
     <Compile Include="Interop\ZmqMsgT.cs" />
+    <Compile Include="Monitoring\MonitorContextExtensions.cs" />
     <Compile Include="Monitoring\MonitorEvents.cs" />
     <Compile Include="Monitoring\MonitorSocketExtensions.cs" />
     <Compile Include="RouterBehavior.cs" />
