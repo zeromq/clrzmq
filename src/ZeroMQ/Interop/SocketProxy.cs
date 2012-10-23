@@ -13,24 +13,16 @@
         private readonly ZmqMsgT _msg;
         private readonly IntPtr _buffer;
 
-        private readonly Action<IntPtr> _socketClosed;
-
         private bool _disposed;
 
-        public SocketProxy(IntPtr socketHandle, Action<IntPtr> socketClosed)
+        public SocketProxy(IntPtr socketHandle)
         {
             if (socketHandle == IntPtr.Zero)
             {
                 throw new ArgumentException("Socket handle must be a valid pointer.", "socketHandle");
             }
 
-            if (socketClosed == null)
-            {
-                throw new ArgumentNullException("socketClosed");
-            }
-
             SocketHandle = socketHandle;
-            _socketClosed = socketClosed;
 
             _msg = new ZmqMsgT();
             _buffer = Marshal.AllocHGlobal(MaxBufferSize);
@@ -72,7 +64,6 @@
             }
 
             int rc = LibZmq.zmq_close(SocketHandle);
-            _socketClosed(SocketHandle);
 
             SocketHandle = IntPtr.Zero;
 

@@ -4,11 +4,6 @@
 
     internal class ContextProxy : IDisposable
     {
-        /// <summary>
-        /// This will prevent the garbage collector from collecting the callback delegate during the execution.
-        /// </summary>
-        private LibZmq.MonitorFuncCallback _callback;
-
         private bool _disposed;
 
         ~ContextProxy()
@@ -17,11 +12,6 @@
         }
 
         public IntPtr ContextHandle { get; private set; }
-
-        public bool MonitorRegistered
-        {
-            get { return _callback != null; }
-        }
 
         public int Initialize()
         {
@@ -68,20 +58,6 @@
         public int SetContextOption(int option, int value)
         {
             return LibZmq.zmq_ctx_set(ContextHandle, option, value);
-        }
-
-        public int RegisterMonitor(LibZmq.MonitorFuncCallback callback)
-        {
-            _callback = callback;
-
-            return LibZmq.zmq_ctx_set_monitor(ContextHandle, _callback);
-        }
-
-        public int UnregisterMonitor()
-        {
-            _callback = null;
-
-            return LibZmq.zmq_ctx_set_monitor(ContextHandle, null);
         }
 
         public virtual void Dispose()
