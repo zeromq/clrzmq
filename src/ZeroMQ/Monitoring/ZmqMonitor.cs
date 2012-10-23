@@ -23,25 +23,25 @@ namespace ZeroMQ.Monitoring
     public class ZmqMonitor : IDisposable
     {
         private readonly ContextProxy _contextProxy;
-        private readonly Dictionary<MonitorEvent, Action<ZmqSocket, EventData>> _eventHandler;
+        private readonly Dictionary<MonitorEvents, Action<ZmqSocket, EventData>> _eventHandler;
 
         private bool _disposed;
 
         internal ZmqMonitor(ContextProxy contextProxy)
         {
             _contextProxy = contextProxy;
-            _eventHandler = new Dictionary<MonitorEvent, Action<ZmqSocket, EventData>>
+            _eventHandler = new Dictionary<MonitorEvents, Action<ZmqSocket, EventData>>
             {
-                { MonitorEvent.CONNECTED, (socket, data) => InvokeEvent(Connected, () => data.Connected.CreateEventArgs(socket)) },
-                { MonitorEvent.CONNECT_DELAYED, (socket, data) => InvokeEvent(ConnectDelayed, () => data.ConnectDelayed.CreateEventArgs(socket)) },
-                { MonitorEvent.CONNECT_RETRIED, (socket, data) => InvokeEvent(ConnectRetried, () => data.ConnectRetried.CreateEventArgs(socket)) },
-                { MonitorEvent.LISTENING, (socket, data) => InvokeEvent(Listening, () => data.Listening.CreateEventArgs(socket)) },
-                { MonitorEvent.BIND_FAILED, (socket, data) => InvokeEvent(BindFailed, () => data.BindFailed.CreateEventArgs(socket)) },
-                { MonitorEvent.ACCEPTED, (socket, data) => InvokeEvent(Accepted, () => data.Accepted.CreateEventArgs(socket)) },
-                { MonitorEvent.ACCEPT_FAILED, (socket, data) => InvokeEvent(AcceptFailed, () => data.AcceptFailed.CreateEventArgs(socket)) },
-                { MonitorEvent.CLOSED, (socket, data) => InvokeEvent(Closed, () => data.Closed.CreateEventArgs(socket)) },
-                { MonitorEvent.CLOSE_FAILED, (socket, data) => InvokeEvent(CloseFailed, () => data.CloseFailed.CreateEventArgs(socket)) },
-                { MonitorEvent.DISCONNECTED, (socket, data) => InvokeEvent(Disconnected, () => data.Disconnected.CreateEventArgs(socket)) }
+                { MonitorEvents.Connected, (socket, data) => InvokeEvent(Connected, () => data.Connected.CreateEventArgs(socket)) },
+                { MonitorEvents.ConnectDelayed, (socket, data) => InvokeEvent(ConnectDelayed, () => data.ConnectDelayed.CreateEventArgs(socket)) },
+                { MonitorEvents.ConnectRetried, (socket, data) => InvokeEvent(ConnectRetried, () => data.ConnectRetried.CreateEventArgs(socket)) },
+                { MonitorEvents.Listening, (socket, data) => InvokeEvent(Listening, () => data.Listening.CreateEventArgs(socket)) },
+                { MonitorEvents.BindFailed, (socket, data) => InvokeEvent(BindFailed, () => data.BindFailed.CreateEventArgs(socket)) },
+                { MonitorEvents.Accepted, (socket, data) => InvokeEvent(Accepted, () => data.Accepted.CreateEventArgs(socket)) },
+                { MonitorEvents.AcceptFailed, (socket, data) => InvokeEvent(AcceptFailed, () => data.AcceptFailed.CreateEventArgs(socket)) },
+                { MonitorEvents.Closed, (socket, data) => InvokeEvent(Closed, () => data.Closed.CreateEventArgs(socket)) },
+                { MonitorEvents.CloseFailed, (socket, data) => InvokeEvent(CloseFailed, () => data.CloseFailed.CreateEventArgs(socket)) },
+                { MonitorEvents.Disconnected, (socket, data) => InvokeEvent(Disconnected, () => data.Disconnected.CreateEventArgs(socket)) }
             };
         }
 
@@ -118,7 +118,7 @@ namespace ZeroMQ.Monitoring
 
         internal void OnMonitor(ZmqSocket socket, int ev, ref EventData data)
         {
-            _eventHandler[(MonitorEvent)ev](socket, data);
+            _eventHandler[(MonitorEvents)ev](socket, data);
         }
 
         /// <summary>
