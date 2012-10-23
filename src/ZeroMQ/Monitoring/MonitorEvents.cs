@@ -11,6 +11,10 @@ namespace ZeroMQ.Monitoring
         /// <summary>
         /// Triggered when a connection has been established to a remote peer. This can happen either synchronously or asynchronously.
         /// </summary>
+        /// <remarks>
+        /// NOTE: Do not rely on the 'addr' value for 'Connected' messages, as the memory
+        /// address contained in the message may no longer point to the correct value.
+        /// </remarks>
         Connected = 1,
 
         /// <summary>
@@ -46,6 +50,10 @@ namespace ZeroMQ.Monitoring
         /// <summary>
         /// Triggered when a connection's underlying descriptor has been closed.
         /// </summary>
+        /// <remarks>
+        /// NOTE: Do not rely on the 'addr' value for 'Closed' messages, as the memory
+        /// address contained in the message may no longer point to the correct value.
+        /// </remarks>
         Closed = 128,
 
         /// <summary>

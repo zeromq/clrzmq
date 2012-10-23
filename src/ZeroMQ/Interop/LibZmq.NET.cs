@@ -136,7 +136,7 @@ namespace ZeroMQ.Interop
         public delegate void FreeMessageDataCallback(IntPtr data, IntPtr hint);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        public delegate void MonitorFuncCallback(IntPtr socket, int eventFlags, ref EventData data);
+        public delegate void MonitorFuncCallback(IntPtr socket, int eventFlags, ref MonitorEventData data);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         public delegate IntPtr ZmqCtxNewProc();

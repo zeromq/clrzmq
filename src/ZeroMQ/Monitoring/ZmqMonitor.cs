@@ -2,54 +2,54 @@ namespace ZeroMQ.Monitoring
 {
     using System;
     using System.Collections.Generic;
-
+    using System.Runtime.InteropServices;
     using Interop;
 
     /// <summary>
-    /// A socket monitoring object.
+    /// Monitors state change events on another socket within the same context.
     /// </summary>
-    /// <remarks>
-    /// CAUTION: <see cref="ZmqMonitor"/> is intended for monitoring infrastructure /
-    /// operations concerns only - NOT BUSINESS LOGIC. An event is a representation of
-    /// something that happened - you cannot change the past, but only react to them.
-    /// The implementation is also only concerned with a single session. No state of
-    /// peers, other sessions etc. are tracked - this will only pollute internals and
-    /// is the responsibility of application authors to either implement or correlate
-    /// in another datastore. Monitor events are exceptional conditions and are thus
-    /// not directly in the messaging critical path. However, still be careful with
-    /// what you're doing in the event handlers as excess time spent in the handler
-    /// will block the socket's application thread.
-    /// </remarks>
     public class ZmqMonitor : IDisposable
     {
+        /// <summary>
+        /// The polling interval in milliseconds.
+        /// </summary>
+        private const int PollingIntervalMsec = 500;
+
         private readonly ZmqSocket _socket;
         private readonly string _endpoint;
-        private readonly Dictionary<MonitorEvents, Action<ZmqSocket, EventData>> _eventHandler;
+        private readonly Dictionary<MonitorEvents, Action<MonitorEventData>> _eventHandler;
+
+        private volatile bool _isRunning;
 
         private bool _disposed;
 
-        internal ZmqMonitor(ZmqSocket pairSocket, string endpoint)
+        internal ZmqMonitor(ZmqSocket socket, string endpoint)
         {
-            _socket = pairSocket;
+            _socket = socket;
             _endpoint = endpoint;
-            _eventHandler = new Dictionary<MonitorEvents, Action<ZmqSocket, EventData>>
+            _eventHandler = new Dictionary<MonitorEvents, Action<MonitorEventData>>
             {
-                { MonitorEvents.Connected, (socket, data) => InvokeEvent(Connected, () => data.Connected.CreateEventArgs(socket)) },
-                { MonitorEvents.ConnectDelayed, (socket, data) => InvokeEvent(ConnectDelayed, () => data.ConnectDelayed.CreateEventArgs(socket)) },
-                { MonitorEvents.ConnectRetried, (socket, data) => InvokeEvent(ConnectRetried, () => data.ConnectRetried.CreateEventArgs(socket)) },
-                { MonitorEvents.Listening, (socket, data) => InvokeEvent(Listening, () => data.Listening.CreateEventArgs(socket)) },
-                { MonitorEvents.BindFailed, (socket, data) => InvokeEvent(BindFailed, () => data.BindFailed.CreateEventArgs(socket)) },
-                { MonitorEvents.Accepted, (socket, data) => InvokeEvent(Accepted, () => data.Accepted.CreateEventArgs(socket)) },
-                { MonitorEvents.AcceptFailed, (socket, data) => InvokeEvent(AcceptFailed, () => data.AcceptFailed.CreateEventArgs(socket)) },
-                { MonitorEvents.Closed, (socket, data) => InvokeEvent(Closed, () => data.Closed.CreateEventArgs(socket)) },
-                { MonitorEvents.CloseFailed, (socket, data) => InvokeEvent(CloseFailed, () => data.CloseFailed.CreateEventArgs(socket)) },
-                { MonitorEvents.Disconnected, (socket, data) => InvokeEvent(Disconnected, () => data.Disconnected.CreateEventArgs(socket)) }
+                { MonitorEvents.Connected, data => InvokeEvent(Connected, () => new ZmqMonitorFileDescriptorEventArgs(this, data)) },
+                { MonitorEvents.ConnectDelayed, data => InvokeEvent(ConnectDelayed, () => new ZmqMonitorErrorEventArgs(this, data)) },
+                { MonitorEvents.ConnectRetried, data => InvokeEvent(ConnectRetried, () => new ZmqMonitorIntervalEventArgs(this, data)) },
+                { MonitorEvents.Listening, data => InvokeEvent(Listening, () => new ZmqMonitorFileDescriptorEventArgs(this, data)) },
+                { MonitorEvents.BindFailed, data => InvokeEvent(BindFailed, () => new ZmqMonitorErrorEventArgs(this, data)) },
+                { MonitorEvents.Accepted, data => InvokeEvent(Accepted, () => new ZmqMonitorFileDescriptorEventArgs(this, data)) },
+                { MonitorEvents.AcceptFailed, data => InvokeEvent(AcceptFailed, () => new ZmqMonitorErrorEventArgs(this, data)) },
+                { MonitorEvents.Closed, data => InvokeEvent(Closed, () => new ZmqMonitorFileDescriptorEventArgs(this, data)) },
+                { MonitorEvents.CloseFailed, data => InvokeEvent(CloseFailed, () => new ZmqMonitorErrorEventArgs(this, data)) },
+                { MonitorEvents.Disconnected, data => InvokeEvent(Disconnected, () => new ZmqMonitorFileDescriptorEventArgs(this, data)) }
             };
         }
 
         /// <summary>
         /// Occurs when a new connection is established.
         /// </summary>
+        /// <remarks>
+        /// NOTE: Do not rely on the <see cref="ZmqMonitorEventArgs.Address"/> value for
+        /// 'Connected' messages, as the memory address contained in the message may no longer
+        /// point to the correct value.
+        /// </remarks>
         public event EventHandler<ZmqMonitorFileDescriptorEventArgs> Connected;
 
         /// <summary>
@@ -85,6 +85,11 @@ namespace ZeroMQ.Monitoring
         /// <summary>
         /// Occurs when a connection was closed.
         /// </summary>
+        /// <remarks>
+        /// NOTE: Do not rely on the <see cref="ZmqMonitorEventArgs.Address"/> value for
+        /// 'Closed' messages, as the memory address contained in the message may no longer
+        /// point to the correct value.
+        /// </remarks>
         public event EventHandler<ZmqMonitorFileDescriptorEventArgs> Closed;
 
         /// <summary>
@@ -98,6 +103,64 @@ namespace ZeroMQ.Monitoring
         public event EventHandler<ZmqMonitorFileDescriptorEventArgs> Disconnected;
 
         /// <summary>
+        /// Gets the endpoint to which the monitor socket is connected.
+        /// </summary>
+        public string Endpoint
+        {
+            get { return _endpoint; }
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether the monitor loop is running.
+        /// </summary>
+        public bool IsRunning
+        {
+            get { return _isRunning; }
+            private set { _isRunning = value; }
+        }
+
+        /// <summary>
+        /// Begins monitoring for state changes, raising the appropriate events as they arrive.
+        /// </summary>
+        /// <remarks>NOTE: This is a blocking method and should be run from another thread.</remarks>
+        public void Start()
+        {
+            _socket.Connect(_endpoint);
+
+            int structSize = Marshal.SizeOf(typeof(MonitorEventData));
+
+            var buffer = new byte[structSize];
+            var ptr = Marshal.AllocHGlobal(structSize);
+            var pollingInterval = TimeSpan.FromMilliseconds(PollingIntervalMsec);
+
+            IsRunning = true;
+
+            while (IsRunning)
+            {
+                int bytes = _socket.Receive(buffer, pollingInterval);
+                if (bytes != structSize)
+                {
+                    continue;
+                }
+
+                Marshal.Copy(buffer, 0, ptr, structSize);
+                var eventData = (MonitorEventData)Marshal.PtrToStructure(ptr, typeof(MonitorEventData));
+
+                OnMonitor(ref eventData);
+            }
+
+            Marshal.FreeHGlobal(ptr);
+        }
+
+        /// <summary>
+        /// Stops monitoring for state changes.
+        /// </summary>
+        public void Stop()
+        {
+            IsRunning = false;
+        }
+
+        /// <summary>
         /// Releases all resources used by the current instance of the <see cref="ZmqMonitor"/> class.
         /// </summary>
         public void Dispose()
@@ -106,9 +169,9 @@ namespace ZeroMQ.Monitoring
             GC.SuppressFinalize(this);
         }
 
-        internal void OnMonitor(ZmqSocket socket, int ev, ref EventData data)
+        internal void OnMonitor(ref MonitorEventData data)
         {
-            _eventHandler[(MonitorEvents)ev](socket, data);
+            _eventHandler[(MonitorEvents)data.Event](data);
         }
 
         /// <summary>
@@ -121,6 +184,8 @@ namespace ZeroMQ.Monitoring
             {
                 if (disposing)
                 {
+                    Stop();
+                    _socket.Dispose();
                 }
             }
 

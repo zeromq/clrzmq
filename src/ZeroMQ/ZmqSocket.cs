@@ -534,7 +534,7 @@
         /// </summary>
         /// <remarks>
         /// Warning: This overload will only receive as much data as can fit in the supplied <paramref name="buffer"/>
-        /// Up to <see cref="MaxMessageSize"/>. Any message data beyond the maximum length will be discarded.
+        /// up to <see cref="MaxMessageSize"/>. Any message data beyond the maximum length will be discarded.
         /// It is intended to be used when the maximum messaging performance is required, as it does not perform
         /// any unnecessary memory allocation, copying or marshalling.
         /// If the maximum message size is not known in advance, use the <see cref="Receive(byte[],System.TimeSpan,out int)"/> overload.
@@ -561,7 +561,7 @@
         /// </summary>
         /// <remarks>
         /// Warning: This overload will only receive as much data as can fit in the supplied <paramref name="buffer"/>
-        /// Up to <see cref="MaxMessageSize"/>. Any message data beyond the maximum length will be discarded.
+        /// up to <see cref="MaxMessageSize"/>. Any message data beyond the maximum length will be discarded.
         /// It is intended to be used when the maximum messaging performance is required; it will not allocate a new
         /// buffer (or copy received data) if the received message exceeds the current buffer size.
         /// If the maximum message size is not known in advance, use the <see cref="Receive(byte[],out int)"/> overload.
