@@ -85,7 +85,10 @@
                 bytesReceived = Retry.IfInterrupted(LibZmq.zmq_buffer_recv.Invoke, SocketHandle, _buffer, MaxBufferSize, flags);
                 int size = Math.Min(buffer.Length, bytesReceived);
 
-                Marshal.Copy(_buffer, buffer, 0, size);
+                if (size > 0)
+                {
+                    Marshal.Copy(_buffer, buffer, 0, size);
+                }
 
                 return size;
             }
