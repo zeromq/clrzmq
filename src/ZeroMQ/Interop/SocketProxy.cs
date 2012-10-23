@@ -55,6 +55,11 @@
             return LibZmq.zmq_disconnect(SocketHandle, endpoint);
         }
 
+        public int Monitor(string endpoint, int events)
+        {
+            return LibZmq.zmq_socket_monitor(SocketHandle, endpoint, events);
+        }
+
         public int Close()
         {
             // Allow Close to be called repeatedly without failure

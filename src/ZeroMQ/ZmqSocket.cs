@@ -373,6 +373,11 @@
         /// </summary>
         public SendStatus SendStatus { get; private set; }
 
+        internal SocketProxy SocketProxy
+        {
+            get { return _socketProxy; }
+        }
+
         internal IntPtr SocketHandle
         {
             get { return _socketProxy.SocketHandle; }
@@ -907,6 +912,16 @@
             GC.SuppressFinalize(this);
         }
 
+        internal static void HandleProxyResult(int result)
+        {
+            // Context termination (ETERM) is an allowable error state, occurring when the
+            // ZmqContext was terminated during a socket method.
+            if (result == -1 && !ErrorProxy.ContextWasTerminated)
+            {
+                throw new ZmqSocketException(ErrorProxy.GetLastError());
+            }
+        }
+
         internal int GetSocketOptionInt32(SocketOption option)
         {
             EnsureNotDisposed();
@@ -1047,17 +1062,6 @@
             }
 
             _disposed = true;
-        }
-
-        // ReSharper disable UnusedParameter.Local
-        private static void HandleProxyResult(int result) // ReSharper restore UnusedParameter.Local
-        {
-            // Context termination (ETERM) is an allowable error state, occurring when the
-            // ZmqContext was terminated during a socket method.
-            if (result == -1 && !ErrorProxy.ContextWasTerminated)
-            {
-                throw new ZmqSocketException(ErrorProxy.GetLastError());
-            }
         }
 
         private int GetLegacySocketOption<TLegacy>(SocketOption option, Func<SocketOption, TLegacy> legacyGetter)
