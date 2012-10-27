@@ -37,16 +37,16 @@
   </ItemGroup>
 
   <ItemGroup>
-    <OutputFiles Include="$(SolutionDir)\**\bin\$(Configuration)\*.dll" />
-    <OutputFiles Include="$(SolutionDir)\**\bin\$(Configuration)\*.pdb" />
-    <OutputFiles Include="$(SolutionDir)\**\bin\$(Configuration)\*.xml" />
+    <OutputFiles Include="$(SolutionDir)\*\bin\$(Configuration)\*.dll" />
+    <OutputFiles Include="$(SolutionDir)\*\bin\$(Configuration)\*.pdb" />
+    <OutputFiles Include="$(SolutionDir)\*\bin\$(Configuration)\*.xml" />
     <OutputFiles Include="$(LibDir)\$(Platform)\*.dll" />
   </ItemGroup>
 
   <ItemGroup>
-    <ZeroMQSources Include="ZeroMQ\**\*.cs;Shared\*.cs" Exclude="ZeroMQ\**\Platform.*.cs" />
-    <ZeroMQSources Include="ZeroMQ\**\Platform.$(OperatingPlatform).cs" />
-    <ZeroMQSources Include="ZeroMQ\**\Platform.$(NetFramework).cs" />
+    <ZeroMQSources Include="ZeroMQ\*\*.cs;Shared\*.cs" Exclude="ZeroMQ\*\Platform.*.cs" />
+    <ZeroMQSources Include="ZeroMQ\*\Platform.$(OperatingPlatform).cs" />
+    <ZeroMQSources Include="ZeroMQ\*\Platform.$(NetFramework).cs" />
 
     <Resources Include="$(LibDir)\x64\libzmq.dll">
       <Platform>x64</Platform>
@@ -78,7 +78,7 @@
   </Target>
 
   <Target Name="Test" DependsOnTargets="Compile">
-    <FindLastDirectory Path="$(NugetPackageDir)" Pattern="Machine.Specifications.*">
+    <FindLastDirectory Path="$(NugetPackageDir)" Pattern="Machine.Specifications.*" Condition=" '$(OperatingPlatform)' == 'Windows' ">
       <Output TaskParameter="Dir" PropertyName="MSpecDir" />
     </FindLastDirectory>
 
