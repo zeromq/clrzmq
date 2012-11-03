@@ -10,18 +10,18 @@ namespace ZeroMQ.Monitoring
         /// <summary>
         /// Initializes a new instance of the <see cref="ZmqMonitorEventArgs"/> class.
         /// </summary>
-        /// <param name="socket">The <see cref="ZmqSocket"/> that triggered the event.</param>
+        /// <param name="monitor">The <see cref="ZmqMonitor"/> that triggered the event.</param>
         /// <param name="address">The peer address.</param>
-        public ZmqMonitorEventArgs(ZmqSocket socket, string address)
+        public ZmqMonitorEventArgs(ZmqMonitor monitor, string address)
         {
-            Socket = socket;
-            Address = address;
+            this.Monitor = monitor;
+            this.Address = address;
         }
 
         /// <summary>
-        /// Gets the socket that triggered the event.
+        /// Gets the monitor that triggered the event.
         /// </summary>
-        public ZmqSocket Socket { get; private set; }
+        public ZmqMonitor Monitor { get; private set; }
 
         /// <summary>
         /// Gets the peer address.

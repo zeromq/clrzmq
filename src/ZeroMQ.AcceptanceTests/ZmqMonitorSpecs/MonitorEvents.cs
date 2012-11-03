@@ -81,6 +81,7 @@
         It should_fire_the_connected_event = () =>
             fired.ShouldBeTrue();
 
+        [Ignore("This will occasionally fail in libzmq, as the memory pointed to by 'address' may have been reclaimed.")]
         It should_set_the_connected_socket_address = () =>
             address.ShouldEqual("tcp://127.0.0.1:9000");
 
@@ -105,6 +106,7 @@
         It should_fire_the_closed_event = () =>
             fired.ShouldBeTrue();
 
+        [Ignore("This will occasionally fail in libzmq, as the memory pointed to by 'address' may have been reclaimed.")]
         It should_set_the_closed_socket_address = () =>
             address.ShouldEqual("tcp://0.0.0.0:9000");
 

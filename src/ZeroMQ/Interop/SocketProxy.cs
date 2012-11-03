@@ -13,24 +13,16 @@
         private readonly ZmqMsgT _msg;
         private readonly IntPtr _buffer;
 
-        private readonly Action<IntPtr> _socketClosed;
-
         private bool _disposed;
 
-        public SocketProxy(IntPtr socketHandle, Action<IntPtr> socketClosed)
+        public SocketProxy(IntPtr socketHandle)
         {
             if (socketHandle == IntPtr.Zero)
             {
                 throw new ArgumentException("Socket handle must be a valid pointer.", "socketHandle");
             }
 
-            if (socketClosed == null)
-            {
-                throw new ArgumentNullException("socketClosed");
-            }
-
             SocketHandle = socketHandle;
-            _socketClosed = socketClosed;
 
             _msg = new ZmqMsgT();
             _buffer = Marshal.AllocHGlobal(MaxBufferSize);
@@ -63,6 +55,11 @@
             return LibZmq.zmq_disconnect(SocketHandle, endpoint);
         }
 
+        public int Monitor(string endpoint, int events)
+        {
+            return LibZmq.zmq_socket_monitor(SocketHandle, endpoint, events);
+        }
+
         public int Close()
         {
             // Allow Close to be called repeatedly without failure
@@ -72,7 +69,6 @@
             }
 
             int rc = LibZmq.zmq_close(SocketHandle);
-            _socketClosed(SocketHandle);
 
             SocketHandle = IntPtr.Zero;
 
@@ -89,7 +85,10 @@
                 bytesReceived = Retry.IfInterrupted(LibZmq.zmq_buffer_recv.Invoke, SocketHandle, _buffer, MaxBufferSize, flags);
                 int size = Math.Min(buffer.Length, bytesReceived);
 
-                Marshal.Copy(_buffer, buffer, 0, size);
+                if (size > 0)
+                {
+                    Marshal.Copy(_buffer, buffer, 0, size);
+                }
 
                 return size;
             }

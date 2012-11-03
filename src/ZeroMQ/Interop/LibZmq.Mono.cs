@@ -52,7 +52,7 @@ namespace ZeroMQ.Interop
 
                 zmq_ctx_get = zmq_ctx_get_v3;
                 zmq_ctx_set = zmq_ctx_set_v3;
-                zmq_ctx_set_monitor = zmq_ctx_set_monitor_v3;
+                zmq_socket_monitor = zmq_socket_monitor_v3;
 
                 zmq_unbind = zmq_unbind_v3;
                 zmq_disconnect = zmq_disconnect_v3;
@@ -74,7 +74,7 @@ namespace ZeroMQ.Interop
 
                 zmq_ctx_get = (ctx, opt) => { throw new ZmqVersionException(MajorVersion, MinorVersion, 3, 2); };
                 zmq_ctx_set = (ctx, opt, val) => { throw new ZmqVersionException(MajorVersion, MinorVersion, 3, 2); };
-                zmq_ctx_set_monitor = (sck, mon) => { throw new ZmqVersionException(MajorVersion, MinorVersion, 3, 2); };
+                zmq_socket_monitor = (sck, mon) => { throw new ZmqVersionException(MajorVersion, MinorVersion, 3, 2); };
 
                 zmq_unbind = (sck, addr) => { throw new ZmqVersionException(MajorVersion, MinorVersion, 3, 2); };
                 zmq_disconnect = (sck, addr) => { throw new ZmqVersionException(MajorVersion, MinorVersion, 3, 2); };
@@ -107,9 +107,6 @@ namespace ZeroMQ.Interop
         public delegate void FreeMessageDataCallback(IntPtr data, IntPtr hint);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        public delegate void MonitorFuncCallback(IntPtr socket, int eventFlags, ref EventData data);
-
-        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         public delegate int ZmqCtxGetProc(IntPtr context, int option);
         public static ZmqCtxGetProc zmq_ctx_get;
 
@@ -118,8 +115,8 @@ namespace ZeroMQ.Interop
         public static ZmqCtxSetProc zmq_ctx_set;
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        public delegate int ZmqCtxSetMonitorProc(IntPtr socket, MonitorFuncCallback monitor);
-        public static ZmqCtxSetMonitorProc zmq_ctx_set_monitor;
+        public delegate int ZmqSocketMonitorProc(IntPtr socket, string addr, int events);
+        public static ZmqSocketMonitorProc zmq_socket_monitor;
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         public delegate int ZmqBindProc(IntPtr socket, string addr);
@@ -169,8 +166,8 @@ namespace ZeroMQ.Interop
         [DllImport(LibraryName, EntryPoint = "zmq_ctx_set", CallingConvention = CallingConvention.Cdecl)]
         public static extern int zmq_ctx_set_v3(IntPtr context, int option, int optval);
 
-        [DllImport(LibraryName, EntryPoint = "zmq_ctx_set_monitor", CallingConvention = CallingConvention.Cdecl)]
-        public static extern int zmq_ctx_set_monitor_v3(IntPtr socket, MonitorFuncCallback monitor);
+        [DllImport(LibraryName, EntryPoint = "zmq_socket_monitor", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int zmq_socket_monitor_v3(IntPtr socket, string addr, int events);
 
         [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
         public static extern int zmq_close(IntPtr socket);

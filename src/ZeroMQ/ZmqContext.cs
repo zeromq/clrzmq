@@ -1,10 +1,8 @@
 ﻿namespace ZeroMQ
 {
     using System;
-    using System.Collections.Concurrent;
     using System.Text;
     using Interop;
-    using Monitoring;
 
     /// <summary>
     /// Creates <see cref="ZmqSocket"/> instances within a process boundary.
@@ -18,7 +16,6 @@
     public class ZmqContext : IDisposable
     {
         private readonly ContextProxy _contextProxy;
-        private readonly ConcurrentDictionary<IntPtr, ZmqSocket> _knownSockets;
 
         private bool _disposed;
 
@@ -35,7 +32,6 @@
             }
 
             _contextProxy = contextProxy;
-            _knownSockets = new ConcurrentDictionary<IntPtr, ZmqSocket>();
         }
 
         /// <summary>
@@ -169,39 +165,6 @@
         }
 
         /// <summary>
-        /// Create a socket monitoring object.
-        /// </summary>
-        /// <remarks>
-        /// Only a single instance per context is allowed.
-        /// Use <see cref="ZmqMonitor.Unregister"/> to unregister the monitoring object or dispose it.
-        /// </remarks>
-        /// <returns>A <see cref="ZmqSocket"/> instance with the monitoring object for the current context.</returns>
-        /// <exception cref="ZmqException">An error occurred while creating the monitor object.</exception>
-        /// <exception cref="InvalidOperationException">The <see cref="ZmqMonitor"/> has already been created for the current context.</exception>
-        public ZmqMonitor CreateMonitor()
-        {
-            EnsureNotDisposed();
-
-            if (_contextProxy.MonitorRegistered)
-            {
-                throw new InvalidOperationException("A ZmqMonitor has been already registered in this context.");
-            }
-
-            var monitor = new ZmqMonitor(_contextProxy);
-
-            LibZmq.MonitorFuncCallback callbackWrapper =
-                (IntPtr socketHandle, int eventFlags, ref EventData data) =>
-                    monitor.OnMonitor(GetSocketFromHandle(socketHandle), eventFlags, ref data);
-
-            if (_contextProxy.RegisterMonitor(callbackWrapper) == -1)
-            {
-                throw new ZmqException(ErrorProxy.GetLastError());
-            }
-
-            return monitor;
-        }
-
-        /// <summary>
         /// Releases all resources used by the current instance of the <see cref="ZmqContext"/> class.
         /// </summary>
         public virtual void Dispose()
@@ -238,29 +201,7 @@
                 throw new ZmqException(ErrorProxy.GetLastError());
             }
 
-            var socket = constructor(new SocketProxy(socketHandle, OnSocketClosed));
-            OnSocketCreated(socketHandle, socket);
-
-            return socket;
-        }
-
-        private void OnSocketCreated(IntPtr socketHandle, ZmqSocket socket)
-        {
-            _knownSockets.TryAdd(socketHandle, socket);
-        }
-
-        private void OnSocketClosed(IntPtr socketHandle)
-        {
-            ZmqSocket socket;
-            _knownSockets.TryRemove(socketHandle, out socket);
-        }
-
-        private ZmqSocket GetSocketFromHandle(IntPtr socketHandle)
-        {
-            ZmqSocket socket;
-            return _knownSockets.TryGetValue(socketHandle, out socket)
-                ? socket
-                : default(ZmqSocket);
+            return constructor(new SocketProxy(socketHandle));
         }
 
         private void SetContextOption(ContextOption option, int value)

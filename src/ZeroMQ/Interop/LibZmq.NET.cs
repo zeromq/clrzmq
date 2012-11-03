@@ -66,7 +66,7 @@ namespace ZeroMQ.Interop
                 zmq_ctx_destroy = NativeLib.GetUnmanagedFunction<ZmqCtxDestroyProc>("zmq_ctx_destroy");
                 zmq_ctx_get = NativeLib.GetUnmanagedFunction<ZmqCtxGetProc>("zmq_ctx_get");
                 zmq_ctx_set = NativeLib.GetUnmanagedFunction<ZmqCtxSetProc>("zmq_ctx_set");
-                zmq_ctx_set_monitor = NativeLib.GetUnmanagedFunction<ZmqCtxSetMonitorProc>("zmq_ctx_set_monitor");
+                zmq_socket_monitor = NativeLib.GetUnmanagedFunction<ZmqSocketMonitorProc>("zmq_socket_monitor");
 
                 zmq_unbind = NativeLib.GetUnmanagedFunction<ZmqBindProc>("zmq_unbind");
                 zmq_disconnect = NativeLib.GetUnmanagedFunction<ZmqConnectProc>("zmq_disconnect");
@@ -136,7 +136,7 @@ namespace ZeroMQ.Interop
         public delegate void FreeMessageDataCallback(IntPtr data, IntPtr hint);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        public delegate void MonitorFuncCallback(IntPtr socket, int eventFlags, ref EventData data);
+        public delegate void MonitorFuncCallback(IntPtr socket, int eventFlags, ref MonitorEventData data);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         public delegate IntPtr ZmqCtxNewProc();
@@ -158,8 +158,8 @@ namespace ZeroMQ.Interop
         public static ZmqCtxSetProc zmq_ctx_set;
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        public delegate int ZmqCtxSetMonitorProc(IntPtr socket, MonitorFuncCallback monitor);
-        public static ZmqCtxSetMonitorProc zmq_ctx_set_monitor;
+        public delegate int ZmqSocketMonitorProc(IntPtr socket, string addr, int events);
+        public static ZmqSocketMonitorProc zmq_socket_monitor;
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         public delegate int ZmqSetSockOptProc(IntPtr socket, int option, IntPtr optval, int optvallen);
