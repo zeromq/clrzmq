@@ -12,6 +12,8 @@ lib-*
 
 # NuGet-related
 packages
+NuGet.exe
+NuGet.exe.old
 
 # User Settings
 *.suo

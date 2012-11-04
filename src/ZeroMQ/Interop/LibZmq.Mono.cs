@@ -77,7 +77,7 @@ namespace ZeroMQ.Interop
 
                 zmq_ctx_get = (ctx, opt) => { throw new ZmqVersionException(MajorVersion, MinorVersion, 3, 2); };
                 zmq_ctx_set = (ctx, opt, val) => { throw new ZmqVersionException(MajorVersion, MinorVersion, 3, 2); };
-                zmq_socket_monitor = (sck, mon) => { throw new ZmqVersionException(MajorVersion, MinorVersion, 3, 2); };
+                zmq_socket_monitor = (sck, addr, e) => { throw new ZmqVersionException(MajorVersion, MinorVersion, 3, 2); };
 
                 zmq_unbind = (sck, addr) => { throw new ZmqVersionException(MajorVersion, MinorVersion, 3, 2); };
                 zmq_disconnect = (sck, addr) => { throw new ZmqVersionException(MajorVersion, MinorVersion, 3, 2); };
