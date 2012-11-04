@@ -69,8 +69,8 @@
   </Target>
 
   <PropertyGroup>
-    <CompileDependsOn Condition=" '$(UseCustomLibzmq)' == 'true' ">Initialize</CompileDependsOn>
-    <CompileDependsOn Condition=" '$(UseCustomLibzmq)' != 'true' ">Initialize;RestoreSolutionPackages</CompileDependsOn>
+    <CompileDependsOn Condition=" '$(UseCustomLibzmq)' == 'true' or '$(OperatingPlatform)' != 'Windows' ">Initialize</CompileDependsOn>
+    <CompileDependsOn Condition=" '$(UseCustomLibzmq)' != 'true' and '$(OperatingPlatform)' == 'Windows' ">Initialize;RestoreSolutionPackages</CompileDependsOn>
   </PropertyGroup>
 
   <Target Name="Compile" DependsOnTargets="$(CompileDependsOn)">
