@@ -23,7 +23,11 @@
             address.ShouldEqual("tcp://0.0.0.0:9000");
 
         It should_return_a_socket_pointer = () =>
+#if UNIX
+            socketPtr.ShouldNotEqual(0);
+#else
             socketPtr.ShouldNotEqual(IntPtr.Zero);
+#endif
     }
 
     [Subject("Monitor events")]
@@ -46,7 +50,11 @@
             address.ShouldEqual("tcp://0.0.0.0:9000");
 
         It should_return_a_socket_pointer = () =>
+#if UNIX
+            socketPtr.ShouldNotEqual(0);
+#else
             socketPtr.ShouldNotEqual(IntPtr.Zero);
+#endif
     }
 
     [Subject("Monitor events")]
@@ -86,7 +94,11 @@
             address.ShouldEqual("tcp://127.0.0.1:9000");
 
         It should_return_a_socket_pointer = () =>
+#if UNIX
+            socketPtr.ShouldNotEqual(0);
+#else
             socketPtr.ShouldNotEqual(IntPtr.Zero);
+#endif
     }
 
     [Subject("Monitor events")]
@@ -111,6 +123,10 @@
             address.ShouldEqual("tcp://0.0.0.0:9000");
 
         It should_return_a_socket_pointer = () =>
+#if UNIX
+            socketPtr.ShouldNotEqual(0);
+#else
             socketPtr.ShouldNotEqual(IntPtr.Zero);
+#endif
     }
 }
