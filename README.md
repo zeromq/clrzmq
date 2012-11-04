@@ -86,7 +86,14 @@ namespace ZMQGuide
 }
 ```
 
-More C# examples can be found in the [0MQ Guide][zmq-guide] or in the [examples repository][zmq-example-repo]. Tutorials and API documentation specific to clrzmq are on the way.
+## Docs and Tutorials
+
+For more information about 0MQ and clrzmq, see the following resources:
+
+- The [0MQ Guide][zmq-guide] is a thorough overview of 0MQ and contains example code for most supported languages, including C#. Examples are stored in a [GitHub repository][zmq-example-repo].
+- [ZeroMQ via C#: Introduction][zmq-cs-intro] is an excellent tutorial written by Manar Ezzadeen and offers an in-depth look at various 0MQ patterns implemented in C# with clrzmq.
+
+More tutorials and API documentation are on the way.
 
 ## Deployment Notes
 
@@ -224,6 +231,7 @@ This project is released under the [LGPL][lgpl] license, as is the native libzmq
 [load-library]: http://msdn.microsoft.com/en-us/library/windows/desktop/ms684175(v=vs.85).aspx
 [zmq-guide]: http://zguide.zeromq.org/page:all
 [zmq-example-repo]: https://github.com/imatix/zguide/tree/master/examples/C%23
+[zmq-cs-intro]: http://www.codeproject.com/Articles/488207/ZeroMQ-via-Csharp-Introduction
 [zmq-dl]: http://www.zeromq.org/intro:get-the-software
 [zmq-license]: http://www.zeromq.org/area:licensing
 [issues]: https://github.com/zeromq/clrzmq/issues
