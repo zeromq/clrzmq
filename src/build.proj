@@ -44,7 +44,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ZeroMQSources Include="ZeroMQ\*\*.cs;Shared\*.cs" Exclude="ZeroMQ\*\Platform.*.cs" />
+    <ZeroMQSources Include="ZeroMQ\*.cs;ZeroMQ\*\*.cs;Shared\*.cs" Exclude="ZeroMQ\*\Platform.*.cs" />
     <ZeroMQSources Include="ZeroMQ\*\Platform.$(OperatingPlatform).cs" />
     <ZeroMQSources Include="ZeroMQ\*\Platform.$(NetFramework).cs" />
 
