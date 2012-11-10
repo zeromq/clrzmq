@@ -1,43 +1,92 @@
 ﻿namespace ZeroMQ.AcceptanceTests.ZmqSocketSpecs
 {
     using AcceptanceTests;
+    using NUnit.Framework;
 
-    using Machine.Specifications;
-
-    [Subject("SendMessage/ReceiveMessage")]
-    class when_transferring_multipart_messages : using_threaded_req_rep
+    [TestFixture]
+    public class WhenTransferringMultipartMessages : UsingThreadedReqRep
     {
-        protected static ZmqMessage message;
-        protected static SendStatus sendResult1;
-        protected static SendStatus sendResult2;
+        protected ZmqMessage Message;
+        protected SendStatus SendResult1;
+        protected SendStatus SendResult2;
 
-        Establish context = () =>
+        public WhenTransferringMultipartMessages()
         {
-            senderAction = req =>
+            SenderAction = req =>
             {
-                sendResult1 = sendResult2 = req.SendMessage(new ZmqMessage(new[] { Messages.MultiFirst, Messages.MultiLast }));
+                SendResult1 = SendResult2 = req.SendMessage(new ZmqMessage(new[] { Messages.MultiFirst, Messages.MultiLast }));
             };
 
-            receiverAction = rep =>
+            ReceiverAction = rep =>
             {
-                message = rep.ReceiveMessage();
+                Message = rep.ReceiveMessage();
             };
-        };
+        }
 
-        Because of = StartThreads;
+        [Test]
+        public void ShouldSendTheFirstMessageSuccessfully()
+        {
+            Assert.AreEqual(SendStatus.Sent, SendResult1);
+        }
 
-        Behaves_like<CompleteMessageReceived> successfully_received_single_message;
+        [Test]
+        public void ShouldSendTheSecondMessageSuccessfully()
+        {
+            Assert.AreEqual(SendStatus.Sent, SendResult2);
+        }
 
-        It should_be_a_complete_message = () =>
-            message.IsComplete.ShouldBeTrue();
+        [Test]
+        public void ShouldReceiveAllMessageParts()
+        {
+            Assert.AreEqual(2, Message.FrameCount);
+        }
 
-        It should_not_be_an_empty_message = () =>
-            message.IsEmpty.ShouldBeFalse();
+        [Test]
+        public void ShouldContainTheCorrectFirstMessageData()
+        {
+            Assert.AreEqual(Messages.MultiFirst, Message.First);
+        }
 
-        It should_contain_the_correct_number_of_frames = () =>
-            message.FrameCount.ShouldEqual(2);
+        [Test]
+        public void ShouldHaveMorePartsAfterTheFirstMessage()
+        {
+            Assert.IsTrue(Message.First.HasMore);
+        }
 
-        It should_contain_the_correct_number_of_bytes = () =>
-            message.TotalSize.ShouldEqual(Messages.MultiFirst.MessageSize + Messages.MultiLast.MessageSize);
+        [Test]
+        public void ShouldContainTheCorrectSecondMessageData()
+        {
+            Assert.AreEqual(Messages.MultiLast, Message.Last);
+        }
+
+        [Test]
+        public void ShouldNotHaveMorePartsAfterTheSecondMessage()
+        {
+            Assert.IsFalse(Message.Last.HasMore);
+        }
+
+        [Test]
+        public void ShouldBeACompleteMessage()
+        {
+            Assert.IsTrue(Message.IsComplete);
+        }
+
+        [Test]
+        public void ShouldNotBeAnEmptyMessage()
+        {
+            Assert.IsFalse(Message.IsEmpty);
+        }
+
+        [Test]
+        public void ShouldContainTheCorrectNumberOfFrames()
+        {
+            Assert.AreEqual(2, Message.FrameCount);
+        }
+
+        [Test]
+        public void ShouldContainTheCorrectNumberOfBytes()
+        {
+            Assert.AreEqual(Messages.MultiFirst.MessageSize + Messages.MultiLast.MessageSize, Message.TotalSize);
+        }
     }
 }
