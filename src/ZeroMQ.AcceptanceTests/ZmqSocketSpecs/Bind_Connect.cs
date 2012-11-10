@@ -2,217 +2,218 @@
 {
     using System;
     using System.Threading;
+    using NUnit.Framework;
 
-    using Machine.Specifications;
-
-    [Subject("Bind/Connect")]
-    class when_binding_and_connecting_to_a_tcp_ip_address_and_port : using_req_rep
+    [TestFixture]
+    public class BindConnectTests
     {
-        Because of = () =>
-            exception = Catch.Exception(() =>
+        public class WhenConnectingViaTcpToAnIpAndPortBoundAddress : UsingReqRep
+        {
+            private void Execute()
             {
-                rep.Bind("tcp://127.0.0.1:9000");
-                req.Connect("tcp://127.0.0.1:9000");
-            });
+                server.Bind("tcp://127.0.0.1:9000");
+                client.Connect("tcp://127.0.0.1:9000");
+            }
 
-        It should_not_fail = () =>
-            exception.ShouldBeNull();
-    }
-
-    [Subject("Bind/Connect")]
-    class when_binding_to_a_tcp_port_and_connecting_to_address_and_port : using_req_rep
-    {
-        Because of = () =>
-            exception = Catch.Exception(() =>
+            [Test]
+            public void ShouldSucceedSilently()
             {
-                rep.Bind("tcp://*:9000");
-                req.Connect("tcp://127.0.0.1:9000");
-            });
+                Assert.That(() => this.Execute(), Throws.Nothing);
+            }
+        }
 
-        It should_not_fail = () =>
-            exception.ShouldBeNull();
-    }
-
-    [Subject("Bind/Connect")]
-    class when_binding_and_connecting_to_a_named_inproc_address : using_req_rep
-    {
-        Because of = () =>
-            exception = Catch.Exception(() =>
+        public class WhenConnectingViaTcpToAWildcardPortBoundAddress : UsingReqRep
+        {
+            private void Execute()
             {
-                rep.Bind("inproc://named");
-                req.Connect("inproc://named");
-            });
+                server.Bind("tcp://*:9000");
+                client.Connect("tcp://127.0.0.1:9000");
+            }
 
-        It should_not_fail = () =>
-            exception.ShouldBeNull();
-    }
-
-    [Subject("Connect")]
-    class when_connecting_to_a_pgm_socket_with_pub_and_sub : using_pub_sub
-    {
-        Because of = () =>
-            exception = Catch.Exception(() =>
+            [Test]
+            public void ShouldSucceedSilently()
             {
-                pub.Linger = TimeSpan.Zero;
-                pub.Connect("epgm://127.0.0.1;239.192.1.1:5000");
+                Assert.That(() => this.Execute(), Throws.Nothing);
+            }
+        }
 
-                sub.Linger = TimeSpan.Zero;
-                sub.SubscribeAll();
-                sub.Connect("epgm://127.0.0.1;239.192.1.1:5000");
+        public class WhenConnectingViaInprocToANamedAddress : UsingReqRep
+        {
+            private void Execute()
+            {
+                server.Bind("inproc://named");
+                client.Connect("inproc://named");
+            }
 
-                pub.SendFrame(Messages.SingleMessage);
+            [Test]
+            public void ShouldSucceedSilently()
+            {
+                Assert.That(() => this.Execute(), Throws.Nothing);
+            }
+        }
+
+        public class WhenConnectingViaPgmWithPubSubSockets : UsingPubSub
+        {
+            private void Execute()
+            {
+                server.Linger = TimeSpan.Zero;
+                server.Connect("epgm://127.0.0.1;239.192.1.1:5000");
+
+                client.Linger = TimeSpan.Zero;
+                client.SubscribeAll();
+                client.Connect("epgm://127.0.0.1;239.192.1.1:5000");
+
+                server.SendFrame(Messages.SingleMessage);
 
                 // TODO: Is there any other way to ensure the PGM thread has started?
                 Thread.Sleep(1000);
-            });
+            }
 
-        It should_not_fail = () =>
-            exception.ShouldBeNull();
-    }
+            [Test]
+            public void ShouldSucceedSilently()
+            {
+                Assert.That(() => this.Execute(), Throws.Nothing);
+            }
+        }
 
-    [Subject("Connect")]
-    class when_connecting_to_a_pgm_socket_with_an_incompatible_socket_type : using_req
-    {
-        Because of = () =>
-            exception = Catch.Exception(() => socket.Connect("epgm://127.0.0.1;239.192.1.1:5000"));
+        public class WhenConnectingViaPgmWithIncompatibleSockets : UsingReqRep
+        {
+            private void Execute()
+            {
+                server.Connect("epgm://127.0.0.1;239.192.1.1:5000");
+            }
 
-        It should_fail_because_pgm_is_not_supported = () =>
-            exception.ShouldBeOfType<ZmqException>();
+            [Test]
+            public void ShouldFailWithIncompatibleProtocolError()
+            {
+                var throwsIncompatibleProtocolError = Throws
+                    .TypeOf<ZmqSocketException>()
+                    .And.Property("ErrorCode").EqualTo(ErrorCode.ENOCOMPATPROTO)
+                    .And.Message.Contains("protocol is not compatible with the socket type");
 
-        It should_have_an_error_code_of_enocompatproto = () =>
-            ((ZmqException)exception).ErrorCode.ShouldEqual(ErrorCode.ENOCOMPATPROTO);
+                Assert.That(() => this.Execute(), throwsIncompatibleProtocolError);
+            }
+        }
 
-        It should_have_a_specific_error_message = () =>
-            exception.Message.ShouldContain("protocol is not compatible with the socket type");
-    }
+        public class WhenConnectingViaIpcToAFileMappedAddress : UsingReqRep
+        {
+            private void Execute()
+            {
+                server.Bind("ipc:///tmp/testsock");
+                client.Connect("ipc:///tmp/testsock");
+            }
 
-    [Subject("Bind")]
-    class when_binding_to_an_ipc_address : using_req_rep
-    {
-        Because of = () =>
-            exception = Catch.Exception(() => rep.Bind("ipc:///tmp/testsock"));
-        
-        It should_have_an_error_code_of_eprotonosupport = () =>
-            ((ZmqException)exception).ErrorCode.ShouldEqual(ErrorCode.EPROTONOSUPPORT);
-        
 #if POSIX
-        It should_not_fail = () =>
-            exception.ShouldBeNull();
+            [Test]
+            public void ShouldSucceedSilently()
+            {
+                Assert.That(() => this.Execute(), Throws.Nothing);
+            }
 #else
-        It should_fail_because_ipc_is_not_supported_on_windows = () =>
-            exception.ShouldBeOfType<ZmqException>();
+            [Test]
+            public void ShouldFailWithProtocolNotSupportedError()
+            {
+                var throwsProtocolNotSupported = Throws
+                    .TypeOf<ZmqSocketException>()
+                    .And.Property("ErrorCode").EqualTo(ErrorCode.EPROTONOSUPPORT)
+                    .And.Message.Contains("Protocol not supported");
 
-        It should_have_a_specific_error_message = () =>
-            exception.Message.ShouldContain("Protocol not supported");
+                Assert.That(() => this.Execute(), throwsProtocolNotSupported);
+            }
 #endif
-    }
+        }
 
-    [Subject("Connect")]
-    class when_connecting_to_an_ipc_address : using_req_rep
-    {
-        Because of = () =>
-            exception = Catch.Exception(() => rep.Connect("ipc:///tmp/testsock"));
-        
-        It should_have_an_error_code_of_eprotonosupport = () =>
-            ((ZmqException)exception).ErrorCode.ShouldEqual(ErrorCode.EPROTONOSUPPORT);
-        
-#if POSIX
-        It should_not_fail = () =>
-            exception.ShouldBeNull();
-#else
-        It should_fail_because_ipc_is_not_supported_on_windows = () =>
-            exception.ShouldBeOfType<ZmqException>();
-
-        It should_have_a_specific_error_message = () =>
-            exception.Message.ShouldContain("Protocol not supported");
-#endif
-    }
-
-    [Subject("Bind/Unbind")]
-    class when_binding_and_unbinding_to_a_tcp_ip_address_and_port : using_req
-    {
-        Because of = () =>
+        public class WhenBindingAndUnbindingWithAnIpAndPortBoundAddress : UsingReqRep
         {
-            if (ZmqVersion.Current.IsAtLeast(3))
-                exception = Catch.Exception(() =>
+            private void Execute()
+            {
+                if (ZmqVersion.Current.IsAtLeast(3))
                 {
-                    socket.Bind("tcp://127.0.0.1:9000");
-                    socket.Unbind("tcp://127.0.0.1:9000");
-                });
-        };
+                    server.Bind("tcp://127.0.0.1:9000");
+                    server.Unbind("tcp://127.0.0.1:9000");
+                }
+            }
 
-        It should_not_fail = () =>
-            exception.ShouldBeNull();
-    }
+            [Test]
+            public void ShouldSucceedSilently()
+            {
+                Assert.That(() => this.Execute(), Throws.Nothing);
+            }
+        }
 
-    [Subject("Bind/Unbind")]
-    class when_binding_and_unbinding_different_addresses : using_req
-    {
-        Because of = () =>
+        public class WhenBindingAndUnbindingDifferentAddresses : UsingReqRep
         {
-            if (ZmqVersion.Current.IsAtLeast(3))
-                exception = Catch.Exception(() =>
+            private void Execute()
+            {
+                if (ZmqVersion.Current.IsAtLeast(3))
                 {
-                    socket.Bind("tcp://127.0.0.1:9000");
-                    socket.Unbind("tcp://127.0.0.1:9001");
-                });
-        };
+                    server.Bind("tcp://127.0.0.1:9000");
+                    server.Unbind("tcp://127.0.0.1:9001");
+                }
+            }
 
-        It should_silently_not_fail = () =>
-            exception.ShouldBeNull();
-    }
+            [Test]
+            public void ShouldSucceedSilently()
+            {
+                Assert.That(() => this.Execute(), Throws.Nothing);
+            }
+        }
 
-    [Subject("Bind/Unbind")]
-    class when_connecting_to_an_unbound_tcp_ip_address_and_port : using_req_rep
-    {
-        Because of = () =>
+        public class WhenConnectingViaTcpToALaterUnboundIpAndPortBoundAddress : UsingReqRep
         {
-            if (ZmqVersion.Current.IsAtLeast(3))
-                exception = Catch.Exception(() =>
+            private void Execute()
+            {
+                if (ZmqVersion.Current.IsAtLeast(3))
                 {
-                    rep.Bind("tcp://127.0.0.1:9000");
-                    req.Connect("tcp://127.0.0.1:9000");
-                    rep.Unbind("tcp://127.0.0.1:9000");
-                });
-        };
+                    server.Bind("tcp://127.0.0.1:9000");
+                    client.Connect("tcp://127.0.0.1:9000");
+                    server.Unbind("tcp://127.0.0.1:9000");
+                }
+            }
 
-        It should_not_fail = () =>
-            exception.ShouldBeNull();
-    }
+            [Test]
+            public void ShouldSucceedSilently()
+            {
+                Assert.That(() => this.Execute(), Throws.Nothing);
+            }
+        }
 
-    [Subject("Connect/Disconnect")]
-    class when_connecting_and_disconnecting_to_a_tcp_ip_address_and_port : using_req_rep
-    {
-        Because of = () =>
+        public class WhenConnectingViaTcpAndDisconnectingFromAnIpAndPortBoundAddress : UsingReqRep
         {
-            if (ZmqVersion.Current.IsAtLeast(3))
-                exception = Catch.Exception(() =>
+            private void Execute()
+            {
+                if (ZmqVersion.Current.IsAtLeast(3))
                 {
-                    rep.Bind("tcp://127.0.0.1:9000");
-                    req.Connect("tcp://127.0.0.1:9000");
-                    req.Disconnect("tcp://127.0.0.1:9000");
-                });
-        };
+                    server.Bind("tcp://127.0.0.1:9000");
+                    client.Connect("tcp://127.0.0.1:9000");
+                    client.Disconnect("tcp://127.0.0.1:9000");
+                }
+            }
 
-        It should_not_fail = () =>
-            exception.ShouldBeNull();
-    }
+            [Test]
+            public void ShouldSucceedSilently()
+            {
+                Assert.That(() => this.Execute(), Throws.Nothing);
+            }
+        }
 
-    [Subject("Connect/Disconnect")]
-    class when_connecting_and_disconnecting_to_a_different_address : using_req_rep
-    {
-        Because of = () =>
+        public class WhenConnectingViaTcpAndDisconnectingFromADifferentAddress : UsingReqRep
         {
-            if (ZmqVersion.Current.IsAtLeast(3))
-                exception = Catch.Exception(() =>
+            private void Execute()
+            {
+                if (ZmqVersion.Current.IsAtLeast(3))
                 {
-                    rep.Bind("tcp://127.0.0.1:9000");
-                    req.Connect("tcp://127.0.0.1:9000");
-                    req.Disconnect("tcp://127.0.0.1:9001");
-                });
-        };
+                    server.Bind("tcp://127.0.0.1:9000");
+                    client.Connect("tcp://127.0.0.1:9000");
+                    client.Disconnect("tcp://127.0.0.1:9001");
+                }
+            }
 
-        It should_silently_not_fail = () =>
-            exception.ShouldBeNull();
+            [Test]
+            public void ShouldSucceedSilently()
+            {
+                Assert.That(() => this.Execute(), Throws.Nothing);
+            }
+        }
     }
 }

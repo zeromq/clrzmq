@@ -2,8 +2,53 @@
 {
     using System;
     using System.Threading;
-
     using Machine.Specifications;
+    using NUnit.Framework;
+
+    public class UsingSocketPair
+    {
+        private readonly SocketType clientType;
+        private readonly SocketType serverType;
+
+        protected ZmqSocket client;
+        protected ZmqSocket server;
+        protected ZmqContext zmqContext;
+        protected Exception exception;
+
+        public UsingSocketPair(SocketType clientType, SocketType serverType)
+        {
+            this.clientType = clientType;
+            this.serverType = serverType;
+        }
+
+        [TestFixtureSetUp]
+        public void Initialize()
+        {
+            zmqContext = ZmqContext.Create();
+            client = zmqContext.CreateSocket(this.clientType);
+            server = zmqContext.CreateSocket(this.serverType);
+        }
+
+        [TestFixtureTearDown]
+        public void Cleanup()
+        {
+            exception = null;
+            client.Dispose();
+            server.Dispose();
+            zmqContext.Dispose();
+        }
+    }
+
+    public class UsingReqRep : UsingSocketPair
+    {
+        public UsingReqRep() : base(SocketType.REQ, SocketType.REP) { }
+    }
+
+    public class UsingPubSub : UsingSocketPair
+    {
+        public UsingPubSub() : base(SocketType.SUB, SocketType.PUB) { }
+    }
+
 
     abstract class using_req
     {
