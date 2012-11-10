@@ -11,8 +11,8 @@
         {
             private void Execute()
             {
-                server.Bind("tcp://127.0.0.1:9000");
-                client.Connect("tcp://127.0.0.1:9000");
+                Receiver.Bind("tcp://127.0.0.1:9000");
+                Sender.Connect("tcp://127.0.0.1:9000");
             }
 
             [Test]
@@ -26,8 +26,8 @@
         {
             private void Execute()
             {
-                server.Bind("tcp://*:9000");
-                client.Connect("tcp://127.0.0.1:9000");
+                Receiver.Bind("tcp://*:9000");
+                Sender.Connect("tcp://127.0.0.1:9000");
             }
 
             [Test]
@@ -41,8 +41,8 @@
         {
             private void Execute()
             {
-                server.Bind("inproc://named");
-                client.Connect("inproc://named");
+                Receiver.Bind("inproc://named");
+                Sender.Connect("inproc://named");
             }
 
             [Test]
@@ -56,14 +56,14 @@
         {
             private void Execute()
             {
-                server.Linger = TimeSpan.Zero;
-                server.Connect("epgm://127.0.0.1;239.192.1.1:5000");
+                Sender.Linger = TimeSpan.Zero;
+                Sender.Connect("epgm://127.0.0.1;239.192.1.1:5000");
 
-                client.Linger = TimeSpan.Zero;
-                client.SubscribeAll();
-                client.Connect("epgm://127.0.0.1;239.192.1.1:5000");
+                Receiver.Linger = TimeSpan.Zero;
+                Receiver.SubscribeAll();
+                Receiver.Connect("epgm://127.0.0.1;239.192.1.1:5000");
 
-                server.SendFrame(Messages.SingleMessage);
+                Sender.SendFrame(Messages.SingleMessage);
 
                 // TODO: Is there any other way to ensure the PGM thread has started?
                 Thread.Sleep(1000);
@@ -80,7 +80,7 @@
         {
             private void Execute()
             {
-                server.Connect("epgm://127.0.0.1;239.192.1.1:5000");
+                Sender.Connect("epgm://127.0.0.1;239.192.1.1:5000");
             }
 
             [Test]
@@ -99,8 +99,8 @@
         {
             private void Execute()
             {
-                server.Bind("ipc:///tmp/testsock");
-                client.Connect("ipc:///tmp/testsock");
+                Receiver.Bind("ipc:///tmp/testsock");
+                Sender.Connect("ipc:///tmp/testsock");
             }
 
 #if POSIX
@@ -129,8 +129,8 @@
             {
                 if (ZmqVersion.Current.IsAtLeast(3))
                 {
-                    server.Bind("tcp://127.0.0.1:9000");
-                    server.Unbind("tcp://127.0.0.1:9000");
+                    Receiver.Bind("tcp://127.0.0.1:9000");
+                    Receiver.Unbind("tcp://127.0.0.1:9000");
                 }
             }
 
@@ -147,8 +147,8 @@
             {
                 if (ZmqVersion.Current.IsAtLeast(3))
                 {
-                    server.Bind("tcp://127.0.0.1:9000");
-                    server.Unbind("tcp://127.0.0.1:9001");
+                    Receiver.Bind("tcp://127.0.0.1:9000");
+                    Receiver.Unbind("tcp://127.0.0.1:9001");
                 }
             }
 
@@ -165,9 +165,9 @@
             {
                 if (ZmqVersion.Current.IsAtLeast(3))
                 {
-                    server.Bind("tcp://127.0.0.1:9000");
-                    client.Connect("tcp://127.0.0.1:9000");
-                    server.Unbind("tcp://127.0.0.1:9000");
+                    Receiver.Bind("tcp://127.0.0.1:9000");
+                    Sender.Connect("tcp://127.0.0.1:9000");
+                    Receiver.Unbind("tcp://127.0.0.1:9000");
                 }
             }
 
@@ -184,9 +184,9 @@
             {
                 if (ZmqVersion.Current.IsAtLeast(3))
                 {
-                    server.Bind("tcp://127.0.0.1:9000");
-                    client.Connect("tcp://127.0.0.1:9000");
-                    client.Disconnect("tcp://127.0.0.1:9000");
+                    Receiver.Bind("tcp://127.0.0.1:9000");
+                    Sender.Connect("tcp://127.0.0.1:9000");
+                    Sender.Disconnect("tcp://127.0.0.1:9000");
                 }
             }
 
@@ -203,9 +203,9 @@
             {
                 if (ZmqVersion.Current.IsAtLeast(3))
                 {
-                    server.Bind("tcp://127.0.0.1:9000");
-                    client.Connect("tcp://127.0.0.1:9000");
-                    client.Disconnect("tcp://127.0.0.1:9001");
+                    Receiver.Bind("tcp://127.0.0.1:9000");
+                    Sender.Connect("tcp://127.0.0.1:9000");
+                    Sender.Disconnect("tcp://127.0.0.1:9001");
                 }
             }
 

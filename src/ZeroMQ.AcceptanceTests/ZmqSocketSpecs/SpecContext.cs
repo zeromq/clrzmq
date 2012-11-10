@@ -7,35 +7,33 @@
 
     public class UsingSocketPair
     {
-        private readonly SocketType clientType;
-        private readonly SocketType serverType;
+        private readonly SocketType _senderType;
+        private readonly SocketType _receiverType;
 
-        protected ZmqSocket client;
-        protected ZmqSocket server;
-        protected ZmqContext zmqContext;
-        protected Exception exception;
+        protected ZmqSocket Sender;
+        protected ZmqSocket Receiver;
+        protected ZmqContext ZmqContext;
 
-        public UsingSocketPair(SocketType clientType, SocketType serverType)
+        public UsingSocketPair(SocketType senderType, SocketType receiverType)
         {
-            this.clientType = clientType;
-            this.serverType = serverType;
+            _receiverType = receiverType;
+            _senderType = senderType;
         }
 
         [TestFixtureSetUp]
         public void Initialize()
         {
-            zmqContext = ZmqContext.Create();
-            client = zmqContext.CreateSocket(this.clientType);
-            server = zmqContext.CreateSocket(this.serverType);
+            ZmqContext = ZmqContext.Create();
+            Sender = ZmqContext.CreateSocket(_senderType);
+            Receiver = ZmqContext.CreateSocket(_receiverType);
         }
 
         [TestFixtureTearDown]
         public void Cleanup()
         {
-            exception = null;
-            client.Dispose();
-            server.Dispose();
-            zmqContext.Dispose();
+            Sender.Dispose();
+            Receiver.Dispose();
+            ZmqContext.Dispose();
         }
     }
 
@@ -46,7 +44,7 @@
 
     public class UsingPubSub : UsingSocketPair
     {
-        public UsingPubSub() : base(SocketType.SUB, SocketType.PUB) { }
+        public UsingPubSub() : base(SocketType.PUB, SocketType.SUB) { }
     }
 
 
