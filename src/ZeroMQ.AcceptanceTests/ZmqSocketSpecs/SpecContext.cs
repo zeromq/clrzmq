@@ -5,6 +5,38 @@
     using Machine.Specifications;
     using NUnit.Framework;
 
+    public class UsingSocket
+    {
+        private readonly SocketType _socketType;
+
+        protected ZmqSocket Socket;
+        protected ZmqContext ZmqContext;
+
+        public UsingSocket(SocketType socketType)
+        {
+            _socketType = socketType;
+        }
+
+        [TestFixtureSetUp]
+        public void Initialize()
+        {
+            ZmqContext = ZmqContext.Create();
+            Socket = ZmqContext.CreateSocket(_socketType);
+        }
+
+        [TestFixtureTearDown]
+        public void Cleanup()
+        {
+            Socket.Dispose();
+            ZmqContext.Dispose();
+        }
+    }
+
+    public class UsingReq : UsingSocket
+    {
+        public UsingReq() : base(SocketType.REQ) { }
+    }
+
     public class UsingSocketPair
     {
         private readonly SocketType _senderType;

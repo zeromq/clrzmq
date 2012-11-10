@@ -1,403 +1,285 @@
 ﻿namespace ZeroMQ.AcceptanceTests.ZmqSocketSpecs
 {
     using System;
-    using Machine.Specifications;
+    using System.Linq.Expressions;
+    using System.Reflection;
+    using NUnit.Framework;
 
-    [Subject("Socket options")]
-    class when_setting_the_affinity_socket_option : using_req
+    [TestFixture]
+    public class SocketOptionTests
     {
-        Because of = () =>
-            exception = Catch.Exception(() => socket.Affinity = 0x03ul);
-
-        It should_not_fail = () =>
-            exception.ShouldBeNull();
-
-        It should_return_the_given_value = () =>
-            socket.Affinity.ShouldEqual(0x03ul);
-    }
-
-    [Subject("Socket options")]
-    class when_setting_the_backlog_socket_option : using_req
-    {
-        Because of = () =>
-            exception = Catch.Exception(() => socket.Backlog = 6);
-
-        It should_not_fail = () =>
-            exception.ShouldBeNull();
-
-        It should_return_the_given_value = () =>
-            socket.Backlog.ShouldEqual(6);
-    }
-
-    [Subject("Socket options")]
-    class when_setting_the_identity_socket_option : using_req
-    {
-        Because of = () =>
-            exception = Catch.Exception(() => socket.Identity = Messages.Identity);
-
-        It should_not_fail = () =>
-            exception.ShouldBeNull();
-
-        It should_return_the_given_value = () =>
-            socket.Identity.ShouldEqual(Messages.Identity);
-    }
-
-    [Subject("Socket options")]
-    class when_setting_the_linger_socket_option : using_req
-    {
-        Because of = () =>
-            exception = Catch.Exception(() => socket.Linger = TimeSpan.FromMilliseconds(333));
-
-        It should_not_fail = () =>
-            exception.ShouldBeNull();
-
-        It should_return_the_given_value = () =>
-            socket.Linger.ShouldEqual(TimeSpan.FromMilliseconds(333));
-    }
-
-    [Subject("Socket options")]
-    class when_setting_the_max_message_size_socket_option : using_req
-    {
-        Because of = () =>
+        public class Affinity : SocketOptionSetSuccessfully<ulong>
         {
-            if (ZmqVersion.Current.IsAtLeast(3))
-                exception = Catch.Exception(() => socket.MaxMessageSize = 60000L);
-        };
+            public Affinity() : base(socket => socket.Affinity, 0x03ul) { }
+        }
 
-        It should_not_fail = () =>
-            exception.ShouldBeNull();
-
-        It should_return_the_given_value = () =>
+        public class Backlog : SocketOptionSetSuccessfully<int>
         {
-            if (ZmqVersion.Current.IsAtLeast(3))
-                socket.MaxMessageSize.ShouldEqual(60000L);
-        };
-    }
+            public Backlog() : base(socket => socket.Backlog, 6) { }
+        }
 
-    [Subject("Socket options")]
-    class when_setting_the_multicast_hops_socket_option : using_req
-    {
-        Because of = () =>
+        public class Identity : SocketOptionSetSuccessfully<byte[]>
         {
-            if (ZmqVersion.Current.IsAtLeast(3))
-                exception = Catch.Exception(() => socket.MulticastHops = 6);
-        };
+            public Identity() : base(socket => socket.Identity, Messages.Identity) { }
+        }
 
-        It should_not_fail = () =>
-            exception.ShouldBeNull();
-
-        It should_return_the_given_value = () =>
+        public class Linger : SocketOptionSetSuccessfully<TimeSpan>
         {
-            if (ZmqVersion.Current.IsAtLeast(3))
-                socket.MulticastHops.ShouldEqual(6);
-        };
-    }
+            public Linger() : base(socket => socket.Linger, TimeSpan.FromMilliseconds(333)) { }
+        }
 
-    [Subject("Socket options")]
-    class when_setting_the_multicast_rate_socket_option : using_req
-    {
-        Because of = () =>
-            exception = Catch.Exception(() => socket.MulticastRate = 60);
-
-        It should_not_fail = () =>
-            exception.ShouldBeNull();
-
-        It should_return_the_given_value = () =>
-            socket.MulticastRate.ShouldEqual(60);
-    }
-
-    [Subject("Socket options")]
-    class when_setting_the_multicast_recovery_interval_socket_option : using_req
-    {
-        Because of = () =>
-            exception = Catch.Exception(() => socket.MulticastRecoveryInterval = TimeSpan.FromMilliseconds(333));
-
-        It should_not_fail = () =>
-            exception.ShouldBeNull();
-
-        It should_return_the_given_value = () =>
-            socket.MulticastRecoveryInterval.ShouldEqual(TimeSpan.FromMilliseconds(333));
-    }
-
-    [Subject("Socket options")]
-    class when_setting_the_receive_buffer_size_socket_option : using_req
-    {
-        Because of = () =>
-            exception = Catch.Exception(() => socket.ReceiveBufferSize = 10000);
-
-        It should_not_fail = () =>
-            exception.ShouldBeNull();
-
-        It should_return_the_given_value = () =>
-            socket.ReceiveBufferSize.ShouldEqual(10000);
-    }
-
-    [Subject("Socket options")]
-    class when_setting_the_receive_high_watermark_socket_option : using_req
-    {
-        Because of = () =>
-            exception = Catch.Exception(() => socket.ReceiveHighWatermark = 100);
-
-        It should_not_fail = () =>
-            exception.ShouldBeNull();
-
-        It should_return_the_given_value = () =>
-            socket.ReceiveHighWatermark.ShouldEqual(100);
-    }
-
-    [Subject("Socket options")]
-    class when_setting_the_receive_timeout_socket_option : using_req
-    {
-        Because of = () =>
+        public class MaxMessageSize : SocketOptionSetSuccessfully<long>
         {
-            if (ZmqVersion.Current.IsAtLeast(3))
-                exception = Catch.Exception(() => socket.ReceiveTimeout = TimeSpan.FromMilliseconds(333));
-        };
+            public MaxMessageSize() : base(socket => socket.MaxMessageSize, 60000L) { }
 
-        It should_not_fail = () =>
-            exception.ShouldBeNull();
+            protected override bool CheckVersion()
+            {
+                return ZmqVersion.Current.IsAtLeast(3);
+            }
+        }
 
-        It should_return_the_given_value = () =>
+        public class MulticastHops : SocketOptionSetSuccessfully<int>
         {
-            if (ZmqVersion.Current.IsAtLeast(3))
-                socket.ReceiveTimeout.ShouldEqual(TimeSpan.FromMilliseconds(333));
-        };
-    }
+            public MulticastHops() : base(socket => socket.MulticastHops, 6) { }
 
-    [Subject("Socket options")]
-    class when_setting_the_reconnect_interval_socket_option : using_req
-    {
-        Because of = () =>
-            exception = Catch.Exception(() => socket.ReconnectInterval = TimeSpan.FromMilliseconds(333));
+            protected override bool CheckVersion()
+            {
+                return ZmqVersion.Current.IsAtLeast(3);
+            }
+        }
 
-        It should_not_fail = () =>
-            exception.ShouldBeNull();
-
-        It should_return_the_given_value = () =>
-            socket.ReconnectInterval.ShouldEqual(TimeSpan.FromMilliseconds(333));
-    }
-
-    [Subject("Socket options")]
-    class when_setting_the_reconnect_interval_max_socket_option : using_req
-    {
-        Because of = () =>
-            exception = Catch.Exception(() => socket.ReconnectIntervalMax = TimeSpan.FromMilliseconds(333));
-
-        It should_not_fail = () =>
-            exception.ShouldBeNull();
-
-        It should_return_the_given_value = () =>
-            socket.ReconnectIntervalMax.ShouldEqual(TimeSpan.FromMilliseconds(333));
-    }
-
-    [Subject("Socket options")]
-    class when_setting_the_send_buffer_size_socket_option : using_req
-    {
-        Because of = () =>
-            exception = Catch.Exception(() => socket.SendBufferSize = 10000);
-
-        It should_not_fail = () =>
-            exception.ShouldBeNull();
-
-        It should_return_the_given_value = () =>
-            socket.SendBufferSize.ShouldEqual(10000);
-    }
-
-    [Subject("Socket options")]
-    class when_setting_the_send_high_watermark_socket_option : using_req
-    {
-        Because of = () =>
-            exception = Catch.Exception(() => socket.SendHighWatermark = 100);
-
-        It should_not_fail = () =>
-            exception.ShouldBeNull();
-
-        It should_return_the_given_value = () =>
-            socket.SendHighWatermark.ShouldEqual(100);
-    }
-
-    [Subject("Socket options")]
-    class when_setting_the_send_timeout_socket_option : using_req
-    {
-        Because of = () =>
+        public class MulticastRate : SocketOptionSetSuccessfully<int>
         {
-            if (ZmqVersion.Current.IsAtLeast(3))
-                exception = Catch.Exception(() => socket.SendTimeout = TimeSpan.FromMilliseconds(333));
-        };
+            public MulticastRate() : base(socket => socket.MulticastRate, 60) { }
+        }
 
-        It should_not_fail = () =>
-            exception.ShouldBeNull();
-
-        It should_return_the_given_value = () =>
+        public class MulticastRecoveryInterval : SocketOptionSetSuccessfully<TimeSpan>
         {
-            if (ZmqVersion.Current.IsAtLeast(3))
-                socket.SendTimeout.ShouldEqual(TimeSpan.FromMilliseconds(333));
-        };
-    }
+            public MulticastRecoveryInterval() : base(socket => socket.MulticastRecoveryInterval, TimeSpan.FromMilliseconds(333)) { }
+        }
 
-    [Subject("Socket options")]
-    class when_setting_the_supported_protocol_socket_option : using_req
-    {
-        Because of = () =>
+        public class ReceiveBufferSize : SocketOptionSetSuccessfully<int>
         {
-            if (ZmqVersion.Current.IsAtLeast(3))
-                exception = Catch.Exception(() => socket.SupportedProtocol = ProtocolType.Both);
-        };
+            public ReceiveBufferSize() : base(socket => socket.ReceiveBufferSize, 10000) { }
+        }
 
-        It should_not_fail = () =>
-            exception.ShouldBeNull();
-
-        It should_return_the_given_value = () =>
+        public class ReceiveHighWatermark : SocketOptionSetSuccessfully<int>
         {
-            if (ZmqVersion.Current.IsAtLeast(3))
-                socket.SupportedProtocol.ShouldEqual(ProtocolType.Both);
-        };
-    }
+            public ReceiveHighWatermark() : base(socket => socket.ReceiveHighWatermark, 100) { }
+        }
 
-    [Subject("Socket options")]
-    class when_gettings_the_last_endpoint_socket_option : using_req
-    {
-        Because of = () =>
-            exception = Catch.Exception(() => socket.Bind("inproc://last_endpoint"));
-
-        It should_not_fail = () =>
-            exception.ShouldBeNull();
-
-        It should_return_the_given_value = () =>
-            socket.LastEndpoint.ShouldEqual("inproc://last_endpoint");
-    }
-
-    [Subject("Socket options")]
-    class when_setting_the_router_behavior_socket_option : using_router
-    {
-        Because of = () =>
+        public class ReceiveTimeout : SocketOptionSetSuccessfully<TimeSpan>
         {
-            if (ZmqVersion.Current.IsAtLeast(3))
-                exception = Catch.Exception(() => socket.RouterBehavior = RouterBehavior.Report);
-        };
+            public ReceiveTimeout() : base(socket => socket.ReceiveTimeout, TimeSpan.FromMilliseconds(333)) { }
 
-        It should_not_fail = () =>
-            exception.ShouldBeNull();
-    }
+            protected override bool CheckVersion()
+            {
+                return ZmqVersion.Current.IsAtLeast(3);
+            }
+        }
 
-    [Subject("Socket options")]
-    class when_setting_the_tcp_accept_filter_socket_option : using_req
-    {
-        Because of = () =>
+        public class ReconnectInterval : SocketOptionSetSuccessfully<TimeSpan>
         {
-            if (ZmqVersion.Current.IsAtLeast(3))
-                exception = Catch.Exception(() => socket.AddTcpAcceptFilter("localhost"));
-        };
+            public ReconnectInterval() : base(socket => socket.ReconnectInterval, TimeSpan.FromMilliseconds(333)) { }
+        }
 
-        It should_not_fail = () =>
-            exception.ShouldBeNull();
-    }
-
-    [Subject("Socket options")]
-    class when_setting_the_tcp_keepalive_socket_option : using_req
-    {
-        Because of = () =>
+        public class ReconnectIntervalMax : SocketOptionSetSuccessfully<TimeSpan>
         {
-            if (ZmqVersion.Current.IsAtLeast(3))
-                exception = Catch.Exception(() => socket.TcpKeepalive = TcpKeepaliveBehaviour.Enable);
-        };
+            public ReconnectIntervalMax() : base(socket => socket.ReconnectIntervalMax, TimeSpan.FromMilliseconds(333)) { }
+        }
 
-        It should_not_fail = () =>
-            exception.ShouldBeNull();
+        public class SendBufferSize : SocketOptionSetSuccessfully<int>
+        {
+            public SendBufferSize() : base(socket => socket.SendBufferSize, 10000) { }
+        }
 
+        public class SendHighWatermark : SocketOptionSetSuccessfully<int>
+        {
+            public SendHighWatermark() : base(socket => socket.SendHighWatermark, 100) { }
+        }
+
+        public class SendTimeout : SocketOptionSetSuccessfully<TimeSpan>
+        {
+            public SendTimeout() : base(socket => socket.SendTimeout, TimeSpan.FromMilliseconds(333)) { }
+
+            protected override bool CheckVersion()
+            {
+                return ZmqVersion.Current.IsAtLeast(3);
+            }
+        }
+
+        public class SupportedProtocol : SocketOptionSetSuccessfully<ProtocolType>
+        {
+            public SupportedProtocol() : base(socket => socket.SupportedProtocol, ProtocolType.Both) { }
+
+            protected override bool CheckVersion()
+            {
+                return ZmqVersion.Current.IsAtLeast(3);
+            }
+        }
+
+        public class LastEndpoint : UsingReq
+        {
+            [TestFixtureSetUp]
+            public void RunTest()
+            {
+                Socket.Bind("inproc://last_endpoint");
+            }
+
+            [Test]
+            public void ShouldReturnTheGivenValue()
+            {
+                Assert.AreEqual("inproc://last_endpoint", Socket.LastEndpoint);
+            }
+        }
+
+        public class RouterBehavior : UsingSocket
+        {
+            public RouterBehavior() : base(SocketType.ROUTER) { }
+
+            [Test]
+            public void ShouldExecuteWithoutException()
+            {
+                if (ZmqVersion.Current.IsAtLeast(3))
+                {
+                    Assert.DoesNotThrow(() => Socket.RouterBehavior = ZeroMQ.RouterBehavior.Report);
+                }
+            }
+        }
+
+        public class TcpAcceptFilter : UsingReq
+        {
+            [Test]
+            public void ShouldExecuteWithoutException()
+            {
+                if (ZmqVersion.Current.IsAtLeast(3))
+                {
+                    Assert.DoesNotThrow(() => Socket.AddTcpAcceptFilter("localhost"));
+                }
+            }
+        }
+
+        public class TcpKeepalive : SocketOptionSetSuccessfully<TcpKeepaliveBehaviour>
+        {
 #if POSIX
-        It should_return_the_given_value = () =>
-        {
-            if (ZmqVersion.Current.IsAtLeast(3))
-                socket.TcpKeepalive.ShouldEqual(TcpKeepaliveBehaviour.Enable);
-        };
+            public TcpKeepalive() : base(socket => socket.TcpKeepalive, TcpKeepaliveBehaviour.Enable) { }
 #else
-        It should_return_the_default_value_on_windows = () =>
-        {
-            if (ZmqVersion.Current.IsAtLeast(3))
-                socket.TcpKeepalive.ShouldEqual(TcpKeepaliveBehaviour.Default);
-        };
+            public TcpKeepalive() : base(socket => socket.TcpKeepalive, TcpKeepaliveBehaviour.Enable, TcpKeepaliveBehaviour.Default) { }
 #endif
-    }
 
-    [Subject("Socket options")]
-    class when_setting_the_tcp_keepalive_cnt_socket_option : using_req
-    {
-        Because of = () =>
+            protected override bool CheckVersion()
+            {
+                return ZmqVersion.Current.IsAtLeast(3);
+            }
+        }
+
+        public class TcpKeepaliveCnt : SocketOptionSetSuccessfully<int>
         {
-            if (ZmqVersion.Current.IsAtLeast(3))
-                exception = Catch.Exception(() => socket.TcpKeepaliveCnt = 42);
-        };
-
-        It should_not_fail = () =>
-            exception.ShouldBeNull();
-
 #if POSIX
-        It should_return_the_given_value = () =>
-        {
-            if (ZmqVersion.Current.IsAtLeast(3))
-                socket.TcpKeepaliveCnt.ShouldEqual(42);
-        };
+            public TcpKeepaliveCnt() : base(socket => socket.TcpKeepaliveCnt, 42) { }
 #else
-        It should_return_the_default_value_on_windows = () =>
-        {
-            if (ZmqVersion.Current.IsAtLeast(3))
-                socket.TcpKeepaliveCnt.ShouldEqual(-1);
-        };
+            public TcpKeepaliveCnt() : base(socket => socket.TcpKeepaliveCnt, 42, -1) { }
 #endif
-    }
 
-    [Subject("Socket options")]
-    class when_setting_the_tcp_keepalive_idle_socket_option : using_req
-    {
-        Because of = () =>
+            protected override bool CheckVersion()
+            {
+                return ZmqVersion.Current.IsAtLeast(3);
+            }
+        }
+
+        public class TcpKeepaliveIdle : SocketOptionSetSuccessfully<int>
         {
-            if (ZmqVersion.Current.IsAtLeast(3))
-                exception = Catch.Exception(() => socket.TcpKeepaliveIdle = 42);
-        };
-
-        It should_not_fail = () =>
-            exception.ShouldBeNull();
-
 #if POSIX
-        It should_return_the_given_value = () =>
-        {
-            if (ZmqVersion.Current.IsAtLeast(3))
-                socket.TcpKeepaliveIdle.ShouldEqual(42);
-        };
+            public TcpKeepaliveIdle() : base(socket => socket.TcpKeepaliveIdle, 42) { }
 #else
-        It should_return_the_default_value_on_windows = () =>
-        {
-            if (ZmqVersion.Current.IsAtLeast(3))
-                socket.TcpKeepaliveIdle.ShouldEqual(-1);
-        };
+            public TcpKeepaliveIdle() : base(socket => socket.TcpKeepaliveIdle, 42, -1) { }
 #endif
-    }
 
-    [Subject("Socket options")]
-    class when_setting_the_tcp_keepalive_intvl_socket_option : using_req
-    {
-        Because of = () =>
+            protected override bool CheckVersion()
+            {
+                return ZmqVersion.Current.IsAtLeast(3);
+            }
+        }
+
+        public class TcpKeepaliveIntvl : SocketOptionSetSuccessfully<int>
         {
-            if (ZmqVersion.Current.IsAtLeast(3))
-                exception = Catch.Exception(() => socket.TcpKeepaliveIntvl = 42);
-        };
-
-        It should_not_fail = () =>
-            exception.ShouldBeNull();
-
 #if POSIX
-        It should_return_the_given_value = () =>
-        {
-            if (ZmqVersion.Current.IsAtLeast(3))
-                socket.TcpKeepaliveIntvl.ShouldEqual(42);
-        };
+            public TcpKeepaliveIntvl() : base(socket => socket.TcpKeepaliveIntvl, 42) { }
 #else
-        It should_return_the_default_value_on_windows = () =>
-        {
-            if (ZmqVersion.Current.IsAtLeast(3))
-                socket.TcpKeepaliveIntvl.ShouldEqual(-1);
-        };
+            public TcpKeepaliveIntvl() : base(socket => socket.TcpKeepaliveIntvl, 42, -1) { }
 #endif
+        }
+
+        public abstract class SocketOptionSetSuccessfully<TOption> : UsingSocket
+        {
+            private readonly Expression<Func<ZmqSocket, TOption>> _getter;
+            private readonly Expression<Action<ZmqSocket, TOption>> _setter;
+            private readonly TOption _value;
+            private readonly TOption _expected;
+
+            private Exception _exception;
+
+            protected SocketOptionSetSuccessfully(Expression<Func<ZmqSocket, TOption>> option, TOption value) : this(option, value, value) { }
+
+            protected SocketOptionSetSuccessfully(Expression<Func<ZmqSocket, TOption>> option, TOption value, TOption expected) : this(option, value, expected, SocketType.REQ) { }
+
+            protected SocketOptionSetSuccessfully(Expression<Func<ZmqSocket, TOption>> option, TOption value, TOption expected, SocketType socketType)
+                : base(socketType)
+            {
+                _getter = option;
+                _expected = expected;
+                _value = value;
+
+                var memberExpression = option.Body as MemberExpression;
+
+                if (memberExpression == null || !(memberExpression.Member is PropertyInfo))
+                {
+                    throw new InvalidOperationException("Option expression must be simple getter.");
+                }
+
+                var propertyInfo = (PropertyInfo)memberExpression.Member;
+                var setMethod = propertyInfo.GetSetMethod();
+
+                _setter = (socket, val) => setMethod.Invoke(Socket, new object[] { val });
+            }
+
+            protected virtual bool CheckVersion()
+            {
+                return true;
+            }
+
+            [TestFixtureSetUp]
+            public void RunTest()
+            {
+                _exception = null;
+
+                if (CheckVersion())
+                {
+                    try
+                    {
+                        _setter.Compile().Invoke(Socket, _value);
+                    }
+                    catch (Exception e)
+                    {
+                        _exception = e;
+                    }
+                }
+            }
+
+            [Test]
+            public void ShouldSucceedWithoutException()
+            {
+                Assert.IsNull(_exception);
+            }
+
+            [Test]
+            public void ShouldReturnTheGivenValue()
+            {
+                if (CheckVersion())
+                {
+                    Assert.AreEqual(_expected, _getter.Compile().Invoke(Socket));
+                }
+            }
+        }
     }
 }
