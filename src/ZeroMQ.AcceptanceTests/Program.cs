@@ -1,5 +1,7 @@
 ﻿namespace ZeroMQ.AcceptanceTests
 {
+    using System;
+    using NUnit.Framework.Api;
     using NUnitLite.Runner;
 
     /// <summary>
@@ -9,7 +11,18 @@
     {
         public static void Main(string[] args)
         {
-            new TextUI().Execute(args);
+            new ConsoleRunner().Execute(args);
+        }
+    }
+
+    internal class ConsoleRunner : TextUI, ITestListener
+    {
+        void ITestListener.TestFinished(ITestResult result)
+        {
+            if (result.FailCount > 0)
+            {
+                Environment.ExitCode = 1;
+            }
         }
     }
 }
