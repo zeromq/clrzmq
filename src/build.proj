@@ -77,7 +77,8 @@
   </Target>
 
   <Target Name="Test" DependsOnTargets="Compile">
-    <Exec Command="$(SolutionDir)\ZeroMQ.AcceptanceTests\bin\$(Platform)\$(Configuration)\ZeroMQ.AcceptanceTests.exe" LogStandardErrorAsError="true" ContinueOnError="false" />
+    <Exec Condition=" '$(OperatingPlatform)' == 'Windows' " Command="$(SolutionDir)\ZeroMQ.AcceptanceTests\bin\$(Platform)\$(Configuration)\ZeroMQ.AcceptanceTests.exe" LogStandardErrorAsError="true" ContinueOnError="false" />
+    <Exec Condition=" '$(OperatingPlatform)' != 'Windows' " Command="mono $(SolutionDir)\ZeroMQ.AcceptanceTests\bin\$(Configuration)\ZeroMQ.AcceptanceTests.exe" ContinueOnError="false" />
   </Target>
 
   <Target Name="Build" DependsOnTargets="Test">
