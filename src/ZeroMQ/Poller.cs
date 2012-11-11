@@ -120,6 +120,7 @@
         public void ClearSockets()
         {
             _pollableSockets.Clear();
+            CreatePollItems();
         }
 
         /// <summary>
