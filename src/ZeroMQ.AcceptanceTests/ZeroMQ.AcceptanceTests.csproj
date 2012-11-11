@@ -111,10 +111,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Behaviors.cs" />
-    <Compile Include="DeviceSpecs\Forwarder.cs" />
-    <Compile Include="DeviceSpecs\Queue.cs" />
-    <Compile Include="DeviceSpecs\SpecContext.cs" />
-    <Compile Include="DeviceSpecs\Streamer.cs" />
+    <Compile Include="DeviceTests\Forwarder.cs" />
+    <Compile Include="DeviceTests\Queue.cs" />
+    <Compile Include="DeviceFixtures.cs" />
+    <Compile Include="DeviceTests\Streamer.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ZmqContextTests\ContextOptions.cs" />
