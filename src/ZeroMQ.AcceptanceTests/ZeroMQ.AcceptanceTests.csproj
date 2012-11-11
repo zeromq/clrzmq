@@ -118,8 +118,8 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ZmqContextSpecs\ContextOptions.cs" />
-    <Compile Include="ZmqMonitorSpecs\MonitorEvents.cs" />
-    <Compile Include="ZmqMonitorSpecs\SpecContext.cs" />
+    <Compile Include="ZmqMonitorTests\MonitorEvents.cs" />
+    <Compile Include="MonitorFixtures.cs" />
     <Compile Include="ZmqSocketTests\Bind_Connect.cs" />
     <Compile Include="ZmqSocketTests\SendMessage_ReceiveMessage.cs" />
     <Compile Include="ZmqSocketTests\Send_Receive.cs" />
