@@ -103,7 +103,7 @@
                 Sender.Connect("ipc:///tmp/testsock");
             }
 
-#if POSIX
+#if UNIX
             [Test]
             public void ShouldSucceedSilently()
             {

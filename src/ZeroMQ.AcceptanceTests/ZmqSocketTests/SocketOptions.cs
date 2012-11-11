@@ -161,7 +161,7 @@
 
         public class TcpKeepalive : SocketOptionSetSuccessfully<TcpKeepaliveBehaviour>
         {
-#if POSIX
+#if UNIX
             public TcpKeepalive() : base(socket => socket.TcpKeepalive, TcpKeepaliveBehaviour.Enable) { }
 #else
             public TcpKeepalive() : base(socket => socket.TcpKeepalive, TcpKeepaliveBehaviour.Enable, TcpKeepaliveBehaviour.Default) { }
@@ -175,7 +175,7 @@
 
         public class TcpKeepaliveCnt : SocketOptionSetSuccessfully<int>
         {
-#if POSIX
+#if UNIX
             public TcpKeepaliveCnt() : base(socket => socket.TcpKeepaliveCnt, 42) { }
 #else
             public TcpKeepaliveCnt() : base(socket => socket.TcpKeepaliveCnt, 42, -1) { }
@@ -189,7 +189,7 @@
 
         public class TcpKeepaliveIdle : SocketOptionSetSuccessfully<int>
         {
-#if POSIX
+#if UNIX
             public TcpKeepaliveIdle() : base(socket => socket.TcpKeepaliveIdle, 42) { }
 #else
             public TcpKeepaliveIdle() : base(socket => socket.TcpKeepaliveIdle, 42, -1) { }
@@ -203,7 +203,7 @@
 
         public class TcpKeepaliveIntvl : SocketOptionSetSuccessfully<int>
         {
-#if POSIX
+#if UNIX
             public TcpKeepaliveIntvl() : base(socket => socket.TcpKeepaliveIntvl, 42) { }
 #else
             public TcpKeepaliveIntvl() : base(socket => socket.TcpKeepaliveIntvl, 42, -1) { }
