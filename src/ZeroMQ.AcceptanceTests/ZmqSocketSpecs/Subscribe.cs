@@ -4,80 +4,166 @@
     using System.Threading;
 
     using AcceptanceTests;
-
-    using Machine.Specifications;
-
+    using NUnit.Framework;
     using ZeroMQ;
 
-    [Subject("Subscribe")]
-    class when_subscribing_to_a_specific_prefix : using_threaded_pub_sub
+    [TestFixture]
+    public class SubscribeTests
     {
-        protected static Frame message1;
-        protected static Frame message2;
-        protected static SendStatus sendResult1;
-        protected static SendStatus sendResult2;
-
-        Establish context = () =>
+        public class WhenSubscribingToASpecificPrefix : UsingThreadedPubSub
         {
-            var signal = new ManualResetEvent(false);
+            private readonly ManualResetEvent _signal;
 
-            receiverInit = sub => sub.Subscribe(Messages.PubSubPrefix);
+            private Frame _message1;
+            private Frame _message2;
+            private SendStatus _sendResult1;
+            private SendStatus _sendResult2;
 
-            receiverAction = sub =>
+            public WhenSubscribingToASpecificPrefix()
             {
-                signal.Set();
+                _signal = new ManualResetEvent(false);
 
-                message1 = sub.ReceiveFrame();
-                message2 = sub.ReceiveFrame(TimeSpan.FromMilliseconds(500));
-            };
+                ReceiverInit = sub => sub.Subscribe(Messages.PubSubPrefix);
 
-            senderInit = pub => signal.WaitOne(1000);
+                ReceiverAction = sub =>
+                {
+                    _signal.Set();
 
-            senderAction = pub =>
+                    _message1 = sub.ReceiveFrame();
+                    _message2 = sub.ReceiveFrame(TimeSpan.FromMilliseconds(500));
+                };
+
+                SenderInit = pub => _signal.WaitOne(1000);
+
+                SenderAction = pub =>
+                {
+                    _sendResult1 = pub.SendFrame(Messages.PubSubFirst);
+                    _sendResult2 = pub.SendFrame(Messages.PubSubSecond);
+                };
+            }
+
+            [Test]
+            public void ShouldSendTheFirstMessageSuccessfully()
             {
-                sendResult1 = pub.SendFrame(Messages.PubSubFirst);
-                sendResult2 = pub.SendFrame(Messages.PubSubSecond);
-            };
-        };
+                Assert.AreEqual(SendStatus.Sent, _sendResult1);
+            }
 
-        Because of = StartThreads;
+            [Test]
+            public void ShouldSendTheSecondMessageSuccessfully()
+            {
+                Assert.AreEqual(SendStatus.Sent, _sendResult2);
+            }
 
-        Behaves_like<PubSubReceiveFirst> successfully_received_first_message_and_filtered_out_second;
-    }
+            [Test]
+            public void ShouldReceiveTheFirstMessageSuccessfully()
+            {
+                Assert.IsNotNull(_message1);
+            }
 
-    [Subject("Subscribe")]
-    class when_subscribing_to_all_prefixes : using_threaded_pub_sub
-    {
-        protected static Frame message1;
-        protected static Frame message2;
-        protected static SendStatus sendResult1;
-        protected static SendStatus sendResult2;
+            [Test]
+            public void ShouldContainTheCorrectFirstMessageData()
+            {
+                Assert.AreEqual(Messages.PubSubFirst, _message1);
+            }
 
-        Establish context = () =>
+            [Test]
+            public void ShouldNotHaveMorePartsAfterTheFirstMessage()
+            {
+                Assert.IsFalse(_message1.HasMore);
+            }
+
+            [Test]
+            public void ShouldTellReceiverToRetryTheSecondMessage()
+            {
+                Assert.AreEqual(ReceiveStatus.TryAgain, _message2.ReceiveStatus);
+            }
+
+            [Test]
+            public void ShouldNotHaveMorePartsAfterTheSecondMessage()
+            {
+                Assert.IsFalse(_message2.HasMore);
+            }
+        }
+
+        public class WhenSubscribingToAllPrefixes : UsingThreadedPubSub
         {
-            var signal = new ManualResetEvent(false);
+            private readonly ManualResetEvent _signal;
 
-            receiverInit = sub => sub.Subscribe(new byte[0]);
+            private Frame _message1;
+            private Frame _message2;
+            private SendStatus _sendResult1;
+            private SendStatus _sendResult2;
 
-            receiverAction = sub =>
+            public WhenSubscribingToAllPrefixes()
             {
-                signal.Set();
+                _signal = new ManualResetEvent(false);
 
-                message1 = sub.ReceiveFrame();
-                message2 = sub.ReceiveFrame(TimeSpan.FromMilliseconds(500));
-            };
+                ReceiverInit = sub => sub.SubscribeAll();
 
-            senderInit = pub => signal.WaitOne(1000);
+                ReceiverAction = sub =>
+                {
+                    _signal.Set();
 
-            senderAction = pub =>
+                    _message1 = sub.ReceiveFrame();
+                    _message2 = sub.ReceiveFrame(TimeSpan.FromMilliseconds(500));
+                };
+
+                SenderInit = pub => _signal.WaitOne(1000);
+
+                SenderAction = pub =>
+                {
+                    _sendResult1 = pub.SendFrame(Messages.PubSubFirst);
+                    _sendResult2 = pub.SendFrame(Messages.PubSubSecond);
+                };
+            }
+
+            [Test]
+            public void ShouldSendTheFirstMessageSuccessfully()
             {
-                sendResult1 = pub.SendFrame(Messages.PubSubFirst);
-                sendResult2 = pub.SendFrame(Messages.PubSubSecond);
-            };
-        };
+                Assert.AreEqual(SendStatus.Sent, _sendResult1);
+            }
 
-        Because of = StartThreads;
+            [Test]
+            public void ShouldSendTheSecondMessageSuccessfully()
+            {
+                Assert.AreEqual(SendStatus.Sent, _sendResult2);
+            }
 
-        Behaves_like<PubSubReceiveAll> successfully_received_all_messages;
+            [Test]
+            public void ShouldReceiveTheFirstMessageSuccessfully()
+            {
+                Assert.IsNotNull(_message1);
+            }
+
+            [Test]
+            public void ShouldContainTheCorrectFirstMessageData()
+            {
+                Assert.AreEqual(Messages.PubSubFirst, _message1);
+            }
+
+            [Test]
+            public void ShouldNotHaveMorePartsAfterTheFirstMessage()
+            {
+                Assert.IsFalse(_message1.HasMore);
+            }
+
+            [Test]
+            public void ShouldReceiveTheSecondMessageSuccessfully()
+            {
+                Assert.IsNotNull(_message2);
+            }
+
+            [Test]
+            public void ShouldContainTheCorrectSecondMessageData()
+            {
+                Assert.AreEqual(Messages.PubSubSecond, _message2);
+            }
+
+            [Test]
+            public void ShouldNotHaveMorePartsAfterTheSecondMessage()
+            {
+                Assert.IsFalse(_message2.HasMore);
+            }
+        }
     }
 }
