@@ -1,8 +1,7 @@
-﻿namespace ZeroMQ.AcceptanceTests.ZmqSocketSpecs
+﻿namespace ZeroMQ.AcceptanceTests.ZmqSocketTests
 {
     using System;
     using System.Threading;
-
     using AcceptanceTests;
     using NUnit.Framework;
     using ZeroMQ;

@@ -120,12 +120,12 @@
     <Compile Include="ZmqContextSpecs\ContextOptions.cs" />
     <Compile Include="ZmqMonitorSpecs\MonitorEvents.cs" />
     <Compile Include="ZmqMonitorSpecs\SpecContext.cs" />
-    <Compile Include="ZmqSocketSpecs\Bind_Connect.cs" />
-    <Compile Include="ZmqSocketSpecs\SendMessage_ReceiveMessage.cs" />
-    <Compile Include="ZmqSocketSpecs\Send_Receive.cs" />
-    <Compile Include="ZmqSocketSpecs\SocketOptions.cs" />
-    <Compile Include="ZmqSocketSpecs\SpecContext.cs" />
-    <Compile Include="ZmqSocketSpecs\Subscribe.cs" />
+    <Compile Include="ZmqSocketTests\Bind_Connect.cs" />
+    <Compile Include="ZmqSocketTests\SendMessage_ReceiveMessage.cs" />
+    <Compile Include="ZmqSocketTests\Send_Receive.cs" />
+    <Compile Include="ZmqSocketTests\SocketOptions.cs" />
+    <Compile Include="SocketFixtures.cs" />
+    <Compile Include="ZmqSocketTests\Subscribe.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ZeroMQ\ZeroMQ.csproj">

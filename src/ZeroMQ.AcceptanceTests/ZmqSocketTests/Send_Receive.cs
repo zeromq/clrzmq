@@ -1,12 +1,10 @@
-﻿namespace ZeroMQ.AcceptanceTests.ZmqSocketSpecs
+﻿namespace ZeroMQ.AcceptanceTests.ZmqSocketTests
 {
     using System;
     using System.Linq;
     using System.Text;
     using System.Threading;
-
     using AcceptanceTests;
-
     using NUnit.Framework;
 
     [TestFixture]

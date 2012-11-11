@@ -1,4 +1,4 @@
-﻿namespace ZeroMQ.AcceptanceTests.ZmqSocketSpecs
+﻿namespace ZeroMQ.AcceptanceTests.ZmqSocketTests
 {
     using System;
     using System.Linq.Expressions;
