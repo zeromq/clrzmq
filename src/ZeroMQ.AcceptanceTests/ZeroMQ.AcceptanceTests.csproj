@@ -110,7 +110,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Behaviors.cs" />
+    <Compile Include="Messages.cs" />
     <Compile Include="DeviceTests\Forwarder.cs" />
     <Compile Include="DeviceTests\Queue.cs" />
     <Compile Include="DeviceFixtures.cs" />
