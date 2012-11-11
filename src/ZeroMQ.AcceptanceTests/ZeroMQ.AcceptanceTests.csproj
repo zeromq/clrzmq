@@ -87,17 +87,6 @@
     <StartupObject>ZeroMQ.AcceptanceTests.Program</StartupObject>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Machine.Specifications, Version=0.5.9.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Machine.Specifications.0.5.9\lib\net40\Machine.Specifications.dll</HintPath>
-    </Reference>
-    <Reference Include="Machine.Specifications.Clr4, Version=0.5.9.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Machine.Specifications.0.5.9\lib\net40\Machine.Specifications.Clr4.dll</HintPath>
-    </Reference>
-    <Reference Include="Machine.Specifications.TDNetRunner">
-      <HintPath>..\packages\Machine.Specifications.0.5.9\lib\net40\Machine.Specifications.TDNetRunner.dll</HintPath>
-    </Reference>
     <Reference Include="nunitlite">
       <HintPath>..\packages\NUnitLite.0.8.0\lib\net40\nunitlite.dll</HintPath>
     </Reference>
