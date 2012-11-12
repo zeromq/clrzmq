@@ -2,12 +2,18 @@
 {
     using System;
     using NUnit.Framework;
+    using ZeroMQ.Monitoring;
 
     [TestFixture]
     public class MonitorTests
     {
         public class WhenMonitoringListeningEvent : UsingMonitorFd
         {
+            public WhenMonitoringListeningEvent()
+            {
+                RepEvents = MonitorEvents.Listening;
+            }
+
             [TestFixtureSetUp]
             public void SetUp()
             {
@@ -41,6 +47,11 @@
 
         public class WhenMonitoringAcceptedEvent : UsingMonitorFd
         {
+            public WhenMonitoringAcceptedEvent()
+            {
+                RepEvents = MonitorEvents.Accepted;
+            }
+
             [TestFixtureSetUp]
             public void SetUp()
             {
@@ -75,6 +86,11 @@
 
         public class WhenMonitoringAcceptedEventBeforeAConnectionIsMade : UsingMonitorFd
         {
+            public WhenMonitoringAcceptedEventBeforeAConnectionIsMade()
+            {
+                RepEvents = MonitorEvents.Accepted;
+            }
+
             [TestFixtureSetUp]
             public void SetUp()
             {
@@ -92,6 +108,11 @@
 
         public class WhenMonitoringConnectedEvent : UsingMonitorFd
         {
+            public WhenMonitoringConnectedEvent()
+            {
+                ReqEvents = MonitorEvents.Connected;
+            }
+
             [TestFixtureSetUp]
             public void SetUp()
             {
@@ -126,6 +147,11 @@
 
         public class WhenMonitoringClosedEvent : UsingMonitorFd
         {
+            public WhenMonitoringClosedEvent()
+            {
+                RepEvents = MonitorEvents.Closed;
+            }
+
             [TestFixtureSetUp]
             public void SetUp()
             {

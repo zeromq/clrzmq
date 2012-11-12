@@ -15,6 +15,8 @@
 
         protected ZmqMonitor ReqMonitor;
         protected ZmqMonitor RepMonitor;
+        protected MonitorEvents ReqEvents;
+        protected MonitorEvents RepEvents;
         protected Thread ReqThread;
         protected Thread RepThread;
         protected ZmqSocket Req;
@@ -33,17 +35,17 @@
             RepMonitor = RepContext.CreateMonitorSocket(RepEndpoint);
             Req = ReqContext.CreateSocket(SocketType.REQ);
             Rep = RepContext.CreateSocket(SocketType.REP);
-            Req.Monitor(ReqEndpoint);
-            Rep.Monitor(RepEndpoint);
+            Req.Monitor(ReqEndpoint, ReqEvents);
+            Rep.Monitor(RepEndpoint, RepEvents);
             EventRecorded = new ManualResetEvent(false);
             ReqThread = new Thread(ReqMonitor.Start);
             RepThread = new Thread(RepMonitor.Start);
 
-            ReqThread.Start();
-            RepThread.Start();
-
             Fired = false;
             Address = null;
+
+            ReqThread.Start();
+            RepThread.Start();
         }
 
         [TestFixtureTearDown]
