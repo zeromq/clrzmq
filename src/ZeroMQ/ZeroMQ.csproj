@@ -50,6 +50,7 @@
     <Compile Include="Devices\ZmqDeviceException.cs" />
     <Compile Include="DuplexSocket.cs" />
     <Compile Include="Devices\IDevice.cs" />
+    <Compile Include="ExecuteExtensions.cs" />
     <Compile Include="Interop\ErrorDetails.cs" />
     <Compile Include="Interop\MonitorEventData.cs" />
     <Compile Include="Interop\LibZmq.Mono.cs" />

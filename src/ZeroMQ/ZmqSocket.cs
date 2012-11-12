@@ -1,9 +1,6 @@
 ﻿namespace ZeroMQ
 {
     using System;
-    using System.Diagnostics;
-    using System.Threading;
-
     using Interop;
 
     /// <summary>
@@ -553,7 +550,7 @@
         {
             return timeout == TimeSpan.MaxValue
                        ? Receive(buffer)
-                       : ExecuteWithTimeout(() => Receive(buffer, SocketFlags.DontWait), timeout);
+                       : this.WithTimeout(Receive, buffer, SocketFlags.DontWait, timeout);
         }
 
         /// <summary>
@@ -650,9 +647,9 @@
                 return Receive(buffer, out size);
             }
 
-            int receivedBytes = -1;
+            int receivedBytes;
+            byte[] message = this.WithTimeout(Receive, buffer, SocketFlags.DontWait, out receivedBytes, timeout);
 
-            byte[] message = ExecuteWithTimeout(() => Receive(buffer, SocketFlags.DontWait, out receivedBytes), timeout);
             size = receivedBytes;
 
             return message;
@@ -784,8 +781,8 @@
         public int Send(byte[] buffer, int size, SocketFlags flags, TimeSpan timeout)
         {
             return timeout == TimeSpan.MaxValue
-                       ? Send(buffer, size, flags & ~SocketFlags.DontWait)
-                       : ExecuteWithTimeout(() => Send(buffer, size, flags | SocketFlags.DontWait), timeout);
+                    ? Send(buffer, size, flags & ~SocketFlags.DontWait)
+                    : this.WithTimeout(Send, buffer, size, flags | SocketFlags.DontWait, timeout);
         }
 
         /// <summary>
@@ -1079,34 +1076,6 @@
             {
                 legacySetter(option, legacyValue);
             }
-        }
-
-        private TResult ExecuteWithTimeout<TResult>(Func<TResult> method, TimeSpan timeout)
-        {
-            if ((int)timeout.TotalMilliseconds < 1)
-            {
-                return method();
-            }
-
-            TResult receiveResult;
-
-            var timer = Stopwatch.StartNew();
-            var spin = new SpinWait();
-
-            do
-            {
-                receiveResult = method();
-
-                if (ReceiveStatus != ReceiveStatus.TryAgain)
-                {
-                    break;
-                }
-
-                spin.SpinOnce();
-            }
-            while (timer.Elapsed <= timeout);
-
-            return receiveResult;
         }
 
         private void InvokeReceiveReady(PollEvents readyEvents)
