@@ -54,6 +54,26 @@ namespace ZeroMQ.Interop
             public static readonly int ENOTSOCK = NativeConvert.FromErrno(NativeErrno.ENOTSOCK);
             public static readonly int ENOTSUP = NativeConvert.FromErrno(NativeErrno.EOPNOTSUPP);
             public static readonly int EPROTONOSUPPORT = NativeConvert.FromErrno(NativeErrno.EPROTONOSUPPORT);
+
+            public static void Initialize()
+            {
+                // HACK: On Mono, libMonoPosixHelper sometimes fails to load on the first try. This will
+                // set `errno` to ENOENT, which may overwrite a legitimate errno value from libzmq if it
+                // is the first error encountered in an application. Forcing these values to initialize
+                // when LibZmq initializes prevents this situation.
+                //
+                // For future reference, this is the output of `MONO_LOG_LEVEL="debug" MONO_LOG_MASK="dll" mono ...`
+                // demonstrating the problem:
+                //
+                // Mono: DllImport attempting to load: 'libMonoPosixHelper.so'.
+                // Mono: DllImport error loading library '/usr/lib/mono/gac/Mono.Posix/4.0.0.0__0738eb9f132ed756/libMonoPosixHelper.so': '/usr/lib/mono/gac/Mono.Posix/4.0.0.0__0738eb9f132ed756/libMonoPosixHelper.so: cannot open shared object file: No such file or directory'.
+                // Mono: DllImport error loading library '/usr/lib/mono/gac/Mono.Posix/4.0.0.0__0738eb9f132ed756/libMonoPosixHelper.so': '/usr/lib/mono/gac/Mono.Posix/4.0.0.0__0738eb9f132ed756/libMonoPosixHelper.so: cannot open shared object file: No such file or directory'.
+                // Mono: DllImport loaded library 'libMonoPosixHelper.so'.
+                // Mono: DllImport searching in: 'libMonoPosixHelper.so' ('libMonoPosixHelper.so').
+                // Mono: Searching for 'Mono_Posix_FromErrno'.
+                // Mono: Probing 'Mono_Posix_FromErrno'.
+                // Mono: Found as 'Mono_Posix_FromErrno'.
+            }
         }
     }
 }
