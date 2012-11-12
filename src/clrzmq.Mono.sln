@@ -84,7 +84,7 @@ Global
 		{9D199424-9F3A-442B-B74B-6C4A97D601F7} = {FBFC4B07-0BA6-4B54-8734-5DF66A655BA6}
 	EndGlobalSection
 	GlobalSection(MonoDevelopProperties) = preSolution
-		StartupItem = ZeroMQ.SimpleTests\ZeroMQ.SimpleTests.Mono.csproj
+		StartupItem = ZeroMQ.AcceptanceTests\ZeroMQ.AcceptanceTests.Mono.csproj
 		Policies = $0
 		$0.DotNetNamingPolicy = $1
 		$1.DirectoryNamespaceAssociation = None
@@ -105,10 +105,6 @@ Global
 		$3.ForBraceForcement = AddBraces
 		$3.WhileBraceForcement = AddBraces
 		$3.FixedBraceForcement = AddBraces
-		$3.PlaceElseOnNewLine = True
-		$3.PlaceCatchOnNewLine = True
-		$3.PlaceFinallyOnNewLine = True
-		$3.PlaceWhileOnNewLine = True
 		$3.BeforeMethodDeclarationParentheses = False
 		$3.BeforeMethodCallParentheses = False
 		$3.BeforeConstructorDeclarationParentheses = False

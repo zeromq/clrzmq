@@ -150,6 +150,7 @@ namespace ZeroMQ.Monitoring
             }
 
             Marshal.FreeHGlobal(ptr);
+            _socket.Disconnect(_endpoint);
         }
 
         /// <summary>

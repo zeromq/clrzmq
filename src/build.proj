@@ -17,7 +17,6 @@
   </PropertyGroup>
   
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" />
-  <Import Project="$(SolutionDir)\CustomTasks.targets" />
 
   <PropertyGroup>
     <DebugType Condition="'$(Configuration)' == 'Debug'">full</DebugType>
@@ -78,22 +77,8 @@
   </Target>
 
   <Target Name="Test" DependsOnTargets="Compile">
-    <FindLastDirectory Path="$(NugetPackageDir)" Pattern="Machine.Specifications.*" Condition=" '$(OperatingPlatform)' == 'Windows' ">
-      <Output TaskParameter="Dir" PropertyName="MSpecDir" />
-    </FindLastDirectory>
-
-    <ItemGroup Condition="'$(OperatingPlatform)' == 'Windows'">
-      <TestAssembly Condition="'$(Platform)' != 'Any CPU'" Include="$(SolutionDir)\**\bin\$(Platform)\$(Configuration)\*Tests.dll" />
-      <TestAssembly Condition="'$(Platform)' == 'Any CPU'" Include="$(SolutionDir)\**\bin\$(Configuration)\*Tests.dll" />
-    </ItemGroup>
-
-    <PropertyGroup Condition="'$(OperatingPlatform)' == 'Windows'">
-      <MSpecExe Condition="'$(MSpecExe)' == '' and '$(Platform)' == 'x64'">$(MSpecDir)\tools\mspec-clr4.exe</MSpecExe>
-      <MSpecExe Condition="'$(MSpecExe)' == '' and '$(Platform)' == 'x86'">$(MSpecDir)\tools\mspec-x86-clr4.exe</MSpecExe>
-    </PropertyGroup>
-
-    <Exec Condition="'$(OperatingPlatform)' == 'Windows'" Command="$(MSpecExe) $(MSpecOptions) %(TestAssembly.Identity)" />
-    <!--<Exec Condition="'$(OperatingPlatform)' == 'Unix'" Command="$(MSpecExe) $(MSpecOptions) %(TestAssembly.Identity)" />-->
+    <Exec Condition=" '$(OperatingPlatform)' == 'Windows' " Command="$(SolutionDir)\ZeroMQ.AcceptanceTests\bin\$(Platform)\$(Configuration)\ZeroMQ.AcceptanceTests.exe" LogStandardErrorAsError="true" ContinueOnError="false" />
+    <Exec Condition=" '$(OperatingPlatform)' != 'Windows' " Command="mono $(SolutionDir)\ZeroMQ.AcceptanceTests\bin\$(Configuration)\ZeroMQ.AcceptanceTests.exe" ContinueOnError="false" />
   </Target>
 
   <Target Name="Build" DependsOnTargets="Test">

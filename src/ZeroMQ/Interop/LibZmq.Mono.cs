@@ -88,6 +88,9 @@ namespace ZeroMQ.Interop
                 zmq_ctx_new = () => zmq_init(1);
                 zmq_ctx_destroy = zmq_term;
             }
+
+            // HACK: See Platform.Errno.Initialize for details
+            Platform.Errno.Initialize();
         }
 
         private static void AssignCurrentVersion(out int majorVersion, out int minorVersion, out int patchVersion)
@@ -186,7 +189,7 @@ namespace ZeroMQ.Interop
         [DllImport(LibraryName, EntryPoint = "zmq_ctx_set", CallingConvention = CallingConvention.Cdecl)]
         public static extern int zmq_ctx_set_v3(IntPtr context, int option, int optval);
 
-        [DllImport(LibraryName, EntryPoint = "zmq_socket_monitor", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(LibraryName, EntryPoint = "zmq_socket_monitor", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
         public static extern int zmq_socket_monitor_v3(IntPtr socket, string addr, int events);
 
         [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
