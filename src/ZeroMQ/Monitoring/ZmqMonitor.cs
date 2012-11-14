@@ -44,12 +44,10 @@ namespace ZeroMQ.Monitoring
 
         /// <summary>
         /// Occurs when a new connection is established.
-        /// </summary>
-        /// <remarks>
         /// NOTE: Do not rely on the <see cref="ZmqMonitorEventArgs.Address"/> value for
         /// 'Connected' messages, as the memory address contained in the message may no longer
         /// point to the correct value.
-        /// </remarks>
+        /// </summary>
         public event EventHandler<ZmqMonitorFileDescriptorEventArgs> Connected;
 
         /// <summary>
@@ -84,12 +82,10 @@ namespace ZeroMQ.Monitoring
 
         /// <summary>
         /// Occurs when a connection was closed.
-        /// </summary>
-        /// <remarks>
         /// NOTE: Do not rely on the <see cref="ZmqMonitorEventArgs.Address"/> value for
         /// 'Closed' messages, as the memory address contained in the message may no longer
         /// point to the correct value.
-        /// </remarks>
+        /// </summary>
         public event EventHandler<ZmqMonitorFileDescriptorEventArgs> Closed;
 
         /// <summary>

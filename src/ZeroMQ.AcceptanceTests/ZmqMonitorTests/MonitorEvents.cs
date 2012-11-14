@@ -1,8 +1,8 @@
 ﻿namespace ZeroMQ.AcceptanceTests.ZmqMonitorTests
 {
     using System;
+    using Monitoring;
     using NUnit.Framework;
-    using ZeroMQ.Monitoring;
 
     [TestFixture]
     public class MonitorTests
@@ -128,7 +128,7 @@
                 Assert.IsTrue(Fired);
             }
 
-            [Test]
+            [Test, Ignore("LIBZMQ-450: address pointed to in event message may no longer exist when accessed.")]
             public void ShouldSetTheConnectedSocketAddress()
             {
                 Assert.AreEqual("tcp://127.0.0.1:9000", Address);
@@ -168,7 +168,7 @@
                 Assert.IsTrue(Fired);
             }
 
-            [Test]
+            [Test, Ignore("LIBZMQ-450: address pointed to in event message may no longer exist when accessed.")]
             public void ShouldSetTheClosedSocketAddress()
             {
                 Assert.AreEqual("tcp://0.0.0.0:9000", Address);
