@@ -191,11 +191,10 @@ Use the `--with-pgm` option if possible.
 #### clrzmq
 
 1. Clone the source.
-2. Run `nuget.sh`, which downloads any dependent packages (e.g., Machine.Specifications for acceptance tests).
-3. Run `make` to build the project.
+2. Run `nuget.sh`, which downloads any dependent packages (e.g., NUnitLite for acceptance tests).
+3. Run `make` to build the project and run the test suite.
 4. The resulting binaries will be available in `/build`.
 
-**NOTE**: The combination of 0MQ, MSpec, and Mono currently has issues, so the test suite does not automatically run.  
 **NOTE**: `clrzmq` only supports x86 builds on Mono at this time
 
 ## Issues
