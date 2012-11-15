@@ -126,7 +126,6 @@ namespace ZeroMQ.Monitoring
             int structSize = Marshal.SizeOf(typeof(MonitorEventData));
 
             var buffer = new byte[structSize];
-            var ptr = Marshal.AllocHGlobal(structSize);
             var pollingInterval = TimeSpan.FromMilliseconds(PollingIntervalMsec);
 
             IsRunning = true;
@@ -139,13 +138,13 @@ namespace ZeroMQ.Monitoring
                     continue;
                 }
 
-                Marshal.Copy(buffer, 0, ptr, structSize);
-                var eventData = (MonitorEventData)Marshal.PtrToStructure(ptr, typeof(MonitorEventData));
+                var pinnedBytes = GCHandle.Alloc(buffer, GCHandleType.Pinned);
+                var eventData = (MonitorEventData)Marshal.PtrToStructure(pinnedBytes.AddrOfPinnedObject(), typeof(MonitorEventData));
+                pinnedBytes.Free();
 
                 OnMonitor(ref eventData);
             }
 
-            Marshal.FreeHGlobal(ptr);
             _socket.Disconnect(_endpoint);
         }
 
