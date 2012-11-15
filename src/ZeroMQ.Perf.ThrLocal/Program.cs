@@ -29,9 +29,8 @@
 
             // Initialize 0MQ infrastructure
             using (ZmqContext ctx = ZmqContext.Create())
-            using (ZmqSocket skt = ctx.CreateSocket(SocketType.SUB))
+            using (ZmqSocket skt = ctx.CreateSocket(SocketType.PULL))
             {
-                skt.SubscribeAll();
                 skt.Bind(address);
 
                 // Wait for the first message.
