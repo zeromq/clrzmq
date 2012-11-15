@@ -27,7 +27,7 @@
 
             // Initialize 0MQ infrastructure
             using (ZmqContext ctx = ZmqContext.Create())
-            using (ZmqSocket skt = ctx.CreateSocket(SocketType.PUB))
+            using (ZmqSocket skt = ctx.CreateSocket(SocketType.PUSH))
             {
                 skt.Connect(address);
 
