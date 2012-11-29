@@ -6,9 +6,9 @@
 
     internal class ThroughputBenchmark : ITest
     {
-        private static readonly int[] MessageSizes = { 8, 64, 256, 1024, 4096 };
-
         private const int MessageCount = 1000000;
+
+        private static readonly int[] MessageSizes = { 8, 64, 256, 1024, 4096 };
 
         public string TestName
         {

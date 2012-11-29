@@ -17,7 +17,7 @@
 
         protected override bool ReleaseHandle()
         {
-            return Platform.ReleaseHandle(handle);
+            return Platform.ReleaseHandle(this.handle);
         }
     }
 }

@@ -5,27 +5,27 @@
 
     internal class ThreadedDeviceRunner : DeviceRunner
     {
-        private readonly Thread _runThread;
+        private readonly Thread runThread;
 
         public ThreadedDeviceRunner(Device device)
             : base(device)
         {
-            _runThread = new Thread(Device.Run);
+            this.runThread = new Thread(Device.Run);
         }
 
         public override void Start()
         {
-            _runThread.Start();
+            this.runThread.Start();
         }
 
         public override void Join()
         {
-            _runThread.Join();
+            this.runThread.Join();
         }
 
         public override bool Join(TimeSpan timeout)
         {
-            return _runThread.Join(timeout);
+            return this.runThread.Join(timeout);
         }
     }
 }
