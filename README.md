@@ -18,6 +18,8 @@ To get an idea of how to use clrzmq, have a look at the following example.
 
 ```c#
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using ZMQ;
@@ -29,15 +31,15 @@ namespace ZMQGuide
         static void Main(string[] args)
         {
             // ZMQ Context, server socket
-            using (ZmqContext context = ZmqContext.Create())
-            using (ZmqSocket server = context.CreateSocket(SocketType.REP))
+            using (Context context = new Context())
+            using (Socket server = context.Socket(SocketType.REP))
             {
                 server.Bind("tcp://*:5555");
-                
+
                 while (true)
                 {
                     // Wait for next request from client
-                    string message = server.Receive(Encoding.Unicode);
+                    string message = server.Recv(Encoding.Unicode);
                     Console.WriteLine("Received request: {0}", message);
 
                     // Do Some 'work'
@@ -56,6 +58,8 @@ namespace ZMQGuide
 
 ```c#
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using ZMQ;
 
@@ -66,8 +70,8 @@ namespace ZMQGuide
         static void Main(string[] args)
         {
             // ZMQ Context and client socket
-            using (ZmqContext context = ZmqContext.Create())
-            using (ZmqSocket client = context.CreateSocket(SocketType.REQ))
+            using (Context context = new Context())
+            using (Socket client = context.Socket(SocketType.REQ))
             {
                 client.Connect("tcp://localhost:5555");
 
@@ -77,7 +81,7 @@ namespace ZMQGuide
                     Console.WriteLine("Sending request {0}...", requestNum);
                     client.Send(request, Encoding.Unicode);
 
-                    string reply = client.Receive(Encoding.Unicode);
+                    string reply = client.Recv(Encoding.Unicode);
                     Console.WriteLine("Received reply {0}: {1}", requestNum, reply);
                 }
             }
