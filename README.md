@@ -52,7 +52,6 @@ namespace ZMQGuide
         }
     }
 }
-
 ```
 
 ### Example client
