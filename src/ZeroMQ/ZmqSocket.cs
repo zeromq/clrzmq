@@ -1,7 +1,7 @@
 ﻿namespace ZeroMQ
 {
-    using System;
     using Interop;
+    using System;
 
     /// <summary>
     /// Sends and receives messages across various transports to potentially multiple endpoints
@@ -306,7 +306,7 @@
         {
             set { ZmqVersion.OnlyIfAtLeast(LatestVersion, () => SetSocketOption(SocketOption.ROUTER_BEHAVIOR, (int)value)); }
         }
-        
+
         /// <summary>
         /// Gets or sets the override value for the SO_KEEPALIVE TCP socket option. (where supported by OS). (Default = -1, OS default).
         /// </summary>
@@ -358,6 +358,19 @@
         {
             get { return ZmqVersion.OnlyIfAtLeast(LatestVersion, () => GetSocketOptionInt32(SocketOption.TCP_KEEPALIVE_INTVL)); }
             set { ZmqVersion.OnlyIfAtLeast(LatestVersion, () => SetSocketOption(SocketOption.TCP_KEEPALIVE_INTVL, value)); }
+        }
+
+        /// <summary>
+        /// Sets the xpub verbose behavior on the current socket.(Default = <see cref="ZeroMQ.XpubVerboseBehaviour.NewSubscriptionsOnly"/>).
+        /// Only applicable to the <see cref="ZeroMQ.SocketType.XPUB"/> socket type.
+        /// </summary>
+        /// <exception cref="ZmqVersionException">This socket option was used in ZeroMQ 2.x or lower.</exception>
+        /// <exception cref="ZmqSocketException">An error occurred when setting the socket option.</exception>
+        /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
+        /// <remarks>Not supported in 0MQ version 2.</remarks>
+        public XpubVerboseBehaviour XPubVerbose
+        {
+            set { ZmqVersion.OnlyIfAtLeast(LatestVersion, () => SetSocketOption(SocketOption.XPUB_VERBOSE, (int)value)); }
         }
 
         /// <summary>
