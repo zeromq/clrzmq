@@ -197,6 +197,25 @@
         }
 
         /// <summary>
+        /// Pops a <see cref="Frame"/> off the front of the message.
+        /// </summary>
+        /// <returns>The first <see cref="Frame"/> in the message or <c>null</c> if the message is empty.</returns>
+        public Frame Pop()
+        {
+            Frame result = null;
+
+            if (_frames.Count > 0)
+            {
+                result = _frames[0];
+                _frames.RemoveAt(0);
+            }
+
+            NormalizeFrames();
+
+            return result;
+        }
+
+        /// <summary>
         /// Pushes <paramref name="frame"/> plus an empty frame to the front
         /// of the message.
         /// </summary>
