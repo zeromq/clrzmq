@@ -203,5 +203,84 @@
                 };
             }
         }
+
+        public class WhenTransferringWithAnAmpleSendTimeout : UsingThreadedPushPull
+        {
+            private const int SendMessageCount = 5;
+            private int _receivedMessageCount;
+
+            public WhenTransferringWithAnAmpleSendTimeout()
+            {
+                SenderInit = push => push.SendHighWatermark = 1;
+                SenderAction = push =>
+                {
+                    for (int i = 0; i < SendMessageCount; i++)
+                    {
+                        push.SendFrame(Messages.SingleMessage, TimeSpan.FromMilliseconds(500));
+                    }
+                };
+
+                // slow receiver with small HighWatermark
+                ReceiverInit = pull => pull.ReceiveHighWatermark = 1;
+                ReceiverAction = pull =>
+                {
+                    for (int i = 0; i < SendMessageCount; i++)
+                    {
+                        Thread.Sleep(50);
+
+                        int size;
+                        pull.Receive(null, SocketFlags.DontWait, out size);
+                        if (pull.ReceiveStatus == ReceiveStatus.Received)
+                            _receivedMessageCount++;
+                    }
+                };
+            }
+
+            [Test]
+            public void ShouldReceiveAllMessages()
+            {
+                Assert.AreEqual(SendMessageCount, _receivedMessageCount);
+            }
+        }
+
+        public class WhenTransferringWithAnInsufficientSendTimeout : UsingThreadedPushPull
+        {
+            private const int SendMessageCount = 5;
+            private const int SendHighWatermark = 1;
+            private const int ReceiveHighWatermark = 1;
+            private int _receivedMessageCount;
+
+            public WhenTransferringWithAnInsufficientSendTimeout()
+            {
+                SenderInit = push => push.SendHighWatermark = SendHighWatermark;
+                SenderAction = push =>
+                {
+                    for (int i = 0; i < SendMessageCount; i++)
+                    {
+                        push.SendFrame(Messages.SingleMessage, TimeSpan.FromMilliseconds(5));
+                    }
+                };
+
+                // slow receiver with small HighWatermark
+                ReceiverInit = pull => pull.ReceiveHighWatermark = ReceiveHighWatermark;
+                ReceiverAction = pull =>
+                {
+                    Thread.Sleep(50);
+
+                    for (int i = 0; i < SendMessageCount; i++)
+                    {
+                        var frame = pull.ReceiveFrame(TimeSpan.FromMilliseconds(10));
+                        if (frame.ReceiveStatus == ReceiveStatus.Received)
+                            _receivedMessageCount++;
+                    }
+                };
+            }
+
+            [Test]
+            public void ShouldReceiveHighWatermarkMessages()
+            {
+                Assert.AreEqual(SendHighWatermark + ReceiveHighWatermark, _receivedMessageCount);
+            }
+        }
     }
 }
