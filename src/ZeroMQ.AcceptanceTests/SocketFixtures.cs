@@ -117,8 +117,8 @@
 
             _senderThread = new Thread(() =>
             {
-                SenderInit(Sender);
                 Sender.SendHighWatermark = 1;
+                SenderInit(Sender);
                 _receiverReady.WaitOne();
                 Sender.Connect("inproc://spec_context");
                 SenderAction(Sender);
@@ -126,8 +126,8 @@
 
             _receiverThread = new Thread(() =>
             {
-                ReceiverInit(Receiver);
                 Receiver.SendHighWatermark = 1;
+                ReceiverInit(Receiver);
                 Receiver.Bind("inproc://spec_context");
                 _receiverReady.Set();
                 ReceiverAction(Receiver);
@@ -169,5 +169,10 @@
     public class UsingThreadedPubSub : UsingThreadedSocketPair
     {
         public UsingThreadedPubSub() : base(SocketType.PUB, SocketType.SUB) { }
+    }
+
+    public class UsingThreadedPushPull : UsingThreadedSocketPair
+    {
+        public UsingThreadedPushPull() : base(SocketType.PUSH, SocketType.PULL) { }
     }
 }

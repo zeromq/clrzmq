@@ -550,7 +550,7 @@
         {
             return timeout == TimeSpan.MaxValue
                        ? Receive(buffer)
-                       : this.WithTimeout(Receive, buffer, SocketFlags.DontWait, timeout);
+                       : this.WithReceiveTimeout(Receive, buffer, SocketFlags.DontWait, timeout);
         }
 
         /// <summary>
@@ -648,7 +648,7 @@
             }
 
             int receivedBytes;
-            byte[] message = this.WithTimeout(Receive, buffer, SocketFlags.DontWait, out receivedBytes, timeout);
+            byte[] message = this.WithReceiveTimeout(Receive, buffer, SocketFlags.DontWait, out receivedBytes, timeout);
 
             size = receivedBytes;
 
@@ -782,7 +782,7 @@
         {
             return timeout == TimeSpan.MaxValue
                     ? Send(buffer, size, flags & ~SocketFlags.DontWait)
-                    : this.WithTimeout(Send, buffer, size, flags | SocketFlags.DontWait, timeout);
+                    : this.WithSendTimeout(Send, buffer, size, flags | SocketFlags.DontWait, timeout);
         }
 
         /// <summary>
