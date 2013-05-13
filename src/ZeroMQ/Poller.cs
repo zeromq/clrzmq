@@ -147,7 +147,7 @@
         {
             return (int)timeout.TotalMilliseconds == Timeout.Infinite
                 ? PollBlocking()
-                : PollNonBlocking(timeout);
+                : (int)timeout.TotalMilliseconds == 0 ? PollNonBlocking() : PollNonBlocking(timeout);
         }
 
         /// <summary>
@@ -208,6 +208,21 @@
                 remainingTimeout -= (int)elapsed.ElapsedMilliseconds;
             }
             while (remainingTimeout >= 0);
+
+            return readyCount;
+        }
+
+        private int PollNonBlocking()
+        {
+            CreatePollItems();
+
+            var readyCount = Poll(0);
+            if (readyCount >= 0 || ErrorProxy.ContextWasTerminated)
+            {
+                return readyCount;
+            }
+
+            ContinueIfInterrupted();
 
             return readyCount;
         }
