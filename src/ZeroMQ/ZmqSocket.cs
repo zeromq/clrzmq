@@ -161,7 +161,7 @@
         }
 
         /// <summary>
-        /// Gets or sets the high water mark for inbound messages (number of messages). (Default = 0, no limit).
+        /// Gets or sets the high water mark for inbound messages (number of messages). (Default = 1000, no limit).
         /// </summary>
         /// <exception cref="ZmqSocketException">An error occurred when getting or setting the socket option.</exception>
         /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
@@ -228,7 +228,7 @@
         }
 
         /// <summary>
-        /// Gets or sets the high water mark for outbound messages (number of messages). (Default = 0, no limit).
+        /// Gets or sets the high water mark for outbound messages (number of messages). (Default = 1000, no limit).
         /// </summary>
         /// <exception cref="ZmqSocketException">An error occurred when getting or setting the socket option.</exception>
         /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
