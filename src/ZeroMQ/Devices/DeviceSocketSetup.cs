@@ -109,6 +109,17 @@
         }
 
         /// <summary>
+        /// Set a string based socket option.
+        /// </summary>
+        /// <param name="property">The <see cref="ZmqSocket"/> property to set.</param>
+        /// <param name="value">The byte array value to assign.</param>
+        /// <returns>The current <see cref="DeviceSocketSetup"/> object.</returns>
+        public DeviceSocketSetup SetSocketOption(Expression<Func<ZmqSocket, string>> property, string value)
+        {
+            return SetSocketOption<string>(property, value);
+        }
+
+        /// <summary>
         /// Set a <see cref="TimeSpan"/>-based socket option.
         /// </summary>
         /// <param name="property">The <see cref="ZmqSocket"/> property to set.</param>
