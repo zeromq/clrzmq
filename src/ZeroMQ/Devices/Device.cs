@@ -85,12 +85,12 @@
         }
 
         /// <summary>
-        /// Gets a <see cref="DeviceSocketSetup"/> for configuring the frontend socket.
+        /// Gets a <see cref="DeviceSocketSetup"/> for configuring the backend socket.
         /// </summary>
         public DeviceSocketSetup BackendSetup { get; private set; }
 
         /// <summary>
-        /// Gets a <see cref="DeviceSocketSetup"/> for configuring the backend socket.
+        /// Gets a <see cref="DeviceSocketSetup"/> for configuring the frontend socket.
         /// </summary>
         public DeviceSocketSetup FrontendSetup { get; private set; }
 
