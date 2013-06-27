@@ -109,14 +109,14 @@
         }
 
         /// <summary>
-        /// Set a string based socket option.
+        /// Set a action based socket option.
         /// </summary>
-        /// <param name="property">The <see cref="ZmqSocket"/> property to set.</param>
-        /// <param name="value">The byte array value to assign.</param>
+        /// <param name="property">The <see cref="ZmqSocket"/> property to call.</param>
         /// <returns>The current <see cref="DeviceSocketSetup"/> object.</returns>
-        public DeviceSocketSetup SetSocketOption(Expression<Func<ZmqSocket, string>> property, string value)
+        public DeviceSocketSetup SetSocketOption(Action<ZmqSocket> property)
         {
-            return SetSocketOption<string>(property, value);
+            _socketInitializers.Add(property);
+            return this;
         }
 
         /// <summary>
