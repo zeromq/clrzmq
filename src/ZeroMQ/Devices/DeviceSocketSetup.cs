@@ -109,6 +109,17 @@
         }
 
         /// <summary>
+        /// Set a action based socket option.
+        /// </summary>
+        /// <param name="property">The <see cref="ZmqSocket"/> property to call.</param>
+        /// <returns>The current <see cref="DeviceSocketSetup"/> object.</returns>
+        public DeviceSocketSetup SetSocketOption(Action<ZmqSocket> property)
+        {
+            _socketInitializers.Add(property);
+            return this;
+        }
+
+        /// <summary>
         /// Set a <see cref="TimeSpan"/>-based socket option.
         /// </summary>
         /// <param name="property">The <see cref="ZmqSocket"/> property to set.</param>
