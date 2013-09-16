@@ -127,7 +127,7 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>xcopy /y /c $(SolutionDir)..\lib\$(PlatformName)\$(LibZmqDllName) $(TargetDir)</PostBuildEvent>
+    <PostBuildEvent>xcopy /y /c $(SolutionDir)..\lib\$(PlatformName)\$(LibZmqDllName).dll $(TargetDir)</PostBuildEvent>
   </PropertyGroup>
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

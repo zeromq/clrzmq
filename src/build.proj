@@ -48,10 +48,10 @@
     <ZeroMQSources Include="ZeroMQ\*\Platform.$(OperatingPlatform).cs" />
     <ZeroMQSources Include="ZeroMQ\*\Platform.$(NetFramework).cs" />
 
-    <Resources Include="$(LibDir)\x64\$(LibZmqDllName)">
+    <Resources Include="$(LibDir)\x64\$(LibZmqDllName).dll">
       <Platform>x64</Platform>
     </Resources>
-    <Resources Include="$(LibDir)\x86\$(LibZmqDllName)">
+    <Resources Include="$(LibDir)\x86\$(LibZmqDllName).dll">
       <Platform>x86</Platform>
     </Resources>
 
