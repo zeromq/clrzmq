@@ -7,7 +7,8 @@ namespace ZeroMQ.Interop
 
     internal static class LibZmq
     {
-        public const string LibraryName = "libzmq";
+        // LibraryName is now declared in ZmqLibraryName.cs, which is auto-generated depending on the custom set zmq library from the project properties
+        //public const string LibraryName = "libzmq";
 
         // From zmq.h (v3):
         // typedef struct {unsigned char _ [32];} zmq_msg_t;

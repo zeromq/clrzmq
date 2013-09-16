@@ -14,6 +14,7 @@
     <OperatingPlatform Condition="'$(OperatingPlatform)' == ''">Windows</OperatingPlatform>
     <NetFramework Condition="'$(NetFramework)' == ''">NET</NetFramework>
     <SolutionSuffix Condition="'$(OperatingPlatform)' == 'Unix'">.Mono</SolutionSuffix>
+    <LibZmqDllName Condition="'$(LibZmqDllName)' == ''">libzmq.dll</LibZmqDllName>
   </PropertyGroup>
   
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" />
@@ -47,10 +48,10 @@
     <ZeroMQSources Include="ZeroMQ\*\Platform.$(OperatingPlatform).cs" />
     <ZeroMQSources Include="ZeroMQ\*\Platform.$(NetFramework).cs" />
 
-    <Resources Include="$(LibDir)\x64\libzmq.dll">
+    <Resources Include="$(LibDir)\x64\$(LibZmqDllName).dll">
       <Platform>x64</Platform>
     </Resources>
-    <Resources Include="$(LibDir)\x86\libzmq.dll">
+    <Resources Include="$(LibDir)\x86\$(LibZmqDllName).dll">
       <Platform>x86</Platform>
     </Resources>
 

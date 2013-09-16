@@ -12,9 +12,10 @@ namespace ZeroMQ.Interop
     [SuppressMessage("StyleCop.CSharp.NamingRules", "SA1310:FieldNamesMustNotContainUnderscore", Justification = "Compatibility with native headers.")]
     [SuppressMessage("StyleCop.CSharp.OrderingRules", "SA1201:ElementsMustAppearInTheCorrectOrder", Justification = "Compatibility with native headers.")]
     [SuppressMessage("StyleCop.CSharp.OrderingRules", "SA1202:ElementsMustBeOrderedByAccess", Justification = "Reviewed. Suppression is OK here.")]
-    internal static class LibZmq
+    internal static partial class LibZmq
     {
-        public const string LibraryName = "libzmq";
+        // LibraryName is now declared in ZmqLibraryName.cs, which is auto-generated depending on the custom set zmq library from the project properties
+        //public const string LibraryName = "libzmq";
 
         // From zmq.h (v3):
         // typedef struct {unsigned char _ [32];} zmq_msg_t;
@@ -45,7 +46,9 @@ namespace ZeroMQ.Interop
 
         static LibZmq()
         {
+            Console.WriteLine("yooooo libraryname {0}", LibraryName);
             NativeLib = new UnmanagedLibrary(LibraryName);
+            Console.WriteLine("successsssssss");
 
             AssignCommonDelegates();
             AssignCurrentVersion(out MajorVersion, out MinorVersion, out PatchVersion);
