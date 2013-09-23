@@ -124,6 +124,47 @@
         }
 
         /// <summary>
+        /// Remove a socket that is polled for input/output events, depending on its capabilities.
+        /// </summary>
+        /// <param name="socket">The <see cref="ZmqSocket"/> to remove.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="socket"/> is null.</exception>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="socket"/> has no event handlers.</exception>
+        public void RemoveSocket(ZmqSocket socket)
+        {
+            if (socket == null)
+            {
+                throw new ArgumentNullException("socket");
+            }
+
+            var pollEvents = socket.GetPollEvents();
+
+            if (pollEvents == PollEvents.None) 
+            {
+                throw new ArgumentOutOfRangeException("socket", "Unable to remove socket without at least one handler.");
+            }
+
+            _pollableSockets.Remove(new PollItem(socket.SocketHandle, pollEvents));
+            CreatePollItems();
+        }
+
+        /// <summary>
+        /// Remove a collection of sockets that is polled for input/output events, depending on their capabilities.
+        /// </summary>
+        /// <param name="sockets">The collection of <see cref="ZmqSocket"/>s to poll.</param>
+        public void RemoveSockets(IEnumerable<ZmqSocket> sockets) 
+        {
+            if (sockets == null)
+            {
+                throw new ArgumentNullException("sockets");
+            }
+
+            foreach (var socket in sockets) 
+            {
+                RemoveSocket(socket);
+            }
+        }
+
+        /// <summary>
         /// Multiplex input/output events over the contained set of sockets in blocking mode, firing
         /// <see cref="ZmqSocket.ReceiveReady" /> or <see cref="ZmqSocket.SendReady" /> as appropriate.
         /// </summary>
