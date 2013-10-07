@@ -48,6 +48,16 @@
             AddSockets(socketsToPoll);
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Poller"/> class with an array of sockets to poll over.
+        /// </summary>
+        /// <param name="socketsToPoll">The array of <see cref="ZmqSocket"/>s to poll.</param>
+        public Poller(params ZmqSocket[] socketsToPoll)
+            : this()
+        {
+            AddSockets(socketsToPoll);
+        }
+
         internal Poller(PollerProxy pollerProxy)
         {
             if (pollerProxy == null)
