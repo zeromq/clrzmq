@@ -74,7 +74,7 @@
         /// <param name="args">A <see cref="SocketEventArgs"/> object containing the poll event args.</param>
         protected override void FrontendHandler(SocketEventArgs args)
         {
-            FrontendSocket.Forward(BackendSocket);
+            this.FrontendSocket.Forward(this.BackendSocket);
         }
 
         /// <summary>
