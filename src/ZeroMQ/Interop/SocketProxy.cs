@@ -156,13 +156,13 @@
             return buffer;
         }
 
-        public int Send(byte[] buffer, int size, int flags)
+        public int Send(byte[] buffer, int offset, int size, int flags)
         {
             // Use zmq_buffer_send method if appropriate -> results in fewer P/Invoke calls
             if (buffer.Length <= MaxBufferSize && LibZmq.zmq_buffer_send != null)
             {
                 int sizeToSend = Math.Min(size, MaxBufferSize);
-                Marshal.Copy(buffer, 0, _buffer, sizeToSend);
+                Marshal.Copy(buffer, offset, _buffer, sizeToSend);
 
                 return Retry.IfInterrupted(LibZmq.zmq_buffer_send.Invoke, SocketHandle, _buffer, sizeToSend, flags);
             }
@@ -174,7 +174,7 @@
 
             if (size > 0)
             {
-                Marshal.Copy(buffer, 0, _msg.Data(), size);
+                Marshal.Copy(buffer, offset, _msg.Data(), size);
             }
 
             int bytesSent = Retry.IfInterrupted(LibZmq.zmq_msg_send.Invoke, _msg.Ptr, SocketHandle, flags);
