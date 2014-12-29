@@ -713,6 +713,7 @@
         /// P/Invoke calls required to send the message buffer.
         /// </remarks>
         /// <param name="buffer">A <see cref="byte"/> array that contains the message to be sent.</param>
+        /// <param name="offset">The offset in buffer</param>
         /// <param name="size">The size of the message to send.</param>
         /// <param name="flags">A combination of <see cref="SocketFlags"/> values to use when sending.</param>
         /// <returns>The number of bytes sent by the socket.</returns>
@@ -721,7 +722,7 @@
         /// <exception cref="ZmqSocketException">An error occurred sending data to a remote endpoint.</exception>
         /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
         /// <exception cref="NotSupportedException">The current socket type does not support Send operations.</exception>
-        public virtual int Send(byte[] buffer, int size, SocketFlags flags)
+        public virtual int Send(byte[] buffer, int offset, int size, SocketFlags flags)
         {
             EnsureNotDisposed();
 
@@ -735,7 +736,7 @@
                 throw new ArgumentOutOfRangeException("size", "Expected a non-negative value less than or equal to the buffer length.");
             }
 
-            int sentBytes = _socketProxy.Send(buffer, size, (int)flags);
+            int sentBytes = _socketProxy.Send(buffer, offset, size, (int)flags);
 
             if (sentBytes >= 0)
             {
@@ -756,6 +757,28 @@
             }
 
             throw new ZmqSocketException(ErrorProxy.GetLastError());
+        }
+
+        /// <summary>
+        /// Queue a message buffer to be sent by the socket in blocking mode.
+        /// </summary>
+        /// <remarks>
+        /// Performance tip: To increase send performance, especially on low-powered devices, restrict the
+        /// size of <paramref name="buffer"/> to <see cref="MaxBufferSize"/>. This will reduce the number of
+        /// P/Invoke calls required to send the message buffer.
+        /// </remarks>
+        /// <param name="buffer">A <see cref="byte"/> array that contains the message to be sent.</param>
+        /// <param name="size">The size of the message to send.</param>
+        /// <param name="flags">A combination of <see cref="SocketFlags"/> values to use when sending.</param>
+        /// <returns>The number of bytes sent by the socket.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="buffer"/> is null.</exception>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="size"/> is a negative value or is larger than the length of <paramref name="buffer"/>.</exception>
+        /// <exception cref="ZmqSocketException">An error occurred sending data to a remote endpoint.</exception>
+        /// <exception cref="ObjectDisposedException">The <see cref="ZmqSocket"/> has been closed.</exception>
+        /// <exception cref="NotSupportedException">The current socket type does not support Send operations.</exception>
+        public virtual int Send(byte[] buffer, int size, SocketFlags flags)
+        {
+            return Send(buffer, 0, size, flags);
         }
 
         /// <summary>
